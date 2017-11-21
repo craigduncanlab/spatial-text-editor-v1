@@ -47,7 +47,7 @@ public static void main(String[] args) {
         launch(args);
   }
 
-//--Uses of the Word Tools ---
+//-- Using instances of WordTool objects ---
 
 private String getTextfromFile(String fname) {
     WordTool myTool = new WordTool();
@@ -138,7 +138,7 @@ StackPane root = new StackPane();
         });
         //Button for definitions
         Button btnDefs = new Button();
-        btnDefs.setText("Get Definitions");
+        btnDefs.setText("Extract Definitions");
         //event handling listener, handle override and outer class method calls
         btnDefs.setOnAction(new EventHandler<ActionEvent>() {
         @Override public void handle(ActionEvent event) {
@@ -147,6 +147,9 @@ StackPane root = new StackPane();
                 String gotcha = MainStage.this.textArea1.getText();
                 String newDefs = MainStage.this.getMatched(gotcha);
                 MainStage.this.textArea4.setText(newDefs);
+                //also test this new method with class of Definition
+                WordTool myhandlerTool = new WordTool();
+                myhandlerTool.makeDefsCollection(gotcha);
             }
         });
         //Set horizontal boxes with spacing and child nodes *i.e. a row 
