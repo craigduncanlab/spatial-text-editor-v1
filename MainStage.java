@@ -62,8 +62,13 @@ private void printStatsfromFile(String fname) {
     myTool.printCountFromFile(fname);
 }
 
-//if this is public it can still be seen by the event handlers inside override
-public String getCommonWordsNow(String data) {
+//used by event handler
+private void getMatched(String data) {
+    WordTool myTool = new WordTool();
+    myTool.printMatchedDefs(data);
+}
+//used by event handler
+private String getCommonWordsNow(String data) {
     WordTool myTool = new WordTool();
     return myTool.getCommonWordsFromString(data);
 }
@@ -125,6 +130,8 @@ StackPane root = new StackPane();
                 String gotcha = MainStage.this.textArea1.getText();
                 String newTA = MainStage.this.getCommonWordsNow(gotcha);
                 MainStage.this.textArea2.setText(newTA);
+                //new one
+                MainStage.this.getMatched(gotcha);
             }
         });
         //Set horizontal boxes with spacing and child nodes *i.e. a row 

@@ -14,6 +14,9 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;
+//for pattern matching:
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class WordTool {
 	 //setup (declare) instance variables.  Need the qualifying word 'static' to share one for whole class.
@@ -72,7 +75,7 @@ private TreeMap<Integer, String> trimTreeMap(TreeMap<Integer, String> myTMap) {
       TreeMap<Integer, String> trimmedTreeMap = new TreeMap<Integer, String>(Collections.reverseOrder());
       myTMap.forEach((k,v)->
         {
-          //introduce threshold for results. 10+ results, length of three or more.  Not excluded.
+          //introduce threshold for results. e.g. 5+ results, length of three or more.  Not excluded.
           if ((k>5 && v.length()>3) && (excludedWords.contains(v)!=true)) {
             trimmedTreeMap.put(k,v);
         }
@@ -114,7 +117,7 @@ It uses the Collections Iterator class method 'next', on the set of Map entries.
 It uses the Map.Entry methods getKey() and getValue() to extract items.
 All objects use the specific TreeMap data types, not raw types.
 
-TO DO: check there are sufficient words to report on 
+Uses 'while' rather than 'for' to ensure there are sufficient words to report on 
 */
 
 private String getMostCommonFromMap(TreeMap<Integer, String> myTMap) {
@@ -149,6 +152,41 @@ private String readFile(String fname) {
        return output;
 
 }
+
+//method to find specific parts of the string, in turn
+public void printMatchedDefs (String mydata) {
+    //String mydata = "some string with 'the data i want' inside";
+    /*Pattern pattern = Pattern.compile("' means '");
+    Matcher matcher = pattern.matcher(mydata);
+    */
+    //Pattern p = Pattern.compile(".*\\\"(.*)\\\". means *");
+    //Pattern p = Pattern.compile(["'])(\\?.)*?\1");
+    //Pattern p = Pattern.compile("(["'])(?:(?=(\\?))\2.)*?\1.means");
+     //Pattern p = Pattern.compile("(["'])(.*?)(["'])means");
+    //Pattern p = Pattern.compile(".*\\\"(.*)\\\" means");
+    //Pattern p = Pattern.compile("\\\"(.*)\\\" (means){1}");
+    /*Explanation: Finds one or more word characters between the quotes then means
+    misses the first definition because there is a quote missing 
+    The quantifiers * = zero or more and + = one or more times
+    So this checks for possible preceding words and spaces, but optional
+    This would check for up to 3 terms in definition:
+    Pattern p = Pattern.compile("\\\"(\\w* *\\w* *\\w+)\\\" means{1}");
+    */
+    //This one checks for any number of words followed by spaces:
+    Pattern p = Pattern.compile("\\\"((\\w* *)*\\w+)\\\" means{1}");
+    //if I make the means match once with {1} it helps to short-circuit missing quotes
+    //Matcher m = p.matcher("your \"string\" here");
+    Matcher matcher = p.matcher(mydata);
+    int matchCount=0;
+    while (matcher.find())
+        {
+         System.out.println(matcher.group(1)); 
+         //if you use group(1) you limit output to something identified with () inside the pattern
+         //0 = first group, 1 = 2nd etc
+         matchCount++;
+        }
+        System.out.println(matchCount+" matches \n");
+  }
 
 //for other methods to call these are public methods
 public void printCountFromFile(String fname) {
