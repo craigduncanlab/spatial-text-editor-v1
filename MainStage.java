@@ -49,25 +49,35 @@ public static void main(String[] args) {
 
 private String getTextfromFile(String fname) {
     WordTool myTool = new WordTool();
-    return myTool.getString(fname);
+    return myTool.getFileAsString(fname);
 }
 
 private String getMostCommon(String fname) {
     WordTool myTool = new WordTool();
-    return myTool.getStringMostCommon(fname);
+    return myTool.getCommonWordsFromFile(fname);
 }
 
-private void getStatsfromFile(String fname) {
+private void printStatsfromFile(String fname) {
     WordTool myTool = new WordTool();
-    myTool.getCount(fname);
+    myTool.printCountFromFile(fname);
 }
 
+//if this is public it can still be seen by the event handlers inside override
+public String getCommonWordsNow(String data) {
+    WordTool myTool = new WordTool();
+    return myTool.getCommonWordsFromString(data);
+}
+
+public void pressMe() {
+    System.out.println ("Button pressed - registered with main app");
+}
 
 
 /* Setup text area with blank text to start.  To put default text in at time of constructing,
-insert text strings into TextArea arguments */
+insert text strings into TextArea arguments
+make this public so that the inner class can find it  */
 
-private void setupStage(Stage textStage) {
+public void setupStage(Stage textStage) {
 
 StackPane root = new StackPane();
         //root.getChildren().add(btn);  //we put the button on the StackPane.
@@ -104,11 +114,25 @@ StackPane root = new StackPane();
         TextArea textArea6 = new TextArea();
         textArea5.setPrefColumnCount(widthcol1); //set max width 
         textArea6.setPrefColumnCount(widthcol2); //set max width 
+        //button
+        Button btn = new Button();
+        btn.setText("Update Word Counts");
+        //event handling listener, handle override and outer class method calls
+        btn.setOnAction(new EventHandler<ActionEvent>() {
+        @Override public void handle(ActionEvent event) {
+                System.out.println("Word Count Button was pressed!");
+                //Outer class method class
+                String gotcha = MainStage.this.textArea1.getText();
+                String newTA = MainStage.this.getCommonWordsNow(gotcha);
+                MainStage.this.textArea2.setText(newTA);
+            }
+        });
         //Set horizontal boxes with spacing and child nodes *i.e. a row 
         HBox hbox1 = new HBox(0,textArea1,textArea2);
         HBox hbox2 = new HBox(0,textArea3,textArea4);
+        HBox hbox3 = new HBox(0,btn);
         //put each of our rows into a vertical scroll box
-        VBox vbox2 = new VBox(0,hbox1,hbox2);
+        VBox vbox2 = new VBox(0,hbox1,hbox2,hbox3);
         /* An alternative method is like this:
         vbox2.getChildren().addAll(hbox1,hbox2,hbox3);
         */
@@ -139,8 +163,16 @@ private void setArea2Text(String fname) {
         String myStats=this.getMostCommon(fname);
         this.textArea2.setText(myStats);
         //send some stats to console
-        this.getStatsfromFile(fname);
+        this.printStatsfromFile(fname);
 }
+
+/*
+private String getArea1Text() {
+        //get stats from file and put in textarea 2
+        return this.textArea1.getText();
+        //return myStats;
+}
+*/
 
 /** OVERRIDE
 */
@@ -151,15 +183,17 @@ private void setArea2Text(String fname) {
         //I'm going to try out a few of the cool JavaFX controls
         Button btn = new Button();
         btn.setText("Say 'Hello World'");
+        //this registers an event handler for button press ("ActionEvent")
         btn.setOnAction(new EventHandler<ActionEvent>() {
- 
-            @Override
+            //not sure why this @Override was here
+            //@Override 
+            //This is the event handler method
             public void handle(ActionEvent event) {
                 System.out.println("The Text Area Button was pressed!");
             }
         });
         primaryStage.show();
-        
+
         //use this object to setup the Stage for main use
         //TO DO: Setup a secondary 'Stage' for file input, creation of toolbars etc.
         this.myTextFile="popstarlease.txt";

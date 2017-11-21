@@ -29,7 +29,7 @@ public WordTool () {
   
 }
 
-private TreeMap<Integer, String> CountString(String inputMe) {
+private TreeMap<Integer, String> makeMapFromStringCounts(String inputMe) {
     //map structure for counting
     Map<String, Integer> map = new HashMap<String, Integer>();
     //use function String as input for inner Scanner
@@ -117,7 +117,7 @@ All objects use the specific TreeMap data types, not raw types.
 TO DO: check there are sufficient words to report on 
 */
 
-private String getMostCommon(TreeMap<Integer, String> myTMap) {
+private String getMostCommonFromMap(TreeMap<Integer, String> myTMap) {
     String output="";
     Set<Map.Entry<Integer,String>> set = myTMap.entrySet();
     Iterator<Map.Entry<Integer,String>> i = set.iterator();
@@ -151,21 +151,20 @@ private String readFile(String fname) {
 }
 
 //for other methods to call these are public methods
-public void getCount(String fname) {
+public void printCountFromFile(String fname) {
   String data = this.readFile(fname);
-  TreeMap<Integer, String> dataTM = this.CountString(data);
+  TreeMap<Integer, String> dataTM = this.makeMapFromStringCounts(data);
   printTreeMap(trimTreeMap(dataTM));
   displayMostCommon(trimTreeMap(dataTM));
 
 }
 
-public String getStringMostCommon(String fname) {
+public String getCommonWordsFromFile(String fname) {
   String data = this.readFile(fname);
-  TreeMap<Integer, String> dataTM = this.CountString(data);
-  return getMostCommon(trimTreeMap(dataTM));
+  return getCommonWordsFromString(data);
 }
 
-public String getString(String fname) {
+public String getFileAsString(String fname) {
   String data = this.readFile(fname);
   return data;
 }
@@ -174,8 +173,13 @@ public static void main(String args[]){
 		/* This is needed if running as a single instance on object creation
     WordTool bob = new WordTool();
 		String data = bob.readFile("popstarlease.txt");
-    bob.CountString(data);
+    bob.makeMapFromStringCounts(data);
     */
+}
+
+public String getCommonWordsFromString(String data) {
+  TreeMap<Integer, String> dataTM = this.makeMapFromStringCounts(data);
+  return getMostCommonFromMap(trimTreeMap(dataTM));
 }
 
 }
