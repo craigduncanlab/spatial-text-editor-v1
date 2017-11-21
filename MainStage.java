@@ -38,6 +38,8 @@ public class MainStage extends Application {
     Stage textStage = new Stage(); //basic constructor
     TextArea textArea1 = new TextArea();
     TextArea textArea2 = new TextArea();
+    TextArea textArea3 = new TextArea();
+    TextArea textArea4 = new TextArea();
     String myTextFile="";
 
 
@@ -63,9 +65,9 @@ private void printStatsfromFile(String fname) {
 }
 
 //used by event handler
-private void getMatched(String data) {
+private String getMatched(String data) {
     WordTool myTool = new WordTool();
-    myTool.printMatchedDefs(data);
+    return myTool.printMatchedDefs(data);
 }
 //used by event handler
 private String getCommonWordsNow(String data) {
@@ -110,8 +112,8 @@ StackPane root = new StackPane();
         this.textArea1.setPrefColumnCount(widthcol1); //set max width 
         this.textArea2.setPrefColumnCount(widthcol2); //set max width 
         //
-        TextArea textArea3 = new TextArea();
-        TextArea textArea4 = new TextArea();
+        this.textArea3 = new TextArea();
+        this.textArea4 = new TextArea();
         textArea3.setPrefColumnCount(widthcol1); //set max width 
         textArea4.setPrefColumnCount(widthcol2); //set max width 
         //
@@ -119,7 +121,7 @@ StackPane root = new StackPane();
         TextArea textArea6 = new TextArea();
         textArea5.setPrefColumnCount(widthcol1); //set max width 
         textArea6.setPrefColumnCount(widthcol2); //set max width 
-        //button
+        //button for Word Counts
         Button btn = new Button();
         btn.setText("Update Word Counts");
         //event handling listener, handle override and outer class method calls
@@ -131,13 +133,26 @@ StackPane root = new StackPane();
                 String newTA = MainStage.this.getCommonWordsNow(gotcha);
                 MainStage.this.textArea2.setText(newTA);
                 //new one
-                MainStage.this.getMatched(gotcha);
+                //MainStage.this.getMatched(gotcha);
+            }
+        });
+        //Button for definitions
+        Button btnDefs = new Button();
+        btnDefs.setText("Get Definitions");
+        //event handling listener, handle override and outer class method calls
+        btnDefs.setOnAction(new EventHandler<ActionEvent>() {
+        @Override public void handle(ActionEvent event) {
+                System.out.println("Get Defs Button was pressed!");
+                //Outer class method class
+                String gotcha = MainStage.this.textArea1.getText();
+                String newDefs = MainStage.this.getMatched(gotcha);
+                MainStage.this.textArea4.setText(newDefs);
             }
         });
         //Set horizontal boxes with spacing and child nodes *i.e. a row 
-        HBox hbox1 = new HBox(0,textArea1,textArea2);
-        HBox hbox2 = new HBox(0,textArea3,textArea4);
-        HBox hbox3 = new HBox(0,btn);
+        HBox hbox1 = new HBox(0,this.textArea1,this.textArea2);
+        HBox hbox2 = new HBox(0,this.textArea3,this.textArea4);
+        HBox hbox3 = new HBox(0,btn,btnDefs);
         //put each of our rows into a vertical scroll box
         VBox vbox2 = new VBox(0,hbox1,hbox2,hbox3);
         /* An alternative method is like this:

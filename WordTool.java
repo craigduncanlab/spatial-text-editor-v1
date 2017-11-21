@@ -154,17 +154,8 @@ private String readFile(String fname) {
 }
 
 //method to find specific parts of the string, in turn
-public void printMatchedDefs (String mydata) {
-    //String mydata = "some string with 'the data i want' inside";
-    /*Pattern pattern = Pattern.compile("' means '");
-    Matcher matcher = pattern.matcher(mydata);
-    */
-    //Pattern p = Pattern.compile(".*\\\"(.*)\\\". means *");
-    //Pattern p = Pattern.compile(["'])(\\?.)*?\1");
-    //Pattern p = Pattern.compile("(["'])(?:(?=(\\?))\2.)*?\1.means");
-     //Pattern p = Pattern.compile("(["'])(.*?)(["'])means");
-    //Pattern p = Pattern.compile(".*\\\"(.*)\\\" means");
-    //Pattern p = Pattern.compile("\\\"(.*)\\\" (means){1}");
+public String printMatchedDefs (String mydata) {
+    String output="";
     /*Explanation: Finds one or more word characters between the quotes then means
     misses the first definition because there is a quote missing 
     The quantifiers * = zero or more and + = one or more times
@@ -172,7 +163,7 @@ public void printMatchedDefs (String mydata) {
     This would check for up to 3 terms in definition:
     Pattern p = Pattern.compile("\\\"(\\w* *\\w* *\\w+)\\\" means{1}");
     */
-    //This one checks for any number of words followed by spaces:
+    //This one checks for any number of words followed by spaces then a word end quote:
     Pattern p = Pattern.compile("\\\"((\\w* *)*\\w+)\\\" means{1}");
     //if I make the means match once with {1} it helps to short-circuit missing quotes
     //Matcher m = p.matcher("your \"string\" here");
@@ -184,8 +175,12 @@ public void printMatchedDefs (String mydata) {
          //if you use group(1) you limit output to something identified with () inside the pattern
          //0 = first group, 1 = 2nd etc
          matchCount++;
+         output=output+"\n"+matcher.group(1); //TO DO: use Definitions object
         }
-        System.out.println(matchCount+" matches \n");
+        System.out.println(matchCount+" matches \n");  //TO DO: store this.
+        //definitions object?  i.e. definitions stored in an array as data type?
+        //read off from file, then store current set of definitions as an object?
+        return output;
   }
 
 //for other methods to call these are public methods
