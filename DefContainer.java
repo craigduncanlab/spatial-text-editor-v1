@@ -51,8 +51,28 @@ public void doPrintIteration() {
 	while (myiterator.hasNext()) {
 		Definition mydefinition = myiterator.next();
 		String mylabel = mydefinition.getLabel();
-		System.out.println(mylabel);
+		String mytext = mydefinition.getDef();
+		System.out.println(mylabel+" : "+mytext);
 	}
 }
+
+/* 
+This method returns both labels and text.  It uses the instance container. 
+*/
+
+public String getDefAndText() {
+	String output="";
+	//make the iterator <Definition> type otherwise it defaults to Object
+	Iterator<Definition> myiterator = this.myDefinitions.iterator();
+	while (myiterator.hasNext()) {
+		Definition mydefinition = myiterator.next();
+		String mylabel = mydefinition.getLabel();
+		String mytext = mydefinition.getDef();
+		System.out.println(mylabel+" : "+mytext);
+		output=output+mylabel+" : "+mytext+"\n";
+	}
+	return output;
+}
+
 
 }

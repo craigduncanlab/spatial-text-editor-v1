@@ -67,7 +67,9 @@ private void printStatsfromFile(String fname) {
 //used by event handler
 private String getMatched(String data) {
     WordTool myTool = new WordTool();
-    return myTool.printMatchedDefs(data);
+    DefContainer defbox = myTool.doDefTextSearch(data);
+    return defbox.getDefAndText();
+                
 }
 //used by event handler
 private String getCommonWordsNow(String data) {
@@ -147,9 +149,6 @@ StackPane root = new StackPane();
                 String gotcha = MainStage.this.textArea1.getText();
                 String newDefs = MainStage.this.getMatched(gotcha);
                 MainStage.this.textArea4.setText(newDefs);
-                //also test this new method with class of Definition
-                WordTool myhandlerTool = new WordTool();
-                myhandlerTool.makeDefsCollection(gotcha);
             }
         });
         //Set horizontal boxes with spacing and child nodes *i.e. a row 

@@ -193,34 +193,37 @@ public String printMatchedDefs (String mydata) {
 
   /*
   method to extract Definitions from string, make a Definition object for each Definition and store in a DefContainer 
+
+  //This one checks for any number of words followed by spaces then a word end quote:
+    //Brackets that aren't escaped are used by the regexp pattern. \w is word character
+    //quantifiers include * for 0 or more, + for one or more
+    //extract labels only: Pattern p = Pattern.compile("\\\"((\\w* *)*\\w+)\\\" means{1}");
+
+//if you use group(1) you limit output to something identified with () inside the pattern
+         //m.group() is all string(so is m.group(0).  m.group(1) etc are left to right.
+
   */
 
   public DefContainer makeDefsCollection(String mydata) {
     DefContainer myContainer = new DefContainer();
     String output="";
-    //This one checks for any number of words followed by spaces then a word end quote:
-    //Brackets that aren't escaped are used by the regexp pattern. \w is word character
-    //quantifiers include * for 0 or more, + for one or more
-    //extract labels only: Pattern p = Pattern.compile("\\\"((\\w* *)*\\w+)\\\" means{1}");
-    Pattern p = Pattern.compile("\\\"((\\w* *)*\\w+)\\\" means{1}(\\w+.*\\n{1})");
+    Pattern p = Pattern.compile("\\\"(([\\w\\’' ]*)*[\\w\\’']+)\\\" means[: ]([\\w\\^\\w\\s\\(\\)\\:\\-;,\\/\\’'\\<\\>\\u2013\\u2019\\x0a\\\"]*)\\.");
     //if I make the means match once with {1} it helps to short-circuit missing quotes
     Matcher matcher = p.matcher(mydata);
     int matchCount=0;
     while (matcher.find())
         {
          System.out.println(matcher.group(1)+" group 2:"+matcher.group(2)); 
-         //if you use group(1) you limit output to something identified with () inside the pattern
-         //m.group() is all string(so is m.group(0).  m.group(1) etc are left to right.
          matchCount++;
-         output=output+"\n"+matcher.group(1); //TO DO: use Definitions object
+         //output=output+"\n"+matcher.group(1); //TO DO: use Definitions object
          Definition myDef  = new Definition();
          myDef.setDeflabel(matcher.group(1));
-         myDef.setDeftext(matcher.group(2));
+         myDef.setDeftext(matcher.group(3));
          myContainer.addDef(myDef);
         }
-        System.out.println(matchCount+" matches \n");  
-        System.out.println("Test iteration");
-        myContainer.doPrintIteration();
+        //System.out.println(matchCount+" matches \n");  
+        //System.out.println("Test iteration");
+        //myContainer.doPrintIteration();
         //TO DO: store this.
         //definitions object?  i.e. definitions stored in an array as data type?
         //read off from file, then store current set of definitions as an object?
@@ -228,10 +231,8 @@ public String printMatchedDefs (String mydata) {
         return myContainer;
   }
 
-  public void doDefTextSearch(String mydata) {
-    DefContainer myContainer = new DefContainer();
-    String output="";
-    //This one checks for any number of words followed by spaces then a word end quote:
+  /*
+  //This one checks for any number of words followed by spaces then a word end quote:
     //Brackets that aren't escaped are used by the regexp pattern. \w is word character
     //quantifiers include * for 0 or more, + for one or more
     //extract labels only: Pattern p = Pattern.compile("\\\"((\\w* *)*\\w+)\\\" means{1}");
@@ -244,31 +245,32 @@ public String printMatchedDefs (String mydata) {
     //, Pattern.UNICODE_CHARACTER_CLASS
     //Pattern p = Pattern.compile("\\\"(([\\w']* *)*[\\w']+)\\\" means ([\\w \\p{Punct}\\-\\u2013\\u2019]*)\\.");
     //quotes are ok after 'means' and before the full stop
+
+    //+" group 4:"+matcher.group(4));
+         //if you use group(1) you limit output to something identified with () inside the pattern
+         //m.group() is all string(so is m.group(0).  m.group(1) etc are left to right.
+
+    */
+
+
+  public DefContainer doDefTextSearch(String mydata) {
+    DefContainer myContainer = new DefContainer();
+    String output="";
+    
     Pattern p = Pattern.compile("\\\"(([\\w\\’' ]*)*[\\w\\’']+)\\\" means[: ]([\\w\\^\\w\\s\\(\\)\\:\\-;,\\/\\’'\\<\\>\\u2013\\u2019\\x0a\\\"]*)\\.");
-    //Pattern p2 = Pattern.compile("(\\w+.*\\n{1})")
-    //if I make the means match once with {1} it helps to short-circuit missing quotes
     Matcher matcher = p.matcher(mydata);
     int matchCount=0;
     while (matcher.find())
         {
-         System.out.println(matcher.group(1)+" group 2:"+matcher.group(2)+" group 3:"+matcher.group(3));//+" group 4:"+matcher.group(4));
-         //if you use group(1) you limit output to something identified with () inside the pattern
-         //m.group() is all string(so is m.group(0).  m.group(1) etc are left to right.
+         System.out.println(matcher.group(1)+" group 2:"+matcher.group(2)+" group 3:"+matcher.group(3));
          matchCount++;
          output=output+"\n"+matcher.group(1); //TO DO: use Definitions object
          Definition myDef  = new Definition();
          myDef.setDeflabel(matcher.group(1));
-         myDef.setDeftext(matcher.group(2));
+         myDef.setDeftext(matcher.group(3));
          myContainer.addDef(myDef);
         }
-        System.out.println(matchCount+" matches \n");  
-        System.out.println("Test iteration in doDefText");
-        myContainer.doPrintIteration();
-        //TO DO: store this.
-        //definitions object?  i.e. definitions stored in an array as data type?
-        //read off from file, then store current set of definitions as an object?
-        //TO DO 2: strip off the text of the definition at the same time, store in definitions.
-        //return myContainer;
+        return myContainer;
   }
 
 //for other methods to call these are public methods
