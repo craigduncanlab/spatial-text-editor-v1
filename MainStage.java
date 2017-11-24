@@ -7,14 +7,24 @@ JavaFX implementation of GUI started 17.11.2017 by Craig Duncan
 import javafx.application.Application;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+//Scene graph (nodes)
+import javafx.scene.Group;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
-//these last 2 are for textarea
+//Scene - Text as text
+import javafx.scene.text.Text;  //nb you can't stack textarea and shape controls but this works
+//Scene - Text controls 
 import javafx.scene.control.TextArea;
+import javafx.scene.control.TextInputControl;
+import javafx.scene.control.TextField;
+import javafx.scene.control.Button;
+//Scene - general appearance & layout
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.layout.HBox;
+import javafx.geometry.Insets;
 //for scroll panes
  import javafx.scene.control.ScrollPane;
  //package classes
@@ -40,6 +50,7 @@ public class MainStage extends Application {
     TextArea textArea2 = new TextArea();
     TextArea textArea3 = new TextArea();
     TextArea textArea4 = new TextArea();
+    Text graphicBoxText = new Text(); //for label
     String myTextFile="";
 
 
@@ -88,7 +99,7 @@ make this public so that the inner class can find it  */
 
 public void setupStage(Stage textStage) {
 
-StackPane root = new StackPane();
+        StackPane root = new StackPane(); //currently unused.
         //root.getChildren().add(btn);  //we put the button on the StackPane.
         /**create a text area.  if no size in constructor these will fit the scene we create later */
         
@@ -148,7 +159,8 @@ StackPane root = new StackPane();
                 //Outer class method class
                 String gotcha = MainStage.this.textArea1.getText();
                 String newDefs = MainStage.this.getMatched(gotcha);
-                MainStage.this.textArea4.setText(newDefs);
+                MainStage.this.textArea3.setText(newDefs);
+                //MainStage.this.textArea4.setText(newDefs);
             }
         });
         //Set horizontal boxes with spacing and child nodes *i.e. a row 
@@ -168,13 +180,68 @@ StackPane root = new StackPane();
 
         //add your parent node to scene.  e.g. you put your vbox2 inside a scroll pane, add the scroll pane.
         Scene scene = new Scene(scroll, 800, 500); //width x height in pixels?
+        textStage.setX(200);
         textStage.setScene(scene);
         //optional: 
         textStage.sizeToScene(); 
         //mandatory
         textStage.show();
-}
+    }
+        /* ---- SETUP A SECOND STAGE FOR SOME VISUAL OUTPUT--- */
+        /*  groups have no layout or sizing for children...they have Nodes, positioned at (0,0)
+        Group myGroup = new Group(); 
+        myGroup.getChildren().addAll(some Nodes here....);
+        Might be useful to have a group and add the group to the flow...
+        [or just use stackpane?]
+        */
 
+public void setupGraphWindow(Stage myStage) {
+        //Stage<--Scene<---Group or Layout(Stackpane,Vbox etc)<--Shapes and text {i.e. Leaf-Node objects}
+        DefBox littleBox = new DefBox(); //rectangle?
+        this.graphicBoxText.setText("Just some dummy text");
+        
+        //FlowPane myFlow = new FlowPane();  //Use this for master layout
+        GridPane myGrid = new GridPane();
+        myGrid.setPadding(new Insets(5, 5, 5, 5));
+        myGrid.setMinSize(500, 500);
+        myGrid.setVgap(5);
+        myGrid.setHgap(5);
+        StackPane myBoxStack = new StackPane();
+        myBoxStack.getChildren().addAll(graphicBoxText,littleBox);
+        myGrid.getChildren().add(myBoxStack); //add to the layout object
+        //add another child stack (box) to layout object TO DO write function
+        StackPane myCloneStack = new StackPane();
+        Text myText2 = new Text ("happy Days");
+        DefBox myBox2  = new DefBox();
+        myCloneStack.getChildren().addAll(myText2, myBox2);
+        //add the Second Stack (box) to the same Grid
+        myGrid.add(myCloneStack,2,2); //col, row and no children method
+        //add layout object to scene
+        Scene boxScene = new Scene (myGrid,400,400); //width x height (px)
+        //myStage.setScene(boxScene);
+        
+        myStage.setScene(boxScene);
+        myStage.setTitle("The Graphics Window");
+        myStage.setX(1000);
+        //stage.setWidth(800);
+        //stage.setHeight(400);
+        myStage.show();
+}
+/*
+public void addLabelBoxToWindow (Stage myStage, String myText) {
+        //Stage<--Scene<---Group<--Layout(Stackpane,Vbox etc)<--Shapes and text
+        //nb you are working with the 'Scene Graph' to navigate....
+        //if you pass Stage in that is an instance object, you get access to the additions?
+        //you use the method 'getChildren' on objects to find what's already on them
+        DefBox littleBox = new DefBox();
+        TextField myTextBox = new TextField(myText);
+        Scene myScene = myStage.getChildren();
+        myStage.setScene(myScene);
+        StackPane stack = new StackPane();
+        //stack.getChildren().addAll(littleBox, myTextBox);
+        myScene.add(stack);
+        }
+*/
 private void setArea1Text(String fname) {
         //get text from file and put in textarea 1
         String myText=this.getTextfromFile(fname);
@@ -227,6 +294,9 @@ private String getArea1Text() {
         this.setArea2Text(this.myTextFile);
         /* This only affects the primary stage set by the application */
         primaryStage.close();
+        Stage visualWindow = new Stage();
+        this.setupGraphWindow(visualWindow);
+        //this.addLabelBoxToWindow(visualWindow, "help!");
         
     }
 }

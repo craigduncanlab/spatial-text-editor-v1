@@ -15,7 +15,7 @@ nb a set of iteration methods could be written here, but OOP school of thought i
 
 public class DefContainer {
 //setup declare instance variables. shared in class if preceded by static.	
-ArrayList<Definition> myDefinitions = new ArrayList<Definition>();  //For test, this will just hold the names
+ArrayList<Definition> myDefinitions = new ArrayList<Definition>();  
 int numDefs=0; //this will hold number of definitions
 
 //empty constructor no arguments
@@ -26,21 +26,6 @@ public DefContainer() {
 public void addDef(Definition newDef) {
 	this.myDefinitions.add(newDef);
 }
-
-/*public String getStringDefs() {
-	String output="";
-	//Java's ListIterator is an interface: it's up to you to build a class to implement it, then make that class.
-	DefinitionIterator<Definition> myiterator = new DefinitionIterator();
-	while (myiterator.hasnext()) {
-		Definition thisitem=myiterator.next();
-		//include end of line between items
-		String = thisitem.getLabel();
-		output=output+"\n"+thisitem;
-	}
-	return output;
-
-}
-*/
 
 /* This method makes use of the fact that an ArrayList is part of Java's collections, and as such, we can call a method that creates an iterator object, and use it.
 */
@@ -69,7 +54,7 @@ public String getDefAndText() {
 		String mylabel = mydefinition.getLabel();
 		String mytext = mydefinition.getDef();
 		System.out.println(mylabel+" : "+mytext);
-		output=output+mylabel+" : "+mytext+"\n";
+		output=output+mylabel+":\n----------\n"+mytext+"\n\n";
 	}
 	return output;
 }
