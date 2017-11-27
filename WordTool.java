@@ -131,7 +131,7 @@ private String getMostCommonFromMap(TreeMap<Integer, String> myTMap) {
     while (i.hasNext() && x<mostCommonLimit) {
       x++;
       Map.Entry<Integer,String> me = i.next();
-      output=output + me.getKey() + " : " + me.getValue() + "\n"; //line return
+      output=output + me.getKey() + " : " + me.getValue() + "\n"; //line return (UNIX Style x0A)
     }
     return output;
 }
@@ -149,7 +149,7 @@ private String readFile(String fname) {
                   } 
        while (sc.hasNextLine()) {
        String S = sc.nextLine();
-       output = output + S;
+       output = output + S + "\n"; //to preserve LF
        }
        return output;
 
