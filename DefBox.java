@@ -26,6 +26,9 @@ public class DefBox extends Rectangle{
         if (mycol.equals("green")) {
             myColour = Color.GREEN;
         }
+         if (mycol.equals("yellow")) {
+            myColour = Color.YELLOW;
+        }
         setWidth(150);
         setHeight(60);
         //setArcWidth(60);  //do this enough you get a circle

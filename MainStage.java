@@ -11,6 +11,9 @@ import javafx.event.EventHandler;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+//traversal of scene graph
+import javafx.scene.Node; 
+import javafx.scene.Parent;
 //Scene - Text as text
 import javafx.scene.text.Text;  //nb you can't stack textarea and shape controls but this works
 //Scene - Text controls 
@@ -18,6 +21,7 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextInputControl;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Button;
+import javafx.scene.control.Tooltip;
 //Scene - general appearance & layout
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.GridPane;
@@ -30,6 +34,8 @@ import javafx.geometry.Insets;
  //for Mouse Click and Drag
  import javafx.scene.input.MouseEvent;
  import javafx.scene.Cursor;
+ //ArrayList etc
+ import java.util.*;
 
  //package classes
  //import WordTool;
@@ -48,13 +54,18 @@ https://docs.oracle.com/javase/8/javafx/api/javafx/application/Application.html
 */
 public class MainStage extends Application {
     //setup instance variables here.  Static if shared across class (i.e. static=same memory location used)
-    //Stage textStage = null;
-    Stage textStage = new Stage(); //basic constructor
+    //instance variables for Screens to hold them if changed.
+    Stage textStage = new Stage(); //basic constructor for main text stage
+    Scene MainScene; // scene for adding on textStage.
+    Scene boxScene;   //scene for graphic window
+    Group boxGroup_root; //root node for graphic window
+    ScrollPane scroll_rootNode; //root Node for Text Area
+    HBox hbox1; //an hbox to add text and things to!
+    HBox hbox3;
     TextArea textArea1 = new TextArea();
     TextArea textArea2 = new TextArea();
     TextArea textArea3 = new TextArea();
     TextArea textArea4 = new TextArea();
-    Text graphicBoxText = new Text(); //for label
     String myTextFile="";
     //variables for mouse events TO DO : RENAME
     double orgSceneX, orgSceneY;
@@ -119,6 +130,8 @@ public void setupStage(Stage textStage) {
         int widthcol1=66; //columns? Think of in % terms?
         int widthcol2=33;
         int totalwidth=900; //this is pixels?
+
+        //TO DO:  CONCEPTUALISE WINDOWS/GROUPS TO WORK WITH EACH AS OBJECTS
         
         this.textArea1.setWrapText(true);
         this.textArea1.setPrefColumnCount(widthcol1); //set max width 
@@ -137,7 +150,7 @@ public void setupStage(Stage textStage) {
         textArea6.setPrefColumnCount(widthcol2); //set max width 
         
         //Set horizontal boxes with spacing and child nodes *i.e. a row 
-        HBox hbox1 = new HBox(0,this.textArea1,this.textArea2);
+        hbox1 = new HBox(0,this.textArea1,this.textArea2);
         HBox hbox2 = new HBox(0,this.textArea3,this.textArea4);
         
         //button for Word Counts
@@ -156,6 +169,7 @@ public void setupStage(Stage textStage) {
         });
         //Button for definitions
         Button btnDefs = new Button();
+        btnDefs.setTooltip(new Tooltip ("Press to extract definitions from top text area"));
         btnDefs.setText("Extract Definitions");
         //event handling listener, handle override and outer class method calls
         btnDefs.setOnAction(new EventHandler<ActionEvent>() {
@@ -170,7 +184,7 @@ public void setupStage(Stage textStage) {
         });
 
         //Set horizontal box for buttons
-        HBox hbox3 = new HBox(0,btn,btnDefs);
+        hbox3 = new HBox(0,btn,btnDefs);
         //put each of our rows into a vertical scroll box
         //VBox vbox2 = new VBox(0,hbox1,hbox2,hbox3);
         //vbox2.getChildren().addAll(hbox1,hbox2,hbox3);
@@ -180,14 +194,19 @@ public void setupStage(Stage textStage) {
         
         vbox2.setPrefWidth(totalwidth); //this is in different units to textarea
         /* Lastly, put the Vbox inside a scroll pane 
-        Set the scroll pane width otherwise it will default to some width based on contents of scene, stage */
-        ScrollPane scroll = new ScrollPane();
-        scroll.setContent(vbox2); 
+
+        /* ---- THE SCROLLPANE IS THE ROOT NODE OF THE SCENE (MAINSCENE) ---
+        Make sure it is an instance variable?
+        Set the scroll pane width otherwise it will default to some width based on contents of scene, stage 
+        
+        */
+        scroll_rootNode = new ScrollPane();
+        scroll_rootNode.setContent(vbox2); 
         //add your parent node to scene.  e.g. you put your vbox2 inside a scroll pane, add the scroll pane.
-        Scene scene = new Scene(scroll, 900, 500); //width x height in pixels?  contents have diff sizes
+        this.MainScene = new Scene(scroll_rootNode, 900, 500); //width x height in pixels?  contents have diff sizes
         /*Adding this to avoid consumption of event by child controls i.e. this works first */
         textStage.setX(200);
-        textStage.setScene(scene);
+        textStage.setScene(MainScene);
         //optional: 
         textStage.sizeToScene(); 
         
@@ -195,12 +214,18 @@ public void setupStage(Stage textStage) {
         /* ---- SETUP A SECOND STAGE FOR SOME VISUAL OUTPUT--- 
         Layout options include Group, GridPane, FlowPane, AnchorPane etc.
         Groups have no layout or sizing but are possibly better for absolute positioning.
+        
+        Basic JavaFX model:
+        1. Create Stage(s)
+        2. Scene/root (layout mandatory?) Constructor: //Stage<--Scene (1 at a time) <---Group or Layout(Stackpane,Vbox etc) as root.  There can be only one root.
+        3.  Modification: Layout(root node)<--Shapes and text {i.e. Leaf-Node objects}
+        [These layout nodes inherit the method getChildren from the Parent class]
+        
+        Stages are in view until closed; Scenes can be turned off and on (as with their root node).
         */
 
 public void setupGraphWindow(Stage myStage) {
-        //Stage<--Scene<---Group or Layout(Stackpane,Vbox etc)<--Shapes and text {i.e. Leaf-Node objects}
-        //define littleBox in start method rather than here...
-        this.graphicBoxText.setText("Just some dummy text");
+
         
         /* USING FLOWPANE
         FlowPane myFlow = new FlowPane();  
@@ -227,9 +252,28 @@ public void setupGraphWindow(Stage myStage) {
         //myStage.setScene(boxScene);
         */
 
-        /* USING GROUP LAYOUT */
-        Group myGroup = new Group();
+        /* MINIMUM SETUP USING GROUP LAYOUT */
+        boxGroup_root = new Group();
         
+        //add group layout object to scene
+        boxScene = new Scene (boxGroup_root,400,400); //width x height (px)
+        //Scene-level event handlers for testing
+        boxScene.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
+         @Override
+         public void handle(MouseEvent mouseEvent) {
+         System.out.println("Mouse click detected! " + mouseEvent.getSource());
+             }
+        });
+ 
+        myStage.setScene(boxScene); //this selects the stage as current scene
+        myStage.setTitle("The Graphics Window");
+        myStage.setX(1000);
+        //stage.setWidth(800);
+        //stage.setHeight(400);
+        myStage.show();
+
+        //Now test some things that will relate to dynamic functions later (add, remove) 
+
         //First box in window.  Each box object is a ready Stackpane with 2 child nodes
         littleStack = new StackBox("Some new text");
         littleStack.setTranslateX(300); //was 300
@@ -237,25 +281,34 @@ public void setupGraphWindow(Stage myStage) {
         littleStack.setOnMousePressed(PressBoxEventHandler); 
         littleStack.setOnMouseDragged(DragBoxEventHandler);
 
+        //add boxes to group that already exists in this stage
+        //myGroup.getChildren().addAll(myBox2,littleStack);
+        boxGroup_root.getChildren().add(littleStack);
+
         StackBox myBox2 = new StackBox("the 2nd box","green");
         myBox2.setTranslateX(100);
         myBox2.setTranslateY(200);
         myBox2.setOnMousePressed(PressBoxEventHandler); 
         myBox2.setOnMouseDragged(DragBoxEventHandler);
 
-        //add boxes to group
-        myGroup.getChildren().addAll(myBox2,littleStack);
-        
-        //add layout object to scene
-        Scene boxScene = new Scene (myGroup,400,400); //width x height (px)
-        
-        //detects mouse click anywhere in graphics window scene
-        boxScene.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
-         @Override
-         public void handle(MouseEvent mouseEvent) {
-         System.out.println("mouse click detected! " + mouseEvent.getSource());
-             }
-        });
+        //now add some yellow boxes with common words
+        WordTool myHelper = new WordTool();
+        ArrayList<String> boxList = new ArrayList<String>();
+        try {
+        boxList = myHelper.commonBoxSet("popstarLease.txt");
+        }
+        catch (Exception e) {
+                   e.printStackTrace();
+                  } 
+        Iterator<String> i = boxList.iterator();
+        while (i.hasNext()) {
+            StackBox b = new StackBox(i.next(), "yellow");
+            b.setOnMousePressed(PressBoxEventHandler); 
+            b.setOnMouseDragged(DragBoxEventHandler);
+            boxGroup_root.getChildren().add(b);
+        }
+
+         /* Some box-level event handlers for testing purposes */
         myBox2.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
          @Override
          public void handle(MouseEvent mouseEvent) {
@@ -270,12 +323,9 @@ public void setupGraphWindow(Stage myStage) {
              }
         });
 
-        myStage.setScene(boxScene);
-        myStage.setTitle("The Graphics Window");
-        myStage.setX(1000);
-        //stage.setWidth(800);
-        //stage.setHeight(400);
-        myStage.show();
+        //hbox3.getChildren().add(myBox2);  //How to refresh this?
+        boxGroup_root.getChildren().add(myBox2);
+
 }
 
 private void setArea1Text(String fname) {
@@ -362,7 +412,7 @@ private String getArea1Text() {
             double newTranslateY = orgTranslateY + offsetY;
             ((StackBox)(t.getSource())).setTranslateX(newTranslateX);
             ((StackBox)(t.getSource())).setTranslateY(newTranslateY);
-            System.out.println("Handling drag");
+            System.out.println("The handler for drag box is acting");
             t.consume();//check
 
         }
