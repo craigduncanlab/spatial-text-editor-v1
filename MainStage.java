@@ -1,5 +1,4 @@
-/** This application creates a GUI with a HelloWorld button, which when pressed, sends "hello world" to the terminal 
-All JavaFX applications need a Stage and a Scene
+/** This application creates a GUI as a legal doc environment
 JavaFX implementation of GUI started 17.11.2017 by Craig Duncan
 */
  
@@ -47,10 +46,6 @@ JavaFX applications have no general constructor and must override the 'start' me
 Note that JavaFX applications have a completely new command line interface:
 https://docs.oracle.com/javase/8/javafx/api/javafx/application/Application.Parameters.html
 
-The main method will uses the launch method of the Application class.
-see
-https://docs.oracle.com/javase/8/javafx/api/javafx/application/Application.html
-
 */
 public class MainStage extends Application {
     //setup instance variables here.  Static if shared across class (i.e. static=same memory location used)
@@ -75,6 +70,11 @@ public class MainStage extends Application {
     DefBox littleBox;
     StackBox littleStack;
     Scene graphicscene; //the scene in the second stage (window)
+
+
+/*The main method uses the launch method of the Application class.
+https://docs.oracle.com/javase/8/javafx/api/javafx/application/Application.html
+*/
 
 
 public static void main(String[] args) {
@@ -274,6 +274,8 @@ public void setupGraphWindow(Stage myStage) {
 
         //Now test some things that will relate to dynamic functions later (add, remove) 
 
+        /* TEST CASES
+
         //First box in window.  Each box object is a ready Stackpane with 2 child nodes
         littleStack = new StackBox("Some new text");
         littleStack.setTranslateX(300); //was 300
@@ -291,7 +293,28 @@ public void setupGraphWindow(Stage myStage) {
         myBox2.setOnMousePressed(PressBoxEventHandler); 
         myBox2.setOnMouseDragged(DragBoxEventHandler);
 
-        //now add some yellow boxes with common words
+        //Some box-level event handlers for testing purposes 
+
+        myBox2.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
+         @Override
+         public void handle(MouseEvent mouseEvent) {
+         System.out.println("mouse click detected for box2! " + mouseEvent.getSource());
+             }
+        });
+
+        //hbox3.getChildren().add(myBox2);  //How to refresh this?
+        boxGroup_root.getChildren().add(myBox2);
+
+        littleStack.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
+         @Override
+         public void handle(MouseEvent mouseEvent) {
+         System.out.println("mouse click detected for littleStack! " + mouseEvent.getSource());
+             }
+        });
+
+        */
+
+        //now add some yellow boxes with the common words
         WordTool myHelper = new WordTool();
         ArrayList<String> boxList = new ArrayList<String>();
         try {
@@ -301,31 +324,39 @@ public void setupGraphWindow(Stage myStage) {
                    e.printStackTrace();
                   } 
         Iterator<String> i = boxList.iterator();
+        int offX = 0;
         while (i.hasNext()) {
-            StackBox b = new StackBox(i.next(), "yellow");
+            offX=offX+50;
+            StackBox b;
+            if (offX<=100) {
+                b = new StackBox(i.next());
+            } else {
+                b = new StackBox(i.next(), "yellow");
+            }
+            b.setTranslateX(offX); //increments each time for display TO DO: set object ref.
+            b.setTranslateY(offX);
             b.setOnMousePressed(PressBoxEventHandler); 
             b.setOnMouseDragged(DragBoxEventHandler);
+            //pass current Stackbox into here
+            /*b.setOnMousePressed((e) ->{
+
+            switch(e.getClickCount()){
+                case 1:
+                    System.out.println("One click");
+                    //change colour or something
+                    break;
+                case 2:
+                    System.out.println("Two clicks");
+                    b.SetColour("red");
+                    break;
+                case 3:
+                    System.out.println("Three clicks");
+                    break;
+            }
+        });
+        */
             boxGroup_root.getChildren().add(b);
         }
-
-         /* Some box-level event handlers for testing purposes */
-        myBox2.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
-         @Override
-         public void handle(MouseEvent mouseEvent) {
-         System.out.println("mouse click detected for box2! " + mouseEvent.getSource());
-             }
-        });
-
-        littleStack.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
-         @Override
-         public void handle(MouseEvent mouseEvent) {
-         System.out.println("mouse click detected for littleStack! " + mouseEvent.getSource());
-             }
-        });
-
-        //hbox3.getChildren().add(myBox2);  //How to refresh this?
-        boxGroup_root.getChildren().add(myBox2);
-
 }
 
 private void setArea1Text(String fname) {
@@ -394,6 +425,21 @@ private String getArea1Text() {
             orgTranslateX = ((StackBox)(t.getSource())).getTranslateX();
             orgTranslateY = ((StackBox)(t.getSource())).getTranslateY();
             System.out.println("getx: "+ orgSceneX+ " gety: "+orgSceneY);
+            //change colour if double click
+
+            switch(t.getClickCount()){
+                case 1:
+                    System.out.println("One click");
+                    //change colour or something
+                    break;
+                case 2:
+                    System.out.println("Two clicks");
+                    ((StackBox)(t.getSource())).SetColour("red"); //where t is the current Stackbox
+                    break;
+                case 3:
+                    System.out.println("Three clicks");
+                    break;
+            }
             t.consume(); //trying this to see if it frees up for second press but better to deal with cause
         }
     };
