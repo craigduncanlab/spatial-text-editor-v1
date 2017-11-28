@@ -434,7 +434,15 @@ private String getArea1Text() {
                     break;
                 case 2:
                     System.out.println("Two clicks");
-                    ((StackBox)(t.getSource())).SetColour("red"); //where t is the current Stackbox
+                    //toggle
+                    Boolean isAlert = ((StackBox)(t.getSource())).isAlert();
+                    if (isAlert==true) {
+                        ((StackBox)(t.getSource())).endAlert();
+                    }
+                    else {
+                        ((StackBox)(t.getSource())).doAlert();
+                    }
+                    //where t is the current Stackbox
                     break;
                 case 3:
                     System.out.println("Three clicks");

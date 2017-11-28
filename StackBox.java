@@ -29,10 +29,14 @@ public class StackBox extends StackPane {
     String contents;
     int Xpos = 0;
     int Ypos = 0;
+    Boolean isAlert=false;
+    String defaultColour="";
+    String alertColour="red";
 
     //default constructor
     public StackBox(String myLabel) {
     	myBox = new DefBox();
+        defaultColour="blue";
         this.setCursor(Cursor.HAND); 
         Text boxtext = new Text (myLabel);//myBox.getLabel();
         //boxtext.setTextAlignment(TextAlignment.CENTER);
@@ -42,6 +46,7 @@ public class StackBox extends StackPane {
     public StackBox(String myLabel, String mycolour) {
         //myBox = new DefBox(myText,mycolour);
         myBox = new DefBox(mycolour);
+        defaultColour=mycolour;
         this.setCursor(Cursor.HAND); 
         Text boxtext = new Text (myLabel);//myBox.getLabel();
         //boxtext.setTextAlignment(TextAlignment.CENTER);
@@ -75,6 +80,23 @@ public class StackBox extends StackPane {
 
     public void SetColour(String mycol) {
         myBox.setColour(mycol);
+    }
+
+    public String getColour() {
+        return myBox.getColour();
+    }
+
+    public Boolean isAlert() {
+        return this.isAlert;
+    }
+
+    public void doAlert() {
+        this.isAlert=true;
+        myBox.setColour(alertColour);
+    }
+     public void endAlert() {
+        this.isAlert=false;
+        myBox.setColour(defaultColour);
     }
 
 }

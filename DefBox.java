@@ -3,7 +3,9 @@ import javafx.scene.paint.Color;
 
 public class DefBox extends Rectangle{   
     //set default or current colour here?
-    Color myColour; //colour for this instance
+    Color myColour; //colour object for this instance
+    String boxcolour; //to hold String with colour description.
+
 //default constructor
     public DefBox() {
     	this.setColour("blue");
@@ -32,18 +34,24 @@ public class DefBox extends Rectangle{
      public void setColour (String mycol) {
         if (mycol.equals("blue")) {
             myColour = Color.BLUE;
+            this.boxcolour = mycol;
         }
         if (mycol.equals("green")) {
             myColour = Color.GREEN;
+            this.boxcolour = mycol;
         }
          if (mycol.equals("yellow")) {
             myColour = Color.YELLOW;
+            this.boxcolour = mycol;
         }
         if (mycol.equals("red")) {
             myColour = Color.RED;
+            this.boxcolour = mycol;
         }
         //update the Colour for display; allows for transparency
         setFill(myColour.deriveColor(0, 1.2, 1, 0.6));
      }
-
+     public String getColour() {
+        return this.boxcolour;
+    }
 }
