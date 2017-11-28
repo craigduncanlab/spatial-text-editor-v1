@@ -110,10 +110,16 @@ private void printStatsfromFile(String fname) {
     myTool.printCountFromFile(fname);
 }
 
-private DefContainer grabDefinitions(String fname) {
+private DefContainer grabDefinitionsFile(String fname) {
     WordTool myTool = new WordTool();
     String data = myTool.getFileAsString(fname);
     DefContainer defbox = myTool.doDefTextSearch(data);
+    return defbox;
+} 
+
+private DefContainer grabDefinitionsString(String mydata) {
+    WordTool myTool = new WordTool();
+    DefContainer defbox = myTool.doDefTextSearch(mydata);
     return defbox;
 } 
 
@@ -193,17 +199,69 @@ public void setupStage(Stage textStage) {
         //event handling listener, handle override and outer class method calls
         btnDefs.setOnAction(new EventHandler<ActionEvent>() {
         @Override public void handle(ActionEvent event) {
-                System.out.println("Get Defs Button was pressed!");
-                //Outer class method class
+        //Outer class method class
                 String gotcha = MainStage.this.textArea1.getText();
                 String newDefs = MainStage.this.getMatched(gotcha);
                 MainStage.this.textArea3.setText(newDefs);
                 //MainStage.this.textArea4.setText(newDefs);
+                System.out.println("Get Defs Button was pressed!");
+                //MainStage.this.textArea4.setText(newDefs);
+    }
+
+        });
+
+        //Button for definitions icons
+        Button btnDefIcons = new Button();
+        btnDefIcons.setTooltip(new Tooltip ("Press to create definitions icons from top text area"));
+        btnDefIcons.setText("Extract Def Icons");
+        //event handling listener, handle override and outer class method calls
+        btnDefIcons.setOnAction(new EventHandler<ActionEvent>() {
+        @Override public void handle(ActionEvent event) {
+        System.out.println("Get DefIcons Button was pressed!");
+        //make a new stage
+        Stage adHoc = new Stage();
+        MainStage.this.setupDefinitionsWindow(adHoc);
+        DefContainer myContainer = grabDefinitionsString(textArea1.getText());
+        ArrayList<Definition> myDList = myContainer.getDefArray();
+        Iterator<Definition> myiterator = myDList.iterator();
+        int offX=0;
+        int offY=0;
+        while (myiterator.hasNext()) {
+            Definition mydefinition = myiterator.next();
+            String myLabel = mydefinition.getLabel();
+            String mydeftext = mydefinition.getDef();
+            String FreqCnt = Integer.toString(mydefinition.getFreq());
+            String myCont = myLabel+"("+FreqCnt+")";
+            StackBox b;
+            if (offY<=100) {
+                b = new StackBox(myCont); //default blue
+                b.setContent(mydeftext); //to do - transfer defs to sep objects in StackBox
+            } else {
+                b = new StackBox(myCont, "green");
+                b.setContent(mydeftext);
             }
+            b.setTranslateX(offX); //increments offset each time for display. 
+            //TO DO: set some default object refs (StackPane has current; these will be alternate indexes).
+            b.setTranslateY(offY);
+            b.setOnMousePressed(PressBoxEventHandler); 
+            b.setOnMouseDragged(DragBoxEventHandler);
+            
+            defGroup_root.getChildren().add(b);
+            if (offX>640) {
+                offY=offY+65;
+                offX=0;
+            }
+            else {
+                offX = offX+160;
+            }
+        }
+        adHoc.show();
+            }
+
         });
 
         //Set horizontal box for buttons
-        hbox3 = new HBox(0,btn,btnDefs);
+        hbox3 = new HBox(0,btn,btnDefs,btnDefIcons);
         //put each of our rows into a vertical scroll box
         //VBox vbox2 = new VBox(0,hbox1,hbox2,hbox3);
         //vbox2.getChildren().addAll(hbox1,hbox2,hbox3);
@@ -387,11 +445,12 @@ public void setupGraphWindow(Stage myStage) {
         /* MINIMUM SETUP USING GROUP LAYOUT  - WHICH LAYOUT IS MOST APPROPRIATE ?*/
         inspectorGroup_root = new Group();
         //add group layout object to scene
-        inspectorScene = new Scene (inspectorGroup_root,400,400); //width x height (px)
+        inspectorScene = new Scene (inspectorGroup_root,600,400); //width x height (px)
         //add TextArea to group
         inspectorGroup_root.getChildren().add(inspectorTextArea);
         //set some initial content
         inspectorTextArea.setText("Some future contents");
+        inspectorTextArea.setWrapText(true);
 
         myStage.setScene(inspectorScene); //this selects the stage as current scene
         myStage.setTitle("The Object Inspector Window");
@@ -440,24 +499,28 @@ public void setupGraphWindow(Stage myStage) {
         
         //TO DO: The StackBoxes will be meta-objects include both defs, clause and data.
         //They should incorporate the text or contents objects so that the GUI can feed this back and forward from text edit windows etc as required.
-        DefContainer myContainer = grabDefinitions("popstarLease.txt");
+        //If you want to obtain from file: DefContainer myContainer = grabDefinitionsFile("popstarLease.txt");
+        //if you want to obtain from the top textArea:
+        
+        /* 
+        DefContainer myContainer = grabDefinitionsString(textArea1.getText());
         ArrayList<Definition> myDList = myContainer.getDefArray();
         Iterator<Definition> myiterator = myDList.iterator();
         int offX = 0;
         while (myiterator.hasNext()) {
             Definition mydefinition = myiterator.next();
             String myLabel = mydefinition.getLabel();
-            //String mytext = mydefinition.getDef();
+            String mydeftext = mydefinition.getDef();
             String FreqCnt = Integer.toString(mydefinition.getFreq());
             String myCont = myLabel+"("+FreqCnt+")";
             offX=offX+10;
             StackBox b;
             if (offX<=100) {
                 b = new StackBox(myCont); //default blue
-                b.setContent(myCont); //to do - transfer defs to sep objects in StackBox
+                b.setContent(mydeftext); //to do - transfer defs to sep objects in StackBox
             } else {
                 b = new StackBox(myCont, "green");
-                b.setContent(myCont);
+                b.setContent(mydeftext);
             }
             b.setTranslateX(offX); //increments offset each time for display. 
             //TO DO: set some default object refs (StackPane has current; these will be alternate indexes).
@@ -467,9 +530,8 @@ public void setupGraphWindow(Stage myStage) {
             
             defGroup_root.getChildren().add(b);
         }
- }
-
-
+*/
+}
 private void setArea1Text(String fname) {
         //get text from file and put in textarea 1
         String myText=this.getTextfromFile(fname);
@@ -520,10 +582,11 @@ private String getArea1Text() {
         inspectorWindow = new Stage();
         this.setupInspectorWindow(inspectorWindow);
         inspectorWindow.show();
-        //I will use another Stage as definitions window
+        /*I will use another Stage as definitions window but set it up as needed, not here
         defWindow = new Stage();
         this.setupDefinitionsWindow(defWindow);
         defWindow.show();
+        */
         
         //TO DO: Setup another 'Stage' for file input, creation of toolbars etc.
     }
