@@ -6,6 +6,9 @@ JavaFX implementation of GUI started 17.11.2017 by Craig Duncan
 import javafx.application.Application;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+//Screen positioning
+import javafx.geometry.Rectangle2D;
+import javafx.stage.Screen;
 //Scene graph (nodes)
 import javafx.scene.Group;
 import javafx.scene.Scene;
@@ -70,6 +73,11 @@ public class MainStage extends Application {
     DefBox littleBox;
     StackBox littleStack;
     Scene graphicscene; //the scene in the second stage (window)
+    //inspector window
+    Stage inspectorWindow;
+    Scene inspectorScene;
+    Group inspectorGroup_root;
+    TextArea inspectorTextArea = new TextArea();
 
 
 /*The main method uses the launch method of the Application class.
@@ -123,7 +131,7 @@ make this public so that the inner class can find it  */
 public void setupStage(Stage textStage) {
 
         //This is the stage to be used but is not JavaFX default
-        textStage.setTitle("Text Statistics App");
+        textStage.setTitle("Text Working Space");
         
          //This Vbox only has 1 child, a text area, and no spacing setting.
         //VBox vbox = new VBox(textArea);//unused
@@ -207,8 +215,10 @@ public void setupStage(Stage textStage) {
         /*Adding this to avoid consumption of event by child controls i.e. this works first */
         textStage.setX(200);
         textStage.setScene(MainScene);
-        //optional: 
+        //Size and positioning
         textStage.sizeToScene(); 
+        textStage.setX(50); 
+        textStage.setY(50); 
         
     }
         /* ---- SETUP A SECOND STAGE FOR SOME VISUAL OUTPUT--- 
@@ -217,9 +227,15 @@ public void setupStage(Stage textStage) {
         
         Basic JavaFX model:
         1. Create Stage(s)
-        2. Scene/root (layout mandatory?) Constructor: //Stage<--Scene (1 at a time) <---Group or Layout(Stackpane,Vbox etc) as root.  There can be only one root.
-        3.  Modification: Layout(root node)<--Shapes and text {i.e. Leaf-Node objects}
+        2. Construct Scene by putting mandatory layout node on it then add scene to Stage.
+        Constructor: Stage<--Scene (1 at a time) <---Group or Layout(Stackpane,Vbox etc) as root.  
+        There can be only one root.
+        Whilst a layout is generally required for the root node, any other layout object cannot function as root, and must be branch or leaf node.
+        3.  Modification to scene graph primarily to leaves/branches not root node: 
+        Layout(root node)<--Shapes and text {i.e. Leaf-Node objects}
         [These layout nodes inherit the method getChildren from the Parent class]
+
+        Event handlers can be added at any level i.e. to nodes such as scene, or individual components that are leaves (buttons, boxes, stackpanes)
         
         Stages are in view until closed; Scenes can be turned off and on (as with their root node).
         */
@@ -255,21 +271,24 @@ public void setupGraphWindow(Stage myStage) {
         /* MINIMUM SETUP USING GROUP LAYOUT */
         boxGroup_root = new Group();
         
-        //add group layout object to scene
+        //Use root node (group layout object) to create Scene and set event handlers (optional)
         boxScene = new Scene (boxGroup_root,400,400); //width x height (px)
-        //Scene-level event handlers for testing
         boxScene.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
          @Override
          public void handle(MouseEvent mouseEvent) {
          System.out.println("Mouse click detected! " + mouseEvent.getSource());
              }
         });
- 
-        myStage.setScene(boxScene); //this selects the stage as current scene
+        //Set scene for this Stage, as well as size and position
+        myStage.setScene(boxScene); 
         myStage.setTitle("The Graphics Window");
-        myStage.setX(1000);
+        //myStage.setX(1000);
         //stage.setWidth(800);
         //stage.setHeight(400);
+        Rectangle2D primScreenBounds = Screen.getPrimary().getVisualBounds();
+        myStage.setX(primScreenBounds.getWidth() / 1.5); 
+        myStage.setY(25);
+        //myStage.setY(primScreenBounds.getHeight()/ 2); 
         myStage.show();
 
         //Now test some things that will relate to dynamic functions later (add, remove) 
@@ -315,6 +334,8 @@ public void setupGraphWindow(Stage myStage) {
         */
 
         //now add some yellow boxes with the common words
+        //TO DO: The StackBoxes will be meta-objects include both defs, clause and data.
+        //They should incorporate the text or contents objects so that the GUI can feed this back and forward from text edit windows etc as required.
         WordTool myHelper = new WordTool();
         ArrayList<String> boxList = new ArrayList<String>();
         try {
@@ -329,35 +350,51 @@ public void setupGraphWindow(Stage myStage) {
             offX=offX+50;
             StackBox b;
             if (offX<=100) {
-                b = new StackBox(i.next());
+                b = new StackBox(i.next()); //default blue
+                b.setContent("This is a blue box");
             } else {
                 b = new StackBox(i.next(), "yellow");
+                b.setContent("This is a yellow box");
             }
-            b.setTranslateX(offX); //increments each time for display TO DO: set object ref.
+            b.setTranslateX(offX); //increments offset each time for display. 
+            //TO DO: set some default object refs (StackPane has current; these will be alternate indexes).
             b.setTranslateY(offX);
             b.setOnMousePressed(PressBoxEventHandler); 
             b.setOnMouseDragged(DragBoxEventHandler);
-            //pass current Stackbox into here
-            /*b.setOnMousePressed((e) ->{
-
-            switch(e.getClickCount()){
-                case 1:
-                    System.out.println("One click");
-                    //change colour or something
-                    break;
-                case 2:
-                    System.out.println("Two clicks");
-                    b.SetColour("red");
-                    break;
-                case 3:
-                    System.out.println("Three clicks");
-                    break;
-            }
-        });
-        */
+            
             boxGroup_root.getChildren().add(b);
         }
 }
+
+
+ /* ---- SETUP A THIRD STAGE FOR INSPECTING OBJECTS--- */
+
+ public void setupInspectorWindow(Stage myStage) {
+        
+        /* MINIMUM SETUP USING GROUP LAYOUT  - WHICH LAYOUT IS MOST APPROPRIATE ?*/
+        inspectorGroup_root = new Group();
+        //add group layout object to scene
+        inspectorScene = new Scene (inspectorGroup_root,400,400); //width x height (px)
+        //add TextArea to group
+        inspectorGroup_root.getChildren().add(inspectorTextArea);
+        //set some initial content
+        inspectorTextArea.setText("Some future contents");
+
+        myStage.setScene(inspectorScene); //this selects the stage as current scene
+        myStage.setTitle("The Object Inspector Window");
+        //myStage.setX(1000);
+        //stage.setWidth(800);
+        //stage.setHeight(400);
+        Rectangle2D primScreenBounds = Screen.getPrimary().getVisualBounds();
+        myStage.setX(primScreenBounds.getWidth() / 1.5); 
+        myStage.setY(450);
+        //myStage.setY(primScreenBounds.getHeight()/ 1.8); 
+        /*myStage.setX((primScreenBounds.getWidth() - myStage.getWidth()) / 3); 
+        myStage.setY((primScreenBounds.getHeight() - myStage.getHeight()) / 5);  
+        */
+        myStage.show();
+ }
+
 
 private void setArea1Text(String fname) {
         //get text from file and put in textarea 1
@@ -382,8 +419,7 @@ private String getArea1Text() {
 }
 */
 
-/** OVERRIDE
-*/
+/* ---- JAVAFX APPLICATION STARTS HERE --- */
   
     @Override
     public void start(Stage primaryStage) {
@@ -401,10 +437,15 @@ private String getArea1Text() {
         this.setArea2Text(this.myTextFile);
         myStage.show();
         
-        //Stage I will use as a graphics window
+        //I will use another Stage as a graphics window
         visualWindow = new Stage();
         this.setupGraphWindow(visualWindow);
         visualWindow.show();
+
+        //I will use another Stage as an inspector window
+        inspectorWindow = new Stage();
+        this.setupInspectorWindow(inspectorWindow);
+        inspectorWindow.show();
         
         //TO DO: Setup another 'Stage' for file input, creation of toolbars etc.
 
@@ -438,9 +479,13 @@ private String getArea1Text() {
                     Boolean isAlert = ((StackBox)(t.getSource())).isAlert();
                     if (isAlert==true) {
                         ((StackBox)(t.getSource())).endAlert();
+                        //toDO: clear the inspector window contents
                     }
                     else {
                         ((StackBox)(t.getSource())).doAlert();
+                        String myOutput = ((StackBox)(t.getSource())).getContent();
+                        inspectorTextArea.setText(myOutput);
+
                     }
                     //where t is the current Stackbox
                     break;

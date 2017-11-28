@@ -13,16 +13,27 @@ import javafx.scene.layout.StackPane;
 //Events
 import javafx.scene.input.MouseEvent;
 import javafx.scene.Cursor;
-//don't use "extends DefBox" at this stage.  Might have to...in order to extend Rectangle - a Node for FX purposes
 
-//This class creates a StackPane comprising a Rectangle (box) and a Text node, for ease of sync'd positioning
-//It also includes basic contents and positino data structure, but this may be extended.
-//Event handlers will move the StackPane inclusive of box and text.
+/* This class started Nov 2017 
+Purpose is to create the principal object to visualise concepts within a GUI (therefore extends StackPane) but also as a container for content/data that can be controller through the object itself.
 
+In many ways it acts as a Controller, and the Graphics Window/Scene is a Controller environment.
 
+In the GUI, the position of instances of this class that are Java FX Nodes (Rectangle/Box and Label) can be sync'ed by changing the position of this object.
+Event handlers will move the StackPane inclusive of box and text.
+
+TO DO: 
+Graphic window will allow new scene in which opening a StackBox reveals contents like clauses, defs, data, text.
+in a similar graphic viewer.
+Consider if 'contents' should be a more complex object, rather than text string.
+Should the data structure be an array of say Clause (obj), DefsObjs (Array).  Each DefsObj has 'Item'?
+Perhaps clauses shouldn't wrap Defs because Defs often have direct relationship to Items/Data.
+
+*/
 
 public class StackBox extends StackPane {         
-    //instance variables are the graphic box and its text, and location
+    //instance variables are the graphic box and its text, and location.
+    //Not shared with class unless 'static' applied.
     //StackPane boxPane = new StackPane(); 
     DefBox myBox;
     Text myLabel;
@@ -80,6 +91,7 @@ public class StackBox extends StackPane {
 
     public void SetColour(String mycol) {
         myBox.setColour(mycol);
+        this.defaultColour=myBox.getColour();
     }
 
     public String getColour() {
