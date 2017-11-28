@@ -31,6 +31,9 @@ public class DefBox extends Rectangle{
         //setFill(myColour);
         setStroke(Color.BLACK);
      } 
+
+     //TO DO: Use key, value pairs
+
      public void setColour (String mycol) {
         if (mycol.equals("blue")) {
             myColour = Color.BLUE;

@@ -78,7 +78,11 @@ public class MainStage extends Application {
     Scene inspectorScene;
     Group inspectorGroup_root;
     TextArea inspectorTextArea = new TextArea();
-
+    //Definitions window
+    Stage defWindow;
+    Scene defScene;
+    Group defGroup_root;
+    TextArea defTextArea = new TextArea();
 
 /*The main method uses the launch method of the Application class.
 https://docs.oracle.com/javase/8/javafx/api/javafx/application/Application.html
@@ -105,6 +109,13 @@ private void printStatsfromFile(String fname) {
     WordTool myTool = new WordTool();
     myTool.printCountFromFile(fname);
 }
+
+private DefContainer grabDefinitions(String fname) {
+    WordTool myTool = new WordTool();
+    String data = myTool.getFileAsString(fname);
+    DefContainer defbox = myTool.doDefTextSearch(data);
+    return defbox;
+} 
 
 //used by event handler
 private String getMatched(String data) {
@@ -333,7 +344,8 @@ public void setupGraphWindow(Stage myStage) {
 
         */
 
-        //now add some yellow boxes with the common words
+        //---ADD YELLOW BOXES WITH COMMON WORDS ---
+
         //TO DO: The StackBoxes will be meta-objects include both defs, clause and data.
         //They should incorporate the text or contents objects so that the GUI can feed this back and forward from text edit windows etc as required.
         WordTool myHelper = new WordTool();
@@ -364,8 +376,9 @@ public void setupGraphWindow(Stage myStage) {
             
             boxGroup_root.getChildren().add(b);
         }
+        //add some definitions
+         
 }
-
 
  /* ---- SETUP A THIRD STAGE FOR INSPECTING OBJECTS--- */
 
@@ -393,6 +406,67 @@ public void setupGraphWindow(Stage myStage) {
         myStage.setY((primScreenBounds.getHeight() - myStage.getHeight()) / 5);  
         */
         myStage.show();
+ }
+
+ /* ---- SETUP A FOURTH STAGE FOR DEFINITIONS OBJECTS--- */
+
+ public void setupDefinitionsWindow(Stage myStage) {
+        
+        /* MINIMUM SETUP USING GROUP LAYOUT  - WHICH LAYOUT IS MOST APPROPRIATE ?*/
+        defGroup_root = new Group();
+        //add group layout object to scene
+        defScene = new Scene (defGroup_root,600,400); //width x height (px)
+        //add TextArea to group
+        defGroup_root.getChildren().add(defTextArea);
+        //set some initial content
+        defTextArea.setText("Some future contents");
+
+        myStage.setScene(defScene); //this selects the stage as current scene
+        myStage.setTitle("The Definitions Display/Inspector Window");
+        //myStage.setX(1000);
+        //stage.setWidth(800);
+        //stage.setHeight(400);
+        Rectangle2D primScreenBounds = Screen.getPrimary().getVisualBounds();
+        //myStage.setX(primScreenBounds.getWidth() / 1.5); 
+        myStage.setY(0);
+        myStage.setY(450);
+        //myStage.setY(primScreenBounds.getHeight()/ 1.8); 
+        /*myStage.setX((primScreenBounds.getWidth() - myStage.getWidth()) / 3); 
+        myStage.setY((primScreenBounds.getHeight() - myStage.getHeight()) / 5);  
+        */
+        myStage.show();
+
+        //---ADD GREEN BOXES WITH DEFINITIONS ---
+        
+        //TO DO: The StackBoxes will be meta-objects include both defs, clause and data.
+        //They should incorporate the text or contents objects so that the GUI can feed this back and forward from text edit windows etc as required.
+        DefContainer myContainer = grabDefinitions("popstarLease.txt");
+        ArrayList<Definition> myDList = myContainer.getDefArray();
+        Iterator<Definition> myiterator = myDList.iterator();
+        int offX = 0;
+        while (myiterator.hasNext()) {
+            Definition mydefinition = myiterator.next();
+            String myLabel = mydefinition.getLabel();
+            //String mytext = mydefinition.getDef();
+            String FreqCnt = Integer.toString(mydefinition.getFreq());
+            String myCont = myLabel+"("+FreqCnt+")";
+            offX=offX+10;
+            StackBox b;
+            if (offX<=100) {
+                b = new StackBox(myCont); //default blue
+                b.setContent(myCont); //to do - transfer defs to sep objects in StackBox
+            } else {
+                b = new StackBox(myCont, "green");
+                b.setContent(myCont);
+            }
+            b.setTranslateX(offX); //increments offset each time for display. 
+            //TO DO: set some default object refs (StackPane has current; these will be alternate indexes).
+            b.setTranslateY(offX);
+            b.setOnMousePressed(PressBoxEventHandler); 
+            b.setOnMouseDragged(DragBoxEventHandler);
+            
+            defGroup_root.getChildren().add(b);
+        }
  }
 
 
@@ -446,12 +520,13 @@ private String getArea1Text() {
         inspectorWindow = new Stage();
         this.setupInspectorWindow(inspectorWindow);
         inspectorWindow.show();
+        //I will use another Stage as definitions window
+        defWindow = new Stage();
+        this.setupDefinitionsWindow(defWindow);
+        defWindow.show();
         
         //TO DO: Setup another 'Stage' for file input, creation of toolbars etc.
-
     }
-
-
 
     /* This is a method to create a new eventhandler for the StackBox objects which are themselves a Stackpane that incorporate a Rectangle and a Text Node as components*/
 

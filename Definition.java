@@ -8,6 +8,7 @@ public class Definition {
 //setup declare instance variables. shared in class if preceded by static.	
 String label=""; //will hold the defined term
 String deftext=""; //will hold the definition text
+int frequency = 0;  //frequency of use in text
 
 //empty constructor no arguments
 public Definition() {
@@ -33,6 +34,18 @@ public String getDef() {
 public String getLabel() {
 	return this.label;
 
+}
+
+public void setFreq(int myFreq) {
+	this.frequency = myFreq;
+}
+
+public int getFreq() {
+	return this.frequency;
+}
+
+public void incFreq() {
+	this.frequency++;
 }
 
 }

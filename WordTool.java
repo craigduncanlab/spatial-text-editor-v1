@@ -34,12 +34,43 @@ public WordTool () {
   
 }
 
+private TreeMap<Integer, String> makeMapFromDefinitions (DefContainer myContainer, String inputMe) {
+    //map structure for counting
+    Map<String, Integer> map = new HashMap<String, Integer>();
+    //use function String as input for inner Scanner
+    Scanner linescan = new Scanner(inputMe);
+    //line delimeters: not POSIX {Letter} or numerals 0 to 9 or apostrophe
+    linescan.useDelimiter("<tr>[^<]|<tc>|[^\\p{L}0-9']+");
+          while (linescan.hasNext()) {
+             String thisEntry=linescan.next();
+             //No output needed.  System.out.println(thisEntry);
+             if (map.containsKey(thisEntry)) {
+              int tv = map.get(thisEntry);
+              tv++;
+              map.put(thisEntry,tv);
+             }
+             else {
+              map.put(thisEntry,1);
+             }
+          }
+          linescan.close();    
+      //create a new hashmap with k, v reversed, then Treemap it
+        HashMap<Integer, String> myNewHashMap = new HashMap<>();
+    for(Map.Entry<String, Integer> entry : map.entrySet()){
+      myNewHashMap.put(entry.getValue(), entry.getKey());
+      }
+      //Use TreeMap for count output
+      TreeMap<Integer, String> newTreeMap = new TreeMap<>(myNewHashMap);
+      return newTreeMap;
+}
+
+
 private TreeMap<Integer, String> makeMapFromStringCounts(String inputMe) {
     //map structure for counting
     Map<String, Integer> map = new HashMap<String, Integer>();
     //use function String as input for inner Scanner
     Scanner linescan = new Scanner(inputMe);
-    //delimeters: not POSIX {Letter} or numerals 0 to 9 or apostrophe
+    //line delimeters: not POSIX {Letter} or numerals 0 to 9 or apostrophe
     linescan.useDelimiter("<tr>[^<]|<tc>|[^\\p{L}0-9']+");
           while (linescan.hasNext()) {
              String thisEntry=linescan.next();
@@ -180,7 +211,23 @@ catch unicode hyphen and line returns and quotes after 'means'
          myDef.setDeftext(matcher.group(3));
          myContainer.addDef(myDef);
         }
-        return myContainer;
+    //iterate again and update the frequency of use of Defs
+    ArrayList<Definition> myDList = myContainer.getDefArray();
+    Iterator<Definition> myiterator = myDList.iterator();
+      while (myiterator.hasNext()) {
+        Definition mydefinition = myiterator.next();
+        String myLabel = mydefinition.getLabel();
+        //String mytext = mydefinition.getDef();
+        Pattern pd = Pattern.compile(myLabel);
+        Matcher checkDefs = pd.matcher(mydata);
+         while (checkDefs.find())
+         {
+           mydefinition.incFreq();
+         }
+         String FreqCnt = Integer.toString(mydefinition.getFreq());
+         //OK: System.out.println(myLabel+" : "+FreqCnt);
+        }    
+    return myContainer;
   }
 
 //for other methods to call these are public methods

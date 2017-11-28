@@ -59,5 +59,9 @@ public String getDefAndText() {
 	return output;
 }
 
+public ArrayList<Definition> getDefArray() {
+	return this.myDefinitions;
+}
+
 
 }
