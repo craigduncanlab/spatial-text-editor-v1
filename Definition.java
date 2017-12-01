@@ -6,7 +6,7 @@
 
 public class Definition {
 //setup declare instance variables. shared in class if preceded by static.	
-String label=""; //will hold the defined term
+String label=""; //will hold the GUI box term (initially same as def'n)
 String deftext=""; //will hold the definition text
 int frequency = 0;  //frequency of use in text
 

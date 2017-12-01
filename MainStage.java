@@ -178,7 +178,7 @@ public void setupStage(Stage textStage) {
         hbox1 = new HBox(0,this.textArea1,this.textArea2);
         HBox hbox2 = new HBox(0,this.textArea3,this.textArea4);
         
-        //button for Word Counts
+        //button for Common Word Counts
         Button btn = new Button();
         btn.setText("Update Word Counts");
         btn.setOnAction(new EventHandler<ActionEvent>() {
@@ -188,8 +188,44 @@ public void setupStage(Stage textStage) {
                 String gotcha = MainStage.this.textArea1.getText();
                 String newTA = MainStage.this.getCommonWordsNow(gotcha);
                 MainStage.this.textArea2.setText(newTA);
+                //new stage
+                Stage MainWords = new Stage();
+                Group CountGroup_root = MainStage.this.setupChildWindow(MainWords, "The Common Words Window");
                 //new one
                 //MainStage.this.getMatched(gotcha);
+
+                    //---ADD YELLOW BOXES WITH COMMON WORDS TO GRAPHICS WINDOW---
+
+                    //TO DO: The StackBoxes will be meta-objects include both defs, clause and data.
+                    //They should incorporate the text or contents objects so that the GUI can feed this back and forward from text edit windows etc as required.
+                    WordTool myHelper = new WordTool();
+                    ArrayList<String> boxList = new ArrayList<String>();
+                    try {
+                    boxList = myHelper.commonBoxSet(gotcha);
+                    }
+                    catch (Exception e) {
+                               e.printStackTrace();
+                              } 
+                    Iterator<String> i = boxList.iterator();
+                    int offX = 0;
+                    while (i.hasNext()) {
+                        offX=offX+50;
+                        StackBox b;
+                        if (offX<=100) {
+                            b = new StackBox(i.next()); //default blue
+                            b.setContent("This is a blue box");
+                        } else {
+                            b = new StackBox(i.next(), "yellow");
+                            b.setContent("This is a yellow box");
+                        }
+                        b.setTranslateX(offX); //increments offset each time for display. 
+                        //TO DO: set some default object refs (StackPane has current; these will be alternate indexes).
+                        b.setTranslateY(offX);
+                        b.setOnMousePressed(PressBoxEventHandler); 
+                        b.setOnMouseDragged(DragBoxEventHandler);
+                        
+                        CountGroup_root.getChildren().add(b);
+                    }
             }
         });
         //Button for definitions
@@ -220,7 +256,7 @@ public void setupStage(Stage textStage) {
         System.out.println("Get DefIcons Button was pressed!");
         //make a new stage
         Stage adHoc = new Stage();
-        MainStage.this.setupDefinitionsWindow(adHoc);
+        defGroup_root = MainStage.this.setupChildWindow(adHoc, "The Definitions Display/Inspector Window");
         DefContainer myContainer = grabDefinitionsString(textArea1.getText());
         ArrayList<Definition> myDList = myContainer.getDefArray();
         Iterator<Definition> myiterator = myDList.iterator();
@@ -260,8 +296,64 @@ public void setupStage(Stage textStage) {
 
         });
 
+        //Button for Clause icons
+        Button btnClauses = new Button();
+        btnClauses.setTooltip(new Tooltip ("Press to work with Clauses"));
+        btnClauses.setText("Show Clause Boxes");
+        //event handling listener, handle override and outer class method calls
+        /* TO DO: Add library of clauses and object types
+
+        btnClauses.setOnAction(new EventHandler<ActionEvent>() {
+        @Override public void handle(ActionEvent event) {
+        System.out.println("Clause Boxes Button was pressed!");
+        //make a new stage
+        Stage ClauseStage = new Stage();
+        Stage adHoc = new Stage();
+        ClauseGroup_root = MainStage.this.setupChildWindow(adHoc, "The Clause Window");
+        //TO DO: get source of data
+        DefContainer myContainer = grabDefinitionsString(textArea1.getText());
+        ArrayList<Definition> myDList = myContainer.getDefArray();
+        Iterator<Definition> myiterator = myDList.iterator();
+        int offX=0;
+        int offY=0;
+        while (myiterator.hasNext()) {
+            Definition mydefinition = myiterator.next();
+            String myLabel = mydefinition.getLabel();
+            String mydeftext = mydefinition.getDef();
+            String FreqCnt = Integer.toString(mydefinition.getFreq());
+            String myCont = myLabel+"("+FreqCnt+")";
+            StackBox b;
+            if (offY<=100) {
+                b = new StackBox(myCont); //default blue
+                b.setContent(mydeftext); //to do - transfer defs to sep objects in StackBox
+            } else {
+                b = new StackBox(myCont, "green");
+                b.setContent(mydeftext);
+            }
+            b.setTranslateX(offX); //increments offset each time for display. 
+            //TO DO: set some default object refs (StackPane has current; these will be alternate indexes).
+            b.setTranslateY(offY);
+            b.setOnMousePressed(PressBoxEventHandler); 
+            b.setOnMouseDragged(DragBoxEventHandler);
+            
+            defGroup_root.getChildren().add(b);
+            if (offX>640) {
+                offY=offY+65;
+                offX=0;
+            }
+            else {
+                offX = offX+160;
+            }
+        }
+        adHoc.show();
+            }
+
+        });
+
+        */
+
         //Set horizontal box for buttons
-        hbox3 = new HBox(0,btn,btnDefs,btnDefIcons);
+        hbox3 = new HBox(0,btn,btnDefs,btnDefIcons, btnClauses);
         //put each of our rows into a vertical scroll box
         //VBox vbox2 = new VBox(0,hbox1,hbox2,hbox3);
         //vbox2.getChildren().addAll(hbox1,hbox2,hbox3);
@@ -290,247 +382,41 @@ public void setupStage(Stage textStage) {
         textStage.setY(50); 
         
     }
-        /* ---- SETUP A SECOND STAGE FOR SOME VISUAL OUTPUT--- 
-        Layout options include Group, GridPane, FlowPane, AnchorPane etc.
-        Groups have no layout or sizing but are possibly better for absolute positioning.
-        
-        Basic JavaFX model:
-        1. Create Stage(s)
-        2. Construct Scene by putting mandatory layout node on it then add scene to Stage.
-        Constructor: Stage<--Scene (1 at a time) <---Group or Layout(Stackpane,Vbox etc) as root.  
-        There can be only one root.
-        Whilst a layout is generally required for the root node, any other layout object cannot function as root, and must be branch or leaf node.
-        3.  Modification to scene graph primarily to leaves/branches not root node: 
-        Layout(root node)<--Shapes and text {i.e. Leaf-Node objects}
-        [These layout nodes inherit the method getChildren from the Parent class]
 
-        Event handlers can be added at any level i.e. to nodes such as scene, or individual components that are leaves (buttons, boxes, stackpanes)
-        
-        Stages are in view until closed; Scenes can be turned off and on (as with their root node).
-        */
+ /* 
+ ---- SETUP A NEW STAGE TO DISPLAY BOX OBJECTS--- 
+This is a standard size window in a fixed position (no need to pass arguments about size yet)
+Maybe have separate function to set size/position after creation.
+Return root node (in this case a Group object) to enable addition of further leaf nodes
+These are not instance variables.  Consider if necessary on other occasions.
+ */
 
-public void setupGraphWindow(Stage myStage) {
-
+ public Group setupChildWindow(Stage myStage, String myTitle) {
         
-        /* USING FLOWPANE
-        FlowPane myFlow = new FlowPane();  
-        */
-        
-        /* USING GRIDPANE 
-        GridPane myGrid = new GridPane();
-        myGrid.setPadding(new Insets(5, 5, 5, 5));
-        myGrid.setMinSize(500, 500);
-        myGrid.setVgap(5);
-        myGrid.setHgap(5);
-        StackPane myBoxStack = new StackPane();
-        myBoxStack.getChildren().addAll(graphicBoxText,littleBox);
-        myGrid.getChildren().add(myBoxStack); //add to the layout object
-        //add another child stack (box) to layout object TO DO write function
-        StackPane myCloneStack = new StackPane();
-        Text myText2 = new Text ("happy Days");
-        DefBox myBox2  = new DefBox();
-        myCloneStack.getChildren().addAll(myText2, myBox2);
-        //add the Second Stack (box) to the same Grid
-        myGrid.add(myCloneStack,2,2); //col, row and no children method
-        //add layout object to scene
-        Scene boxScene = new Scene (myGrid,400,400); //width x height (px)
-        //myStage.setScene(boxScene);
-        */
-
-        /* MINIMUM SETUP USING GROUP LAYOUT */
-        boxGroup_root = new Group();
-        
-        //Use root node (group layout object) to create Scene and set event handlers (optional)
-        boxScene = new Scene (boxGroup_root,400,400); //width x height (px)
-        boxScene.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
+        /* MINIMUM SETUP USING GROUP LAYOUT  - WHICH LAYOUT IS MOST APPROPRIATE ?*/
+        Group myGroup_root = new Group();
+        //add group layout object to scene
+        defScene = new Scene (myGroup_root,600,400); //width x height (px)
+        //optional event handler
+        defScene.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
          @Override
          public void handle(MouseEvent mouseEvent) {
          System.out.println("Mouse click detected! " + mouseEvent.getSource());
              }
         });
-        //Set scene for this Stage, as well as size and position
-        myStage.setScene(boxScene); 
-        myStage.setTitle("The Graphics Window");
-        //myStage.setX(1000);
-        //stage.setWidth(800);
-        //stage.setHeight(400);
-        Rectangle2D primScreenBounds = Screen.getPrimary().getVisualBounds();
-        myStage.setX(primScreenBounds.getWidth() / 1.5); 
-        myStage.setY(25);
-        //myStage.setY(primScreenBounds.getHeight()/ 2); 
-        myStage.show();
-
-        //Now test some things that will relate to dynamic functions later (add, remove) 
-
-        /* TEST CASES
-
-        //First box in window.  Each box object is a ready Stackpane with 2 child nodes
-        littleStack = new StackBox("Some new text");
-        littleStack.setTranslateX(300); //was 300
-        littleStack.setTranslateY(100);//was 100
-        littleStack.setOnMousePressed(PressBoxEventHandler); 
-        littleStack.setOnMouseDragged(DragBoxEventHandler);
-
-        //add boxes to group that already exists in this stage
-        //myGroup.getChildren().addAll(myBox2,littleStack);
-        boxGroup_root.getChildren().add(littleStack);
-
-        StackBox myBox2 = new StackBox("the 2nd box","green");
-        myBox2.setTranslateX(100);
-        myBox2.setTranslateY(200);
-        myBox2.setOnMousePressed(PressBoxEventHandler); 
-        myBox2.setOnMouseDragged(DragBoxEventHandler);
-
-        //Some box-level event handlers for testing purposes 
-
-        myBox2.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
-         @Override
-         public void handle(MouseEvent mouseEvent) {
-         System.out.println("mouse click detected for box2! " + mouseEvent.getSource());
-             }
-        });
-
-        //hbox3.getChildren().add(myBox2);  //How to refresh this?
-        boxGroup_root.getChildren().add(myBox2);
-
-        littleStack.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
-         @Override
-         public void handle(MouseEvent mouseEvent) {
-         System.out.println("mouse click detected for littleStack! " + mouseEvent.getSource());
-             }
-        });
-
-        */
-
-        //---ADD YELLOW BOXES WITH COMMON WORDS ---
-
-        //TO DO: The StackBoxes will be meta-objects include both defs, clause and data.
-        //They should incorporate the text or contents objects so that the GUI can feed this back and forward from text edit windows etc as required.
-        WordTool myHelper = new WordTool();
-        ArrayList<String> boxList = new ArrayList<String>();
-        try {
-        boxList = myHelper.commonBoxSet("popstarLease.txt");
-        }
-        catch (Exception e) {
-                   e.printStackTrace();
-                  } 
-        Iterator<String> i = boxList.iterator();
-        int offX = 0;
-        while (i.hasNext()) {
-            offX=offX+50;
-            StackBox b;
-            if (offX<=100) {
-                b = new StackBox(i.next()); //default blue
-                b.setContent("This is a blue box");
-            } else {
-                b = new StackBox(i.next(), "yellow");
-                b.setContent("This is a yellow box");
-            }
-            b.setTranslateX(offX); //increments offset each time for display. 
-            //TO DO: set some default object refs (StackPane has current; these will be alternate indexes).
-            b.setTranslateY(offX);
-            b.setOnMousePressed(PressBoxEventHandler); 
-            b.setOnMouseDragged(DragBoxEventHandler);
-            
-            boxGroup_root.getChildren().add(b);
-        }
-        //add some definitions
-         
-}
-
- /* ---- SETUP A THIRD STAGE FOR INSPECTING OBJECTS--- */
-
- public void setupInspectorWindow(Stage myStage) {
-        
-        /* MINIMUM SETUP USING GROUP LAYOUT  - WHICH LAYOUT IS MOST APPROPRIATE ?*/
-        inspectorGroup_root = new Group();
-        //add group layout object to scene
-        inspectorScene = new Scene (inspectorGroup_root,600,400); //width x height (px)
         //add TextArea to group
-        inspectorGroup_root.getChildren().add(inspectorTextArea);
-        //set some initial content
-        inspectorTextArea.setText("Some future contents");
-        inspectorTextArea.setWrapText(true);
-
-        myStage.setScene(inspectorScene); //this selects the stage as current scene
-        myStage.setTitle("The Object Inspector Window");
-        //myStage.setX(1000);
-        //stage.setWidth(800);
-        //stage.setHeight(400);
-        Rectangle2D primScreenBounds = Screen.getPrimary().getVisualBounds();
-        myStage.setX(primScreenBounds.getWidth() / 1.5); 
-        myStage.setY(450);
-        //myStage.setY(primScreenBounds.getHeight()/ 1.8); 
-        /*myStage.setX((primScreenBounds.getWidth() - myStage.getWidth()) / 3); 
-        myStage.setY((primScreenBounds.getHeight() - myStage.getHeight()) / 5);  
-        */
-        myStage.show();
- }
-
- /* ---- SETUP A FOURTH STAGE FOR DEFINITIONS OBJECTS--- */
-
- public void setupDefinitionsWindow(Stage myStage) {
-        
-        /* MINIMUM SETUP USING GROUP LAYOUT  - WHICH LAYOUT IS MOST APPROPRIATE ?*/
-        defGroup_root = new Group();
-        //add group layout object to scene
-        defScene = new Scene (defGroup_root,600,400); //width x height (px)
-        //add TextArea to group
-        defGroup_root.getChildren().add(defTextArea);
+        myGroup_root.getChildren().add(defTextArea); //std Text Area as default (optional)
         //set some initial content
         defTextArea.setText("Some future contents");
 
         myStage.setScene(defScene); //this selects the stage as current scene
-        myStage.setTitle("The Definitions Display/Inspector Window");
-        //myStage.setX(1000);
-        //stage.setWidth(800);
-        //stage.setHeight(400);
+        myStage.setTitle(myTitle);
         Rectangle2D primScreenBounds = Screen.getPrimary().getVisualBounds();
-        //myStage.setX(primScreenBounds.getWidth() / 1.5); 
         myStage.setY(0);
         myStage.setY(450);
-        //myStage.setY(primScreenBounds.getHeight()/ 1.8); 
-        /*myStage.setX((primScreenBounds.getWidth() - myStage.getWidth()) / 3); 
-        myStage.setY((primScreenBounds.getHeight() - myStage.getHeight()) / 5);  
-        */
         myStage.show();
+        return myGroup_root;
 
-        //---ADD GREEN BOXES WITH DEFINITIONS ---
-        
-        //TO DO: The StackBoxes will be meta-objects include both defs, clause and data.
-        //They should incorporate the text or contents objects so that the GUI can feed this back and forward from text edit windows etc as required.
-        //If you want to obtain from file: DefContainer myContainer = grabDefinitionsFile("popstarLease.txt");
-        //if you want to obtain from the top textArea:
-        
-        /* 
-        DefContainer myContainer = grabDefinitionsString(textArea1.getText());
-        ArrayList<Definition> myDList = myContainer.getDefArray();
-        Iterator<Definition> myiterator = myDList.iterator();
-        int offX = 0;
-        while (myiterator.hasNext()) {
-            Definition mydefinition = myiterator.next();
-            String myLabel = mydefinition.getLabel();
-            String mydeftext = mydefinition.getDef();
-            String FreqCnt = Integer.toString(mydefinition.getFreq());
-            String myCont = myLabel+"("+FreqCnt+")";
-            offX=offX+10;
-            StackBox b;
-            if (offX<=100) {
-                b = new StackBox(myCont); //default blue
-                b.setContent(mydeftext); //to do - transfer defs to sep objects in StackBox
-            } else {
-                b = new StackBox(myCont, "green");
-                b.setContent(mydeftext);
-            }
-            b.setTranslateX(offX); //increments offset each time for display. 
-            //TO DO: set some default object refs (StackPane has current; these will be alternate indexes).
-            b.setTranslateY(offX);
-            b.setOnMousePressed(PressBoxEventHandler); 
-            b.setOnMouseDragged(DragBoxEventHandler);
-            
-            defGroup_root.getChildren().add(b);
-        }
-*/
 }
 private void setArea1Text(String fname) {
         //get text from file and put in textarea 1
@@ -575,18 +461,18 @@ private String getArea1Text() {
         
         //I will use another Stage as a graphics window
         visualWindow = new Stage();
-        this.setupGraphWindow(visualWindow);
-        visualWindow.show();
+        Group CommonWords_root = MainStage.this.setupChildWindow(visualWindow, "The Graphics Window");
+        Rectangle2D primScreenBounds = Screen.getPrimary().getVisualBounds();
+        visualWindow.setX(primScreenBounds.getWidth() / 1.5); 
+        visualWindow.setY(25);
 
         //I will use another Stage as an inspector window
         inspectorWindow = new Stage();
-        this.setupInspectorWindow(inspectorWindow);
-        inspectorWindow.show();
-        /*I will use another Stage as definitions window but set it up as needed, not here
-        defWindow = new Stage();
-        this.setupDefinitionsWindow(defWindow);
-        defWindow.show();
-        */
+        inspectorGroup_root = MainStage.this.setupChildWindow(inspectorWindow, "Inspector Window");
+        inspectorWindow.setX(primScreenBounds.getWidth() / 1.5); 
+        inspectorGroup_root.getChildren().add(inspectorTextArea);
+        inspectorTextArea.setText("Some future contents");
+        inspectorTextArea.setWrapText(true);
         
         //TO DO: Setup another 'Stage' for file input, creation of toolbars etc.
     }
