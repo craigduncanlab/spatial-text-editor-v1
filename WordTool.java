@@ -180,7 +180,7 @@ private String readFile(String fname) {
                   } 
        while (sc.hasNextLine()) {
        String S = sc.nextLine();
-       output = output + S + "\n"; //to preserve LF
+       output = output + S + "\n"; //\ r inserts a \x0D: to preserve LF (as x0A) use \n
        }
        return output;
 
@@ -230,6 +230,108 @@ catch unicode hyphen and line returns and quotes after 'means'
         }    
     return myContainer;
   }
+
+/*  Method to find clauses and store them in clause objects
+ I did start out with Reg Exp but essentially we want to find documents with headings, and capture things in betweeen.
+ If it's harder than that, a manual approach may work better.
+    */
+
+
+  public ClauseContainer ClauseExtract(String mydata) {
+    ClauseContainer myContainer = new ClauseContainer();
+    String output="";
+    
+    
+    /* Good for headings plus one para plus ...*/
+    Pattern p = Pattern.compile("[[a-z][0-9]\\<\\>]*([A-Z' ]{2,}[A-Z'](?=\\x0A))");
+    
+    System.out.println("pattern matcher set");
+    Matcher matcher = p.matcher(mydata);
+    int groupCount = matcher.groupCount();
+    int matchCount=0;
+    ArrayList<String> myClauseList = new ArrayList<String>();
+    while (matcher.find())
+        {
+            for (int i = 1; i <= groupCount; i++) {
+                // Group i substring
+                System.out.println("Group " + i + ": " + matcher.group(i));
+            }
+         matchCount++; //no longer needed unless output
+         Clause myC  = new Clause();
+         myC.setClauselabel(matcher.group(1));
+         myC.setHeading(matcher.group(1));
+         myClauseList.add(matcher.group(1));
+         //myC.setClausetext(matcher.group(3));
+         myContainer.addClause(myC);
+        }
+    System.out.println("Finished clause search");
+    //int AS = sizeof(myClauseList);
+    /*for (String gopher : myClauseList) {
+      System.out.println(gopher);
+    }
+    */
+    ArrayList<Clause> myCList = myContainer.getClauseArray();
+    Iterator<Clause> myiterator = myCList.iterator();
+      String[] indexedList = new String[150];
+      indexedList[0] = "";
+      //String UpperWord="";
+      String myRegEx = "";
+      int indexWindow=0;
+      Clause FirstClause=myiterator.next();
+      Clause UpperClause = FirstClause;
+      Clause LowerClause = FirstClause;
+    while (myiterator.hasNext()) {
+        if (indexWindow>0) {
+         UpperClause = LowerClause;
+        }
+        LowerClause = myiterator.next();
+        String UpperWord = UpperClause.getHeading();
+        String LowerWord = LowerClause.getHeading();
+        
+    //iterate Clauses and find the text between headings//
+    //Iterator<String> myiterator = myClauseList.iterator();
+    /*String[] indexedList = new String[150];
+    indexedList[0] = "";
+    String UpperWord="";
+    String myRegEx = "";
+    int indexWindow=0;
+    */
+    /*
+     // for (String LowerWord : myClauseList) {
+        //indexedList[indexWindow] = "";
+        indexedList[indexWindow]=LowerWord;
+        if (indexWindow>0) {
+          UpperWord=indexedList[indexWindow-1];
+          */
+          //myRegEx="("+UpperWord+"[\\t\\f\\r\\w\\d\\s \\.\\<\\>\\(\\)\\;\\:\\x0D\\x0A\\\"]*"+LowerWord+"?)";
+          myRegEx="(?="+UpperWord+")([\\w\\d\\s\\(\\)\\:\\-\\;\\,\\.\\/\\’'\\<\\>\\u2013\\u2019\\x0d\\x0a\\\" ]*)"+"(?="+LowerWord+")";
+          System.out.println("Now matching: "+myRegEx);
+          Pattern pcl = Pattern.compile(myRegEx);
+          //System.out.println(pcl.pattern());
+          Matcher clauseCaptcha = pcl.matcher(mydata);
+          int clauseMatches = clauseCaptcha.groupCount();
+          while (clauseCaptcha.find())
+          {
+            System.out.println("Pattern: "+myRegEx+" # Group + " + clauseCaptcha.group(1));
+            UpperClause.setClausetext(clauseCaptcha.group(1));
+           /*
+           {
+            for (int i = 0; i <= clauseMatches; i++) {
+                // Group i substring
+                System.out.println("Pattern: "+myRegEx+" # Group + " + i + ": " + clauseCaptcha.group(i));
+            }
+            }
+            */
+          }
+          indexWindow++;  
+        }         
+        
+        return myContainer;
+    }
+    
+  
+
+
 
 //for other methods to call these are public methods
 public void printCountFromFile(String fname) {

@@ -83,6 +83,10 @@ public class MainStage extends Application {
     Scene defScene;
     Group defGroup_root;
     TextArea defTextArea = new TextArea();
+    //Clause window
+    Stage ClauseStage;
+
+    Group ClauseGroup_root;
 
 /*The main method uses the launch method of the Application class.
 https://docs.oracle.com/javase/8/javafx/api/javafx/application/Application.html
@@ -122,6 +126,15 @@ private DefContainer grabDefinitionsString(String mydata) {
     DefContainer defbox = myTool.doDefTextSearch(mydata);
     return defbox;
 } 
+
+//return a ClauseContainer object with clauses after using text document as input
+
+private ClauseContainer getClauseContainer(String mydata) {
+    WordTool myTool = new WordTool();
+    ClauseContainer clauseCarton = myTool.ClauseExtract(mydata);
+    return clauseCarton;
+} 
+
 
 //used by event handler
 private String getMatched(String data) {
@@ -301,34 +314,33 @@ public void setupStage(Stage textStage) {
         btnClauses.setTooltip(new Tooltip ("Press to work with Clauses"));
         btnClauses.setText("Show Clause Boxes");
         //event handling listener, handle override and outer class method calls
-        /* TO DO: Add library of clauses and object types
+        
 
         btnClauses.setOnAction(new EventHandler<ActionEvent>() {
         @Override public void handle(ActionEvent event) {
         System.out.println("Clause Boxes Button was pressed!");
         //make a new stage
-        Stage ClauseStage = new Stage();
-        Stage adHoc = new Stage();
-        ClauseGroup_root = MainStage.this.setupChildWindow(adHoc, "The Clause Window");
+        ClauseStage = new Stage();
+        ClauseGroup_root = MainStage.this.setupChildWindow(ClauseStage, "The Clause Window");
         //TO DO: get source of data
-        DefContainer myContainer = grabDefinitionsString(textArea1.getText());
-        ArrayList<Definition> myDList = myContainer.getDefArray();
-        Iterator<Definition> myiterator = myDList.iterator();
+        ClauseContainer myContainer = getClauseContainer(textArea1.getText());
+        ArrayList<Clause> myClauseList = myContainer.getClauseArray();
+        Iterator<Clause> myiterator = myClauseList.iterator();
         int offX=0;
         int offY=0;
         while (myiterator.hasNext()) {
-            Definition mydefinition = myiterator.next();
-            String myLabel = mydefinition.getLabel();
-            String mydeftext = mydefinition.getDef();
-            String FreqCnt = Integer.toString(mydefinition.getFreq());
-            String myCont = myLabel+"("+FreqCnt+")";
+            Clause myclause = myiterator.next();
+            String myLabel = myclause.getLabel();
+            String myclausetext = myclause.getClause();
+            //String FreqCnt = Integer.toString(myclause.getFreq());
+            String myCont = myLabel; //+"("+FreqCnt+")";
             StackBox b;
             if (offY<=100) {
                 b = new StackBox(myCont); //default blue
-                b.setContent(mydeftext); //to do - transfer defs to sep objects in StackBox
+                b.setContent(myclausetext); //to do - transfer defs to sep objects in StackBox
             } else {
                 b = new StackBox(myCont, "green");
-                b.setContent(mydeftext);
+                b.setContent(myclausetext);
             }
             b.setTranslateX(offX); //increments offset each time for display. 
             //TO DO: set some default object refs (StackPane has current; these will be alternate indexes).
@@ -336,7 +348,7 @@ public void setupStage(Stage textStage) {
             b.setOnMousePressed(PressBoxEventHandler); 
             b.setOnMouseDragged(DragBoxEventHandler);
             
-            defGroup_root.getChildren().add(b);
+            ClauseGroup_root.getChildren().add(b);
             if (offX>640) {
                 offY=offY+65;
                 offX=0;
@@ -345,12 +357,10 @@ public void setupStage(Stage textStage) {
                 offX = offX+160;
             }
         }
-        adHoc.show();
+        ClauseStage.show();
             }
 
         });
-
-        */
 
         //Set horizontal box for buttons
         hbox3 = new HBox(0,btn,btnDefs,btnDefIcons, btnClauses);
