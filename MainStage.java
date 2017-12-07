@@ -371,7 +371,7 @@ private String getArea1Text() {
         this.setupInputStage(myStage,"Text for Analysis");
         //set some default text in main text window
         //this.myTextFile="popstarlease.txt";
-        this.myTextFile="popstarLic.txt";
+        this.myTextFile="electricity.txt";
         this.setArea1Text(this.myTextFile);
         this.setArea2Text(this.myTextFile);
         myStage.show();

@@ -96,20 +96,28 @@ private TreeMap<Integer, String> makeMapFromStringCounts(String inputMe) {
 }
 
 /* method to trim String
+Here the hashmap is assumed to be k = frequency, v = word
 @parameter excludedWords is excluded words that are common filler words will be trimmed
 These words tell you something about the language of lawyers too.
 @return trimmedTreeMap as trimmed TreeMap.  Notice it is in reverse order so largest counts at top.
+TO DO: consider if the words "means" should be removed from here
 TO DO: put in external Dictionary; possibly deal with phrases rather than words alone
 Also - not using double brace initialisation of ArrayList at this stage.
 */
 
 private TreeMap<Integer, String> trimTreeMap(TreeMap<Integer, String> myTMap) {
-      ArrayList<String> excludedWords = new ArrayList<String>(Arrays.asList("amount","arising","before","between","clause","conditions","connection","cost","costs","date","from","including","means","must","notice","proposed","provisions","reasonable","reasonably","relevant","respect","only","other","payment","specified","terms","that","this","than","time","under","which","will","with","written"));
+      ArrayList<String> excludedWords = new ArrayList<String>(Arrays.asList("amended","amount","arising","before","between","clause","conditions","connection","cost","costs","date","entity","from","including","inserted","means","must","notice","person","proposed","provisions","reasonable","reasonably","relevant","respect","only","other","payment","section","shall","specified","such","terms","that","this","than","time","under","which","will","with","written"));
       TreeMap<Integer, String> trimmedTreeMap = new TreeMap<Integer, String>(Collections.reverseOrder());
       myTMap.forEach((k,v)->
         {
           //introduce threshold for results. e.g. 5+ results, length of 4 or more.  Not excluded.
-          if ((k>5 && v.length()>3) && (excludedWords.contains(v)!=true)) {
+          //exclude numbers
+          Boolean isInteger=false;
+          //test if only contains digits.  Eliminates years etc.  if (v.matches("^-?\\d+$");)
+          if (v.matches("^\\d+$")) {
+            isInteger=true;
+          }
+          if ((k>5 && v.length()>3) && (excludedWords.contains(v)!=true) && isInteger==false) {
             trimmedTreeMap.put(k,v);
         }
     }
@@ -197,25 +205,82 @@ TO DO: Capture this in-text definition pattern as an alternative:
   public DefContainer doDefTextSearch(String mydata) {
     DefContainer myContainer = new DefContainer();
     String output="";
-    
+    String[] patternString = new String[4];
+    Integer[] labelGroup = new Integer[4];
+    Integer[] textGroup = new Integer[4];
     //This works for quoted definitions only:
     //OLD: Pattern p = Pattern.compile("\\\"(([\\w\\’' ]*)*[\\w\\’']+)\\\" means[: ]([\\w\\^\\w\\s\\(\\)\\:\\-;,\\/\\’'\\<\\>\\u2013\\u2019\\x0a\\\"]*)\\.");
-    String Uni_dbl_qt = "[\\u201c\\u201d\\u201e\\u201f\\\"]"; //not using \\x22 for now
+    String Uni_NonBreakspace="\\u00A0";
+    String soft_break="\\x0d";
+    String all_breaks="\\x0d\\x0a";
     String Uni_single_qt = "\\u2018\\u2019";
-    String Uni_dash = "\\u2013";
-    String myRE=Uni_dbl_qt+"(([\\w\\’' ]*)[\\w\\’']+)"+Uni_dbl_qt+" means[\\-:, ]([\\w\\^\\w\\s\\(\\)\\:\\-;,\\/\\’'\\<\\>\\u2013\\u2019\\x0a\\\"]*)\\.";
-    Pattern p = Pattern.compile(myRE);
+    String Uni_dashes = "\\u2010\\u2011\u2012\\u2013\\u2014\\u2015"; //u2010 is hyphen
+    String Uni_dbl_qt = "\\u201c\\u201d\\u201e\\u201f\\\""; //not using \\x22 for now
+    //This LooseRegEx does not include the : ; or . as it assumes they are the end of definition delimiter
+    String LooseRegEx="[\\w\\d\\s\\(\\)\\-,\\/\\’'\\<\\>\\[\\]"+soft_break+Uni_dbl_qt+Uni_single_qt+Uni_dashes+Uni_NonBreakspace+" ]*";
+    int numPatterns=4;
+    //patternString[0]="(?=\\x0A)(([\\w\\’' ]*)[\\w\\’']+) means[\\-\\-:, ]"+LooseRegEx+"\\;"+LooseRegEx+"\\x0A"+"(?=[[A-Z][a-z][0-9],\\’' ]+means)";
+    /* ----unquoted definitions pattern (e.g. statutes) --- */
+    //can't use alternate means or includes because they need to occur at start
+    //patternString[0]="\\x0A(([\\w\\’' ]*)*[\\w\\’'\\(\\)]+)(( means| includes)"+LooseRegEx+")(?=([\\;\\.:]\\x0A))";
+    //(?<!a)b, which is b not preceeded by a
+    //a(?!b), which is a not followed by b
+    //OLD:patternString[0]="\\x0A(([\\w\\’' ]*)*[\\w\\’'\\(\\)]+) ((?<!and )includes|means(?! inquiry)"+LooseRegEx+")(?=([\\;\\.:]))";
+    patternString[0]="\\x0A([\\w\\’'\\(\\) ]+)* ((?<!and )(includes|means)(?! inquiry)(?! by which)"+LooseRegEx+")(?=([\\;\\.:]\\x0A))";
+    labelGroup[0]=1;
+    textGroup[0]=2;
+    /* ----quoted definitions pattern (e.g. contracts) ---   MAYBE COMBINE ALTERNATES*/
+    patternString[1]=Uni_dbl_qt+"(([\\w\\’' ]*)[\\w\\’']+)"+Uni_dbl_qt+" means[\\-:, ]([\\w\\^\\w\\s\\(\\)\\:\\-;,\\/\\’'\\<\\>\\u2013\\u2019\\x0a\\\"]*)\\.";
+    labelGroup[1]=1;
+    textGroup[1]=3;
+    patternString[2]="\\x0A(([\\w\\’' ]*)[\\w\\’']+) means[\\-:, ]([\\w\\^\\w\\s\\(\\)\\:\\-;,\\/\\’'\\<\\>\\u2013\\u2019\\x0a\\\"]*)\\.";
+    labelGroup[2]=1;
+    textGroup[2]=3;
+    /* ----quoted definitions pattern (e.g. contracts) ---   original pattern */
+    patternString[3]="\\\"(([\\w\\’' ]*)*[\\w\\’']+)\\\" means[: ]([\\w\\^\\w\\s\\(\\)\\:\\-;,\\/\\’'\\<\\>\\u2013\\u2019\\x0a\\\"]*)\\.";
+    labelGroup[3]=1;
+    textGroup[3]=3;
+
+    for (int sIndex=0;sIndex<numPatterns;sIndex++) {
+    //
+    Pattern p = Pattern.compile(patternString[sIndex]);
     Matcher matcher = p.matcher(mydata);
+    int groupCount = matcher.groupCount();
     int matchCount=0;
+    System.out.println("Text search loop  - sindex: "+sIndex);
     while (matcher.find())
         {
-         System.out.println(matcher.group(1)+" group 2:"+matcher.group(2)+" group 3:"+matcher.group(3));
-         matchCount++; //no longer needed unless output
+         //System.out.println(matcher.group(1)+" group 2:"+matcher.group(2)+" group 3:"+matcher.group(3));
+            for (int i = 1; i <= groupCount; i++) {
+                // Group i substring
+                System.out.println("Group " + i + ": " + matcher.group(i));
+          }
          Definition myDef  = new Definition();
-         myDef.setDeflabel(matcher.group(1));
-         myDef.setDeftext(matcher.group(3));
-         myContainer.addDef(myDef);
+         String label="";
+         label=matcher.group(labelGroup[sIndex]);
+         if (!label.equals("") && !label.equals(" ")) {
+             String text = matcher.group(textGroup[sIndex]);
+             matchCount++; 
+             myDef.setDeflabel(label);
+             myDef.setDeftext(text);
+             myContainer.addDef(myDef);
+          }
         }
+              if (matchCount>4) {
+              System.out.println("Four matches and exit"+sIndex);
+              this.updateDefFreq(myContainer,mydata);
+              return myContainer;
+              }
+        }
+      this.updateDefFreq(myContainer,mydata);
+      return myContainer;
+    }
+
+    /* Method to update the frequency count of the current set of definitions for the given String 
+    
+    */
+
+    public DefContainer updateDefFreq(DefContainer myContainer, String mydata) {
     //iterate again and update the frequency of use of Defs
     //TO DO : Make a hash map instead of arraylist with the definition label and the def object?
     ArrayList<Definition> myDList = myContainer.getDefArray();
@@ -231,10 +296,11 @@ TO DO: Capture this in-text definition pattern as an alternative:
            mydefinition.incFreq();
          }
          String FreqCnt = Integer.toString(mydefinition.getFreq());
+
          //OK: System.out.println(myLabel+" : "+FreqCnt);
         }    
-    return myContainer;
-  }
+  return myContainer;
+}
 
 /*  Method to find clauses and store them in clause objects
     Assumes headings are capital letters on a single row
