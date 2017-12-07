@@ -76,13 +76,16 @@ public class MainStage extends Application {
     //inspector window
     Stage inspectorWindow;
     Scene inspectorScene;
-    Group inspectorGroup_root;
+    ScrollPane inspectorGroup_root;
     TextArea inspectorTextArea = new TextArea();
     //Definitions window
     Stage defWindow;
     Scene defScene;
     Group defGroup_root;
     TextArea defTextArea = new TextArea();
+    //definitions extraction window
+    Stage defsTextStage;
+    ScrollPane defsTextStage_root;
     //Clause window
     Stage ClauseStage;
 
@@ -131,7 +134,9 @@ private DefContainer grabDefinitionsString(String mydata) {
 
 private ClauseContainer getClauseContainer(String mydata) {
     WordTool myTool = new WordTool();
-    ClauseContainer clauseCarton = myTool.ClauseExtract(mydata);
+    //TO DO: add options for different clause extractions
+    ClauseContainer clauseCarton = myTool.ClauseCapHeadingExtract(mydata);
+    //ClauseContainer clauseCarton = myTool.ClauseInlineHeadingExtract(mydata);
     return clauseCarton;
 } 
 
@@ -158,10 +163,10 @@ public void pressMe() {
 insert text strings into TextArea arguments
 make this public so that the inner class can find it  */
 
-public void setupStage(Stage textStage) {
+public void setupInputStage(Stage textStage, String myTitle) {
 
-        //This is the stage to be used but is not JavaFX default
-        textStage.setTitle("Text Working Space");
+        //This is the stage to be used but is not the JavaFX application default
+        textStage.setTitle(myTitle);
         
          //This Vbox only has 1 child, a text area, and no spacing setting.
         //VBox vbox = new VBox(textArea);//unused
@@ -190,8 +195,9 @@ public void setupStage(Stage textStage) {
         //Set horizontal boxes with spacing and child nodes *i.e. a row 
         hbox1 = new HBox(0,this.textArea1,this.textArea2);
         HBox hbox2 = new HBox(0,this.textArea3,this.textArea4);
-        
-        //button for Common Word Counts
+
+        //define buttons 
+        //for Common Word Counts
         Button btn = new Button();
         btn.setText("Update Word Counts");
         btn.setOnAction(new EventHandler<ActionEvent>() {
@@ -248,18 +254,27 @@ public void setupStage(Stage textStage) {
         //event handling listener, handle override and outer class method calls
         btnDefs.setOnAction(new EventHandler<ActionEvent>() {
         @Override public void handle(ActionEvent event) {
-        //Outer class method class
-                String gotcha = MainStage.this.textArea1.getText();
-                String newDefs = MainStage.this.getMatched(gotcha);
-                MainStage.this.textArea3.setText(newDefs);
-                //MainStage.this.textArea4.setText(newDefs);
-                System.out.println("Get Defs Button was pressed!");
-                //MainStage.this.textArea4.setText(newDefs);
+        //make a new stage with scrollpane
+        defsTextStage = new Stage();
+        defsTextStage_root = MainStage.this.setupScrollTextWindow(defsTextStage, "Definitions Text Extracted");
+        //Outer class method class to obtain text from analysis area
+        String gotcha = MainStage.this.textArea1.getText();
+        String newDefs = MainStage.this.getMatched(gotcha);
+        //set the default scrollpane content to a designated text area and size it
+        defsTextStage_root.setContent(textArea3); 
+        double width = 800; 
+        double height = 500; 
+        textArea3.setPrefHeight(height);  
+        textArea3.setPrefWidth(width);
+        textArea3.setWrapText(true);
+        //now set the content of text area inside scrollpane to our extracted text
+        textArea3.setText(newDefs);
+        System.out.println("Get Defs Button was pressed!");
     }
 
         });
 
-        //Button for definitions icons
+        //Button for definitions icons (also includes individual event handlers as blocks are added)
         Button btnDefIcons = new Button();
         btnDefIcons.setTooltip(new Tooltip ("Press to create definitions icons from top text area"));
         btnDefIcons.setText("Extract Def Icons");
@@ -267,9 +282,11 @@ public void setupStage(Stage textStage) {
         btnDefIcons.setOnAction(new EventHandler<ActionEvent>() {
         @Override public void handle(ActionEvent event) {
         System.out.println("Get DefIcons Button was pressed!");
-        //make a new stage
+        //make a new stage to display graphic blocks
         Stage adHoc = new Stage();
-        defGroup_root = MainStage.this.setupChildWindow(adHoc, "The Definitions Display/Inspector Window");
+        defGroup_root = MainStage.this.setupChildWindow(adHoc, "Definitions Block Window");
+
+        //obtain data to display
         DefContainer myContainer = grabDefinitionsString(textArea1.getText());
         ArrayList<Definition> myDList = myContainer.getDefArray();
         Iterator<Definition> myiterator = myDList.iterator();
@@ -311,7 +328,7 @@ public void setupStage(Stage textStage) {
 
         //Button for Clause icons
         Button btnClauses = new Button();
-        btnClauses.setTooltip(new Tooltip ("Press to work with Clauses"));
+        btnClauses.setTooltip(new Tooltip ("Press to extract Clauses from top Text Area"));
         btnClauses.setText("Show Clause Boxes");
         //event handling listener, handle override and outer class method calls
         
@@ -362,13 +379,13 @@ public void setupStage(Stage textStage) {
 
         });
 
-        //Set horizontal box for buttons
+        //Set horizontal box to hold buttons
         hbox3 = new HBox(0,btn,btnDefs,btnDefIcons, btnClauses);
         //put each of our rows into a vertical scroll box
         //VBox vbox2 = new VBox(0,hbox1,hbox2,hbox3);
         //vbox2.getChildren().addAll(hbox1,hbox2,hbox3);
         VBox vbox2 = new VBox(0,hbox1);
-        vbox2.getChildren().add(hbox2);
+        //vbox2.getChildren().add(hbox2); //<---Now put this in its own window
         vbox2.getChildren().add(hbox3);
         
         vbox2.setPrefWidth(totalwidth); //this is in different units to textarea
@@ -406,7 +423,7 @@ These are not instance variables.  Consider if necessary on other occasions.
         /* MINIMUM SETUP USING GROUP LAYOUT  - WHICH LAYOUT IS MOST APPROPRIATE ?*/
         Group myGroup_root = new Group();
         //add group layout object to scene
-        defScene = new Scene (myGroup_root,600,400); //width x height (px)
+        defScene = new Scene (myGroup_root,800,400); //default width x height (px)
         //optional event handler
         defScene.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
          @Override
@@ -428,6 +445,39 @@ These are not instance variables.  Consider if necessary on other occasions.
         return myGroup_root;
 
 }
+
+/** Setup independent text inspector window with a scrollpane as the root node
+(nb setup new stage before calling this method)
+Scene size will determine width of Stage window initially
+**/
+
+public ScrollPane setupScrollTextWindow(Stage myStage, String myTitle) {
+        
+        ScrollPane scroll_root1 = new ScrollPane();
+        scroll_root1.setFitToHeight(true);
+        scroll_root1.setFitToWidth(true);
+        //add group layout object to scene 
+        Scene defScene = new Scene (scroll_root1,600,500); //width x height (px)
+        
+        //myStage.setX(200);
+        //setup starting position near right side of screen
+        Rectangle2D ScreenBounds = Screen.getPrimary().getVisualBounds();
+        myStage.setX(ScreenBounds.getWidth() / 1.5); 
+        myStage.setScene(defScene);
+        //optional event handler
+        defScene.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
+         @Override
+         public void handle(MouseEvent mouseEvent) {
+         System.out.println("Mouse click detected for text scroll window! " + mouseEvent.getSource());
+             }
+        });
+        //Size and positioning
+        myStage.setTitle(myTitle);
+        myStage.show();
+        return scroll_root1; 
+        //defTextArea.setText("Some future contents");
+        }
+
 private void setArea1Text(String fname) {
         //get text from file and put in textarea 1
         String myText=this.getTextfromFile(fname);
@@ -460,30 +510,50 @@ private String getArea1Text() {
         //primaryStage.show();
         primaryStage.close();
        
-        //*Stage that I will use for main text display and editing
+        //*Stage that I will use for main text input display and editing
         Stage myStage = new Stage();
-        this.setupStage(myStage);
+        this.setupInputStage(myStage,"Text for Analysis");
         //set some default text in main text window
-        this.myTextFile="popstarlease.txt";
+        //this.myTextFile="popstarlease.txt";
+        this.myTextFile="popstarLic.txt";
         this.setArea1Text(this.myTextFile);
         this.setArea2Text(this.myTextFile);
         myStage.show();
         
-        //I will use another Stage as a graphics window
+        /* OLD:
+        Setup a deafult Stage as a graphics window with a group node
         visualWindow = new Stage();
         Group CommonWords_root = MainStage.this.setupChildWindow(visualWindow, "The Graphics Window");
         Rectangle2D primScreenBounds = Screen.getPrimary().getVisualBounds();
         visualWindow.setX(primScreenBounds.getWidth() / 1.5); 
         visualWindow.setY(25);
 
-        //I will use another Stage as an inspector window
         inspectorWindow = new Stage();
         inspectorGroup_root = MainStage.this.setupChildWindow(inspectorWindow, "Inspector Window");
-        inspectorWindow.setX(primScreenBounds.getWidth() / 1.5); 
         inspectorGroup_root.getChildren().add(inspectorTextArea);
-        inspectorTextArea.setText("Some future contents");
         inspectorTextArea.setWrapText(true);
+        */
+
+        /* Setup default Stage with Scrollpane to display Text as Inspector
+        */
+        inspectorWindow = new Stage();
+        //for large window:
+        //inspectorWindow.setX(primScreenBounds.getWidth() / 1.5); 
+        inspectorGroup_root = MainStage.this.setupScrollTextWindow(inspectorWindow, "Inspector Window");
         
+        //Outer class method class to obtain text from analysis area
+        String gotcha = MainStage.this.textArea1.getText();
+        String newDefs = MainStage.this.getMatched(gotcha);
+        //set the default scrollpane content to a designated text area and size scrollpane
+        inspectorGroup_root.setContent(inspectorTextArea); 
+        double width = 600; 
+        double height = 500; 
+        inspectorGroup_root.setPrefHeight(height);  
+        inspectorGroup_root.setPrefWidth(width);
+        inspectorTextArea.setWrapText(true);
+        //now set the content of text area inside scrollpane to our text
+        inspectorTextArea.setText("Some future contents");
+
         //TO DO: Setup another 'Stage' for file input, creation of toolbars etc.
     }
 

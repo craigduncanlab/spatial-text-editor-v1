@@ -197,9 +197,6 @@ catch unicode hyphen and line returns and quotes after 'means'
     
     //This works for quoted definitions only:
     Pattern p = Pattern.compile("\\\"(([\\w\\’' ]*)*[\\w\\’']+)\\\" means[: ]([\\w\\^\\w\\s\\(\\)\\:\\-;,\\/\\’'\\<\\>\\u2013\\u2019\\x0a\\\"]*)\\.");
-    //The following modifies the defition section and uses negative lookahead for a new line up to new means
-    //Pattern p = Pattern.compile("[\\\"\\)](([\\w\\’' ]*)*[\\w\\’']+)[\\\" ]means[: ]([\\w\\^\\w\\s\\(\\)\\:\\-;,\\/\\’'\\<\\>\\u2013\\u2019\\x0a\\\"]*)(?![\\(\\.\\) ]*means)\\.");
-    //TO DO: modify above to negative lookahead for ; newline and then words and means
     Matcher matcher = p.matcher(mydata);
     int matchCount=0;
     while (matcher.find())
@@ -232,106 +229,138 @@ catch unicode hyphen and line returns and quotes after 'means'
   }
 
 /*  Method to find clauses and store them in clause objects
- I did start out with Reg Exp but essentially we want to find documents with headings, and capture things in betweeen.
- If it's harder than that, a manual approach may work better.
-    */
+    Assumes headings are capital letters on a single row
+    
+*/
 
+  public ClauseContainer ClauseCapHeadingExtract(String mydata) {
+    
+    //Pattern p = Pattern.compile("[[a-z][0-9]\\<\\>]*([A-Z' ]{2,}[A-Z'](?=\\x0A|\\x0d))");
+    ClauseContainer myContainer=null;
+    String[] patternString = new String[3];
+    Integer[] groupIn = new Integer[3];
+    //setup
+    int numPatterns=3;
+    patternString[0]="[[a-z][0-9]\\<\\>]*([A-Z']{1,}( )*[A-Z']*(?=\\x0A|\\<))";
+    groupIn[0]=1;
+    patternString[1]="(\\x0A)([0-9]*\\.( )*[[a-z][A-Z], ]+( |\\.|\\x0A))";
+    groupIn[1]=2;
+    patternString[2]="(\\x0A)*([0-9]*\\.( )*[[a-z][A-Z], ]+( |\\.|\\x0A))";
+    groupIn[2]=2;
 
-  public ClauseContainer ClauseExtract(String mydata) {
-    ClauseContainer myContainer = new ClauseContainer();
+    for (int sIndex=0;sIndex<numPatterns;sIndex++) {
+    Pattern p = Pattern.compile(patternString[sIndex]);
+    myContainer = new ClauseContainer();
     String output="";
-    
-    
-    /* Good for headings plus one para plus ...*/
-    Pattern p = Pattern.compile("[[a-z][0-9]\\<\\>]*([A-Z' ]{2,}[A-Z'](?=\\x0A))");
-    
     System.out.println("pattern matcher set");
     Matcher matcher = p.matcher(mydata);
     int groupCount = matcher.groupCount();
+    System.out.println("Groupcount : "+groupCount);
     int matchCount=0;
     ArrayList<String> myClauseList = new ArrayList<String>();
     while (matcher.find())
-        {
+          {
             for (int i = 1; i <= groupCount; i++) {
                 // Group i substring
                 System.out.println("Group " + i + ": " + matcher.group(i));
-            }
+          }
+         int x = groupIn[sIndex];
          matchCount++; //no longer needed unless output
-         Clause myC  = new Clause();
-         myC.setClauselabel(matcher.group(1));
-         myC.setHeading(matcher.group(1));
-         myClauseList.add(matcher.group(1));
-         //myC.setClausetext(matcher.group(3));
-         myContainer.addClause(myC);
+         if (!matcher.group(x).equals("") && !matcher.group(x).equals(" ")) {
+             Clause myC  = new Clause();
+             myC.setClauselabel(matcher.group(x));
+             myC.setHeading(matcher.group(x));
+             myClauseList.add(matcher.group(x));
+             myContainer.addClause(myC);
+          }
         }
-    System.out.println("Finished clause search");
-    //int AS = sizeof(myClauseList);
-    /*for (String gopher : myClauseList) {
-      System.out.println(gopher);
+    System.out.println("Finished Cap Heading search");
+    System.out.println("# of Headings Found: "+myClauseList.size()); 
+    if (myClauseList.size()>4) {
+      return this.ClauseTextExtract(myContainer, mydata);
     }
-    */
+    }
+    //populate clause text before returning
+    return this.ClauseTextExtract(myContainer, mydata);
+    }
+
+/* 
+
+Method to check results of heading extraction exercise
+For now, it just checks whether there are few results. 
+TO DO: Check whether Clause headings include the most common words etc and report on that
+
+*/
+public Boolean checkHeadingExtraction(ClauseContainer myContainer) {
+    ArrayList<Clause> myCList = myContainer.getClauseArray();
+    if (myCList.size()<2) {
+      return false;
+    }
+    else {
+      return true;
+    }
+
+}
+    /* Method to populate clause text from Clause Headings */
+    
+    public ClauseContainer ClauseTextExtract(ClauseContainer myContainer, String mydata) {
+    System.out.println("Clause text extract");
     ArrayList<Clause> myCList = myContainer.getClauseArray();
     Iterator<Clause> myiterator = myCList.iterator();
-      String[] indexedList = new String[150];
-      indexedList[0] = "";
-      //String UpperWord="";
-      String myRegEx = "";
-      int indexWindow=0;
-      Clause FirstClause=myiterator.next();
-      Clause UpperClause = FirstClause;
-      Clause LowerClause = FirstClause;
+    System.out.println("Array Size: "+myCList.size()); //conveniently ArrayList is in Collections with a size method
+    if (myiterator!=null) {
+    String[] indexedList = new String[150];
+    indexedList[0] = "";
+    //String UpperWord="";
+    String myRegEx = "";
+    String LooseRegEx="([\\w\\d\\s\\(\\)\\:\\-\\;\\,\\.\\/\\’'\\<\\>\\[\\]\\u201c\\u201d\\u2013\\u2019\\x0d\\x0a\\\" ]*)";
+    String LowerWord="lorem ipsum";
+    int indexWindow=0;
+    Clause FirstClause=null;
+    Clause UpperClause=null;
+    Clause LowerClause=null;
+    if (myiterator.hasNext()) {
+      System.out.println("First has next");
+      FirstClause=myiterator.next();
+      UpperClause = FirstClause;
+      LowerClause = FirstClause;
+    }
     while (myiterator.hasNext()) {
+        //System.out.println("Inner has next");
         if (indexWindow>0) {
          UpperClause = LowerClause;
         }
         LowerClause = myiterator.next();
         String UpperWord = UpperClause.getHeading();
-        String LowerWord = LowerClause.getHeading();
-        
-    //iterate Clauses and find the text between headings//
-    //Iterator<String> myiterator = myClauseList.iterator();
-    /*String[] indexedList = new String[150];
-    indexedList[0] = "";
-    String UpperWord="";
-    String myRegEx = "";
-    int indexWindow=0;
-    */
-    /*
-     // for (String LowerWord : myClauseList) {
-        //indexedList[indexWindow] = "";
-        indexedList[indexWindow]=LowerWord;
-        if (indexWindow>0) {
-          UpperWord=indexedList[indexWindow-1];
-          */
-          //myRegEx="("+UpperWord+"[\\t\\f\\r\\w\\d\\s \\.\\<\\>\\(\\)\\;\\:\\x0D\\x0A\\\"]*"+LowerWord+"?)";
-          myRegEx="(?="+UpperWord+")([\\w\\d\\s\\(\\)\\:\\-\\;\\,\\.\\/\\’'\\<\\>\\u2013\\u2019\\x0d\\x0a\\\" ]*)"+"(?="+LowerWord+")";
-          System.out.println("Now matching: "+myRegEx);
-          Pattern pcl = Pattern.compile(myRegEx);
+        LowerWord = LowerClause.getHeading();
+        //u2010-u201F is a good range for UTF8
+        myRegEx="(?="+UpperWord+")"+LooseRegEx+"(?="+LowerWord+")";
+        System.out.println("Now matching: "+myRegEx+" on "+UpperWord);
+        Pattern pcl = Pattern.compile(myRegEx);
           //System.out.println(pcl.pattern());
-          Matcher clauseCaptcha = pcl.matcher(mydata);
-          int clauseMatches = clauseCaptcha.groupCount();
+        Matcher clauseCaptcha = pcl.matcher(mydata);
+        int clauseMatches = clauseCaptcha.groupCount();
           while (clauseCaptcha.find())
           {
             System.out.println("Pattern: "+myRegEx+" # Group + " + clauseCaptcha.group(1));
             UpperClause.setClausetext(clauseCaptcha.group(1));
-           /*
-           {
-            for (int i = 0; i <= clauseMatches; i++) {
-                // Group i substring
-                System.out.println("Pattern: "+myRegEx+" # Group + " + i + ": " + clauseCaptcha.group(i));
-            }
-            }
-            */
           }
           indexWindow++;  
-        }         
-        
-        return myContainer;
+        } 
+        //pickup the clause text for last match to end of data String
+        myRegEx="(?="+LowerWord+")"+LooseRegEx;
+        System.out.println("Now matching: "+myRegEx+" on "+LowerWord);
+        Pattern pcl = Pattern.compile(myRegEx);
+        Matcher clauseCaptcha = pcl.matcher(mydata);
+        int clauseMatches = clauseCaptcha.groupCount();
+          while (clauseCaptcha.find())
+          {
+            System.out.println("Pattern: "+myRegEx+" # Group + " + clauseCaptcha.group(1));
+            LowerClause.setClausetext(clauseCaptcha.group(1));
+          } 
+        } 
+      return myContainer;
     }
-    
-  
-
-
 
 //for other methods to call these are public methods
 public void printCountFromFile(String fname) {
