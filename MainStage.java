@@ -196,188 +196,28 @@ public void setupInputStage(Stage textStage, String myTitle) {
         hbox1 = new HBox(0,this.textArea1,this.textArea2);
         HBox hbox2 = new HBox(0,this.textArea3,this.textArea4);
 
-        //define buttons 
-        //for Common Word Counts
+        //Button for Word Counts with Action Event handler
         Button btn = new Button();
         btn.setText("Update Word Counts");
-        btn.setOnAction(new EventHandler<ActionEvent>() {
-        @Override public void handle(ActionEvent event) {
-                System.out.println("Word Count Button was pressed!");
-                //Outer class method class
-                String gotcha = MainStage.this.textArea1.getText();
-                String newTA = MainStage.this.getCommonWordsNow(gotcha);
-                MainStage.this.textArea2.setText(newTA);
-                //new stage
-                Stage MainWords = new Stage();
-                Group CountGroup_root = MainStage.this.setupChildWindow(MainWords, "The Common Words Window");
-                //new one
-                //MainStage.this.getMatched(gotcha);
-
-                    //---ADD YELLOW BOXES WITH COMMON WORDS TO GRAPHICS WINDOW---
-
-                    //TO DO: The StackBoxes will be meta-objects include both defs, clause and data.
-                    //They should incorporate the text or contents objects so that the GUI can feed this back and forward from text edit windows etc as required.
-                    WordTool myHelper = new WordTool();
-                    ArrayList<String> boxList = new ArrayList<String>();
-                    try {
-                    boxList = myHelper.commonBoxSet(gotcha);
-                    }
-                    catch (Exception e) {
-                               e.printStackTrace();
-                              } 
-                    Iterator<String> i = boxList.iterator();
-                    int offX = 0;
-                    while (i.hasNext()) {
-                        offX=offX+50;
-                        StackBox b;
-                        if (offX<=100) {
-                            b = new StackBox(i.next()); //default blue
-                            b.setContent("This is a blue box");
-                        } else {
-                            b = new StackBox(i.next(), "yellow");
-                            b.setContent("This is a yellow box");
-                        }
-                        b.setTranslateX(offX); //increments offset each time for display. 
-                        //TO DO: set some default object refs (StackPane has current; these will be alternate indexes).
-                        b.setTranslateY(offX);
-                        b.setOnMousePressed(PressBoxEventHandler); 
-                        b.setOnMouseDragged(DragBoxEventHandler);
-                        
-                        CountGroup_root.getChildren().add(b);
-                    }
-            }
-        });
-        //Button for definitions
+        btn.setOnAction(updateWordCounts);
+        
+        //Button for definitions with Action Event handler
         Button btnDefs = new Button();
         btnDefs.setTooltip(new Tooltip ("Press to extract definitions from top text area"));
         btnDefs.setText("Extract Definitions");
-        //event handling listener, handle override and outer class method calls
-        btnDefs.setOnAction(new EventHandler<ActionEvent>() {
-        @Override public void handle(ActionEvent event) {
-        //make a new stage with scrollpane
-        defsTextStage = new Stage();
-        defsTextStage_root = MainStage.this.setupScrollTextWindow(defsTextStage, "Definitions Text Extracted");
-        //Outer class method class to obtain text from analysis area
-        String gotcha = MainStage.this.textArea1.getText();
-        String newDefs = MainStage.this.getMatched(gotcha);
-        //set the default scrollpane content to a designated text area and size it
-        defsTextStage_root.setContent(textArea3); 
-        double width = 800; 
-        double height = 500; 
-        textArea3.setPrefHeight(height);  
-        textArea3.setPrefWidth(width);
-        textArea3.setWrapText(true);
-        //now set the content of text area inside scrollpane to our extracted text
-        textArea3.setText(newDefs);
-        System.out.println("Get Defs Button was pressed!");
-    }
+        btnDefs.setOnAction(extractDefinitions);
 
-        });
-
-        //Button for definitions icons (also includes individual event handlers as blocks are added)
+        //Button for definitions icons with Action Event handler
         Button btnDefIcons = new Button();
         btnDefIcons.setTooltip(new Tooltip ("Press to create definitions icons from top text area"));
         btnDefIcons.setText("Extract Def Icons");
-        //event handling listener, handle override and outer class method calls
-        btnDefIcons.setOnAction(new EventHandler<ActionEvent>() {
-        @Override public void handle(ActionEvent event) {
-        System.out.println("Get DefIcons Button was pressed!");
-        //make a new stage to display graphic blocks
-        Stage adHoc = new Stage();
-        defGroup_root = MainStage.this.setupChildWindow(adHoc, "Definitions Block Window");
+        btnDefIcons.setOnAction(makeDefIcons);
 
-        //obtain data to display
-        DefContainer myContainer = grabDefinitionsString(textArea1.getText());
-        ArrayList<Definition> myDList = myContainer.getDefArray();
-        Iterator<Definition> myiterator = myDList.iterator();
-        int offX=0;
-        int offY=0;
-        while (myiterator.hasNext()) {
-            Definition mydefinition = myiterator.next();
-            String myLabel = mydefinition.getLabel();
-            String mydeftext = mydefinition.getDef();
-            String FreqCnt = Integer.toString(mydefinition.getFreq());
-            String myCont = myLabel+"("+FreqCnt+")";
-            StackBox b;
-            if (offY<=100) {
-                b = new StackBox(myCont); //default blue
-                b.setContent(mydeftext); //to do - transfer defs to sep objects in StackBox
-            } else {
-                b = new StackBox(myCont, "green");
-                b.setContent(mydeftext);
-            }
-            b.setTranslateX(offX); //increments offset each time for display. 
-            //TO DO: set some default object refs (StackPane has current; these will be alternate indexes).
-            b.setTranslateY(offY);
-            b.setOnMousePressed(PressBoxEventHandler); 
-            b.setOnMouseDragged(DragBoxEventHandler);
-            
-            defGroup_root.getChildren().add(b);
-            if (offX>640) {
-                offY=offY+65;
-                offX=0;
-            }
-            else {
-                offX = offX+160;
-            }
-        }
-        adHoc.show();
-            }
-
-        });
-
-        //Button for Clause icons
+        //Button for Clause blocks with Action Event handler
         Button btnClauses = new Button();
         btnClauses.setTooltip(new Tooltip ("Press to extract Clauses from top Text Area"));
         btnClauses.setText("Show Clause Boxes");
-        //event handling listener, handle override and outer class method calls
-        
-
-        btnClauses.setOnAction(new EventHandler<ActionEvent>() {
-        @Override public void handle(ActionEvent event) {
-        System.out.println("Clause Boxes Button was pressed!");
-        //make a new stage
-        ClauseStage = new Stage();
-        ClauseGroup_root = MainStage.this.setupChildWindow(ClauseStage, "The Clause Window");
-        //TO DO: get source of data
-        ClauseContainer myContainer = getClauseContainer(textArea1.getText());
-        ArrayList<Clause> myClauseList = myContainer.getClauseArray();
-        Iterator<Clause> myiterator = myClauseList.iterator();
-        int offX=0;
-        int offY=0;
-        while (myiterator.hasNext()) {
-            Clause myclause = myiterator.next();
-            String myLabel = myclause.getLabel();
-            String myclausetext = myclause.getClause();
-            //String FreqCnt = Integer.toString(myclause.getFreq());
-            String myCont = myLabel; //+"("+FreqCnt+")";
-            StackBox b;
-            if (offY<=100) {
-                b = new StackBox(myCont); //default blue
-                b.setContent(myclausetext); //to do - transfer defs to sep objects in StackBox
-            } else {
-                b = new StackBox(myCont, "green");
-                b.setContent(myclausetext);
-            }
-            b.setTranslateX(offX); //increments offset each time for display. 
-            //TO DO: set some default object refs (StackPane has current; these will be alternate indexes).
-            b.setTranslateY(offY);
-            b.setOnMousePressed(PressBoxEventHandler); 
-            b.setOnMouseDragged(DragBoxEventHandler);
-            
-            ClauseGroup_root.getChildren().add(b);
-            if (offX>640) {
-                offY=offY+65;
-                offX=0;
-            }
-            else {
-                offX = offX+160;
-            }
-        }
-        ClauseStage.show();
-            }
-
-        });
+        btnClauses.setOnAction(makeClauseIcons);
 
         //Set horizontal box to hold buttons
         hbox3 = new HBox(0,btn,btnDefs,btnDefIcons, btnClauses);
@@ -411,7 +251,7 @@ public void setupInputStage(Stage textStage, String myTitle) {
     }
 
  /* 
- ---- SETUP A NEW STAGE TO DISPLAY BOX OBJECTS--- 
+ ---- SETUP A NEW STAGE TO DISPLAY MOVEABLE BOX OBJECTS--- 
 This is a standard size window in a fixed position (no need to pass arguments about size yet)
 Maybe have separate function to set size/position after creation.
 Return root node (in this case a Group object) to enable addition of further leaf nodes
@@ -446,9 +286,12 @@ These are not instance variables.  Consider if necessary on other occasions.
 
 }
 
-/** Setup independent text inspector window with a scrollpane as the root node
-(nb setup new stage before calling this method)
-Scene size will determine width of Stage window initially
+/** Setup independent text inspector window 
+@parameter Requires a Stage object and a title as arguments
+@Returns a Scrollpane representing the root node
+
+@notes Scene size will determine initial width of Stage window 
+
 **/
 
 public ScrollPane setupScrollTextWindow(Stage myStage, String myTitle) {
@@ -620,4 +463,186 @@ private String getArea1Text() {
 
         }
     };
+
+    //BUTTON EVENT HANDLERS
+
+    /* Notice that I've included event handlers for each definition block added, so that they can handle mouse events inside the Window they've been added to 
+    */
+
+    EventHandler<ActionEvent> makeDefIcons = 
+    new EventHandler<ActionEvent>() {
+
+        @Override 
+        public void handle(ActionEvent event) {
+        System.out.println("Get DefIcons Button was pressed!");
+        Stage adHoc = new Stage();
+        defGroup_root = MainStage.this.setupChildWindow(adHoc, "Definitions Block Window");
+
+        //obtain data to display
+        DefContainer myContainer = grabDefinitionsString(textArea1.getText());
+        ArrayList<Definition> myDList = myContainer.getDefArray();
+        Iterator<Definition> myiterator = myDList.iterator();
+        int offX=0;
+        int offY=0;
+        while (myiterator.hasNext()) {
+            Definition mydefinition = myiterator.next();
+            String myLabel = mydefinition.getLabel();
+            String mydeftext = mydefinition.getDef();
+            String FreqCnt = Integer.toString(mydefinition.getFreq());
+            String myCont = myLabel+"("+FreqCnt+")";
+            StackBox b;
+            if (offY<=100) {
+                b = new StackBox(myCont); //default blue
+                b.setContent(mydeftext); //to do - transfer defs to sep objects in StackBox
+            } else {
+                b = new StackBox(myCont, "green");
+                b.setContent(mydeftext);
+            }
+            b.setTranslateX(offX); //increments offset each time for display. 
+            //TO DO: set some default object refs (StackPane has current; these will be alternate indexes).
+            b.setTranslateY(offY);
+            b.setOnMousePressed(PressBoxEventHandler); 
+            b.setOnMouseDragged(DragBoxEventHandler);
+            
+            defGroup_root.getChildren().add(b);
+            if (offX>640) {
+                offY=offY+65;
+                offX=0;
+            }
+            else {
+                offX = offX+160;
+            }
+        }
+        adHoc.show();
+        }    
+    };
+     
+    /* Notice that I've included event handlers for each clause block added, so that they can handle mouse events inside the Window they've been added to 
+    */
+
+
+    EventHandler<ActionEvent> makeClauseIcons = 
+    new EventHandler<ActionEvent>() {
+        @Override 
+
+        public void handle(ActionEvent event) {
+        System.out.println("Clause Boxes Button was pressed!");
+        //make a new stage
+        ClauseStage = new Stage();
+        ClauseGroup_root = MainStage.this.setupChildWindow(ClauseStage, "The Clause Window");
+        //TO DO: get source of data
+        ClauseContainer myContainer = getClauseContainer(textArea1.getText());
+        ArrayList<Clause> myClauseList = myContainer.getClauseArray();
+        Iterator<Clause> myiterator = myClauseList.iterator();
+        int offX=0;
+        int offY=0;
+        while (myiterator.hasNext()) {
+            Clause myclause = myiterator.next();
+            String myLabel = myclause.getLabel();
+            String myclausetext = myclause.getClause();
+            //String FreqCnt = Integer.toString(myclause.getFreq());
+            String myCont = myLabel; //+"("+FreqCnt+")";
+            StackBox b;
+            if (offY<=100) {
+                b = new StackBox(myCont); //default blue
+                b.setContent(myclausetext); //to do - transfer defs to sep objects in StackBox
+            } else {
+                b = new StackBox(myCont, "green");
+                b.setContent(myclausetext);
+            }
+            b.setTranslateX(offX); //increments offset each time for display. 
+            //TO DO: set some default object refs (StackPane has current; these will be alternate indexes).
+            b.setTranslateY(offY);
+            b.setOnMousePressed(PressBoxEventHandler); 
+            b.setOnMouseDragged(DragBoxEventHandler);
+            
+            ClauseGroup_root.getChildren().add(b);
+            if (offX>640) {
+                offY=offY+65;
+                offX=0;
+            }
+            else {
+                offX = offX+160;
+            }
+        }
+        ClauseStage.show();
+            }
+
+        };
+
+        //update word counts
+        EventHandler<ActionEvent> updateWordCounts = 
+        new EventHandler<ActionEvent>() {
+        @Override 
+        public void handle(ActionEvent event) {
+                System.out.println("Word Count Button was pressed!");
+                //Outer class method class
+                String gotcha = MainStage.this.textArea1.getText();
+                String newTA = MainStage.this.getCommonWordsNow(gotcha);
+                MainStage.this.textArea2.setText(newTA);
+                //new stage
+                Stage MainWords = new Stage();
+                Group CountGroup_root = MainStage.this.setupChildWindow(MainWords, "The Common Words Window");
+                //new one
+                //MainStage.this.getMatched(gotcha);
+
+                    //---ADD YELLOW BOXES WITH COMMON WORDS TO GRAPHICS WINDOW---
+
+                    //TO DO: The StackBoxes will be meta-objects include both defs, clause and data.
+                    //They should incorporate the text or contents objects so that the GUI can feed this back and forward from text edit windows etc as required.
+                    WordTool myHelper = new WordTool();
+                    ArrayList<String> boxList = new ArrayList<String>();
+                    try {
+                    boxList = myHelper.commonBoxSet(gotcha);
+                    }
+                    catch (Exception e) {
+                               e.printStackTrace();
+                              } 
+                    Iterator<String> i = boxList.iterator();
+                    int offX = 0;
+                    while (i.hasNext()) {
+                        offX=offX+50;
+                        StackBox b;
+                        if (offX<=100) {
+                            b = new StackBox(i.next()); //default blue
+                            b.setContent("This is a blue box");
+                        } else {
+                            b = new StackBox(i.next(), "yellow");
+                            b.setContent("This is a yellow box");
+                        }
+                        b.setTranslateX(offX); //increments offset each time for display. 
+                        //TO DO: set some default object refs (StackPane has current; these will be alternate indexes).
+                        b.setTranslateY(offX);
+                        b.setOnMousePressed(PressBoxEventHandler); 
+                        b.setOnMouseDragged(DragBoxEventHandler);
+                        
+                        CountGroup_root.getChildren().add(b);
+                    }
+            }
+        };
+        //
+        //update word counts
+        EventHandler<ActionEvent> extractDefinitions = 
+        new EventHandler<ActionEvent>() {
+        @Override 
+        public void handle(ActionEvent event) {
+            //make a new stage with scrollpane
+            defsTextStage = new Stage();
+            defsTextStage_root = MainStage.this.setupScrollTextWindow(defsTextStage, "Definitions Text Extracted");
+            //Outer class method class to obtain text from analysis area
+            String gotcha = MainStage.this.textArea1.getText();
+            String newDefs = MainStage.this.getMatched(gotcha);
+            //set the default scrollpane content to a designated text area and size it
+            defsTextStage_root.setContent(textArea3); 
+            double width = 800; 
+            double height = 500; 
+            textArea3.setPrefHeight(height);  
+            textArea3.setPrefWidth(width);
+            textArea3.setWrapText(true);
+            //now set the content of text area inside scrollpane to our extracted text
+            textArea3.setText(newDefs);
+            System.out.println("Get Defs Button was pressed!");
+            }
+        };
+
 }
