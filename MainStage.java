@@ -270,7 +270,7 @@ Return root node (in this case a Group object) to enable addition of further lea
 These are not instance variables.  Consider if necessary on other occasions.
  */
 
- public Group setupChildWindow(Stage myStage, String myTitle) {
+ public Group setupBlocksWindow(Stage myStage, String myTitle) {
         
         /* MINIMUM SETUP USING GROUP LAYOUT  - WHICH LAYOUT IS MOST APPROPRIATE ?*/
         Group myGroup_root = new Group();
@@ -283,7 +283,7 @@ These are not instance variables.  Consider if necessary on other occasions.
          System.out.println("Mouse click detected! " + mouseEvent.getSource());
              }
         });
-        
+
         /* OLD: set some initial content
         myGroup_root.getChildren().add(defTextArea); //std Text Area as default (optional)
         defTextArea.setText("Some future contents");
@@ -379,13 +379,13 @@ private String getArea1Text() {
         /* OLD:
         Setup a default Stage as a graphics window with a group node
         visualWindow = new Stage();
-        Group CommonWords_root = MainStage.this.setupChildWindow(visualWindow, "The Graphics Window");
+        Group CommonWords_root = MainStage.this.setupBlocksWindow(visualWindow, "The Graphics Window");
         Rectangle2D primScreenBounds = Screen.getPrimary().getVisualBounds();
         visualWindow.setX(primScreenBounds.getWidth() / 1.5); 
         visualWindow.setY(25);
 
         inspectorWindow = new Stage();
-        inspectorGroup_root = MainStage.this.setupChildWindow(inspectorWindow, "Inspector Window");
+        inspectorGroup_root = MainStage.this.setupBlocksWindow(inspectorWindow, "Inspector Window");
         inspectorGroup_root.getChildren().add(inspectorTextArea);
         inspectorTextArea.setWrapText(true);
         */
@@ -489,7 +489,7 @@ private String getArea1Text() {
         public void handle(ActionEvent event) {
         System.out.println("Get DefIcons Button was pressed!");
         Stage adHoc = new Stage();
-        defGroup_root = MainStage.this.setupChildWindow(adHoc, "Definitions Block Window");
+        defGroup_root = MainStage.this.setupBlocksWindow(adHoc, "Definitions Block Window");
 
         //obtain data to display
         DefContainer myContainer = grabDefinitionsString(textArea1.getText());
@@ -542,7 +542,7 @@ private String getArea1Text() {
         System.out.println("Clause Boxes Button was pressed!");
         //make a new stage
         ClauseStage = new Stage();
-        ClauseGroup_root = MainStage.this.setupChildWindow(ClauseStage, "The Clause Window");
+        ClauseGroup_root = MainStage.this.setupBlocksWindow(ClauseStage, "The Clause Window");
         //TO DO: get source of data
         ClauseContainer myContainer = getClauseContainer(textArea1.getText());
         ArrayList<Clause> myClauseList = myContainer.getClauseArray();
@@ -595,7 +595,7 @@ private String getArea1Text() {
                 MainStage.this.textArea2.setText(newTA);
                 //new stage
                 Stage MainWords = new Stage();
-                Group CountGroup_root = MainStage.this.setupChildWindow(MainWords, "The Common Words Window");
+                Group CountGroup_root = MainStage.this.setupBlocksWindow(MainWords, "Common Words Window");
                 //new one
                 //MainStage.this.getMatched(gotcha);
 

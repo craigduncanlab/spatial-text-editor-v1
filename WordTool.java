@@ -108,7 +108,7 @@ private TreeMap<Integer, String> trimTreeMap(TreeMap<Integer, String> myTMap) {
       TreeMap<Integer, String> trimmedTreeMap = new TreeMap<Integer, String>(Collections.reverseOrder());
       myTMap.forEach((k,v)->
         {
-          //introduce threshold for results. e.g. 5+ results, length of three or more.  Not excluded.
+          //introduce threshold for results. e.g. 5+ results, length of 4 or more.  Not excluded.
           if ((k>5 && v.length()>3) && (excludedWords.contains(v)!=true)) {
             trimmedTreeMap.put(k,v);
         }
@@ -187,7 +187,10 @@ private String readFile(String fname) {
 }
 
 /*  Method to find specific parts of the definition - label and text and store all in a container
+Checks for a post-text definition i.e. "A" means B.
 catch unicode hyphen and line returns and quotes after 'means' 
+TO DO: Capture this in-text definition pattern as an alternative:
+[this|the|a] ... ("definition")
     */
 
 
@@ -196,7 +199,12 @@ catch unicode hyphen and line returns and quotes after 'means'
     String output="";
     
     //This works for quoted definitions only:
-    Pattern p = Pattern.compile("\\\"(([\\w\\’' ]*)*[\\w\\’']+)\\\" means[: ]([\\w\\^\\w\\s\\(\\)\\:\\-;,\\/\\’'\\<\\>\\u2013\\u2019\\x0a\\\"]*)\\.");
+    //OLD: Pattern p = Pattern.compile("\\\"(([\\w\\’' ]*)*[\\w\\’']+)\\\" means[: ]([\\w\\^\\w\\s\\(\\)\\:\\-;,\\/\\’'\\<\\>\\u2013\\u2019\\x0a\\\"]*)\\.");
+    String Uni_dbl_qt = "[\\u201c\\u201d\\u201e\\u201f\\\"]"; //not using \\x22 for now
+    String Uni_single_qt = "\\u2018\\u2019";
+    String Uni_dash = "\\u2013";
+    String myRE=Uni_dbl_qt+"(([\\w\\’' ]*)[\\w\\’']+)"+Uni_dbl_qt+" means[\\-:, ]([\\w\\^\\w\\s\\(\\)\\:\\-;,\\/\\’'\\<\\>\\u2013\\u2019\\x0a\\\"]*)\\.";
+    Pattern p = Pattern.compile(myRE);
     Matcher matcher = p.matcher(mydata);
     int matchCount=0;
     while (matcher.find())
