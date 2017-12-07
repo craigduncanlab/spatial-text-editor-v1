@@ -176,24 +176,36 @@ public void setupInputStage(Stage textStage, String myTitle) {
 
         //TO DO:  CONCEPTUALISE WINDOWS/GROUPS TO WORK WITH EACH AS OBJECTS
         
+        //config for window
+        double leftColWidth = 650;
+        double leftColHeight = 400;
+        double rightColWidth = 200;
+        double windowWidth = 900;
+        double windowHeight = leftColHeight+100;
+        /* Setup a horizontal box with two text areas, but put first in scrollpane to allow scrolling */
         this.textArea1.setWrapText(true);
-        this.textArea1.setPrefColumnCount(widthcol1); //set max width 
-        /* Set text area 2 to display some basic stats about the text*/
         this.textArea2.setWrapText(true);
-        this.textArea2.setPrefColumnCount(widthcol2); //set max width 
+        this.textArea1.setPrefWidth(leftColWidth);
+        this.textArea1.setPrefHeight(leftColHeight);
+        this.textArea2.setPrefWidth(rightColWidth);
+        
+        ScrollPane textpane = new ScrollPane();
+        textpane.setContent(textArea1);
+        textpane.setPrefHeight(leftColHeight);  
+        textpane.setPrefWidth(leftColWidth);
+        hbox1 = new HBox(0,textpane,this.textArea2);
         //
         this.textArea3 = new TextArea();
         this.textArea4 = new TextArea();
-        textArea3.setPrefColumnCount(widthcol1); //set max width 
-        textArea4.setPrefColumnCount(widthcol2); //set max width 
+        this.textArea3.setPrefWidth(leftColWidth);
+        this.textArea4.setPrefWidth(leftColWidth);
         //
         TextArea textArea5 = new TextArea();
         TextArea textArea6 = new TextArea();
-        textArea5.setPrefColumnCount(widthcol1); //set max width 
-        textArea6.setPrefColumnCount(widthcol2); //set max width 
+        textArea5.setPrefWidth(leftColWidth);
+        textArea6.setPrefWidth(leftColWidth);
         
         //Set horizontal boxes with spacing and child nodes *i.e. a row 
-        hbox1 = new HBox(0,this.textArea1,this.textArea2);
         HBox hbox2 = new HBox(0,this.textArea3,this.textArea4);
 
         //Button for Word Counts with Action Event handler
@@ -239,7 +251,7 @@ public void setupInputStage(Stage textStage, String myTitle) {
         scroll_rootNode = new ScrollPane();
         scroll_rootNode.setContent(vbox2); 
         //add your parent node to scene.  e.g. you put your vbox2 inside a scroll pane, add the scroll pane.
-        this.MainScene = new Scene(scroll_rootNode, 900, 500); //width x height in pixels?  contents have diff sizes
+        this.MainScene = new Scene(scroll_rootNode, windowWidth, windowHeight); //width x height in pixels?  contents have diff sizes
         /*Adding this to avoid consumption of event by child controls i.e. this works first */
         textStage.setX(200);
         textStage.setScene(MainScene);
@@ -271,15 +283,16 @@ These are not instance variables.  Consider if necessary on other occasions.
          System.out.println("Mouse click detected! " + mouseEvent.getSource());
              }
         });
-        //add TextArea to group
+        
+        /* OLD: set some initial content
         myGroup_root.getChildren().add(defTextArea); //std Text Area as default (optional)
-        //set some initial content
         defTextArea.setText("Some future contents");
+        */
 
         myStage.setScene(defScene); //this selects the stage as current scene
         myStage.setTitle(myTitle);
         Rectangle2D primScreenBounds = Screen.getPrimary().getVisualBounds();
-        myStage.setY(0);
+        myStage.setX(0);
         myStage.setY(450);
         myStage.show();
         return myGroup_root;
@@ -364,7 +377,7 @@ private String getArea1Text() {
         myStage.show();
         
         /* OLD:
-        Setup a deafult Stage as a graphics window with a group node
+        Setup a default Stage as a graphics window with a group node
         visualWindow = new Stage();
         Group CommonWords_root = MainStage.this.setupChildWindow(visualWindow, "The Graphics Window");
         Rectangle2D primScreenBounds = Screen.getPrimary().getVisualBounds();
