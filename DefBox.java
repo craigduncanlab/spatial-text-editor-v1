@@ -1,5 +1,9 @@
 import javafx.scene.shape.Rectangle;
 import javafx.scene.paint.Color;
+//for displaying images
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.paint.ImagePattern;
 
 public class DefBox extends Rectangle{   
     //set default or current colour here?
@@ -25,6 +29,11 @@ public class DefBox extends Rectangle{
         this.setColour(mycol);
         setWidth(150);
         setHeight(40);
+        /* image too.  
+        //This works but proportions must be correct for rectangle if a fill
+        Image img = new Image("paper.png");
+        this.setFill(new ImagePattern(img));
+        */
         //setArcWidth(60);  //do this enough you get a circle
         //setArcHeight(60);                
         //--->setFill(myColour.deriveColor(0, 1.2, 1, 0.6));  //allows for transparency so order not so important
@@ -49,6 +58,10 @@ public class DefBox extends Rectangle{
         }
         if (mycol.equals("red")) {
             myColour = Color.RED;
+            this.boxcolour = mycol;
+        }
+        if (mycol.equals("orange")) {
+            myColour = Color.ORANGE;
             this.boxcolour = mycol;
         }
         //update the Colour for display; allows for transparency

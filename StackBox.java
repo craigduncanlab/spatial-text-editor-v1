@@ -6,8 +6,9 @@ import javafx.event.EventHandler;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.paint.Color;
 //text
-//Scene - Text as text
+//Scene - Text as text, with font option
 import javafx.scene.text.Text; 
+import javafx.scene.text.Font;
 //Layout - use StackPane for now
 import javafx.scene.layout.StackPane;
 //Events
@@ -50,6 +51,15 @@ public class StackBox extends StackPane {
         defaultColour="blue";
         this.setCursor(Cursor.HAND); 
         Text boxtext = new Text (myLabel);//myBox.getLabel();
+        //just set size and use default font
+        Font boxfont=Font.font ("Verdana", 10);
+        boxtext.setFont(boxfont);
+        //boxtext.setFont(new Font(10));
+        /* set specific font and size
+        double fontsize=10;
+        Font boxfont = new Font ("Arial", fontsize);
+        boxtext.setFont(boxfont);
+        */
         //boxtext.setTextAlignment(TextAlignment.CENTER);
         this.getChildren().addAll(myBox,boxtext);
      }  
@@ -60,6 +70,9 @@ public class StackBox extends StackPane {
         defaultColour=mycolour;
         this.setCursor(Cursor.HAND); 
         Text boxtext = new Text (myLabel);//myBox.getLabel();
+        double fontsize=12;
+        Font boxfont = new Font ("Arial", fontsize);
+        boxtext.setFont(boxfont);
         //boxtext.setTextAlignment(TextAlignment.CENTER);
         this.getChildren().addAll(myBox,boxtext);
      }
