@@ -205,9 +205,9 @@ TO DO: Capture this in-text definition pattern as an alternative:
   public DefContainer doDefTextSearch(String mydata) {
     DefContainer myContainer = new DefContainer();
     String output="";
-    String[] patternString = new String[4];
-    Integer[] labelGroup = new Integer[4];
-    Integer[] textGroup = new Integer[4];
+    String[] patternString = new String[5];
+    Integer[] labelGroup = new Integer[5];
+    Integer[] textGroup = new Integer[5];
     //This works for quoted definitions only:
     //OLD: Pattern p = Pattern.compile("\\\"(([\\w\\’' ]*)*[\\w\\’']+)\\\" means[: ]([\\w\\^\\w\\s\\(\\)\\:\\-;,\\/\\’'\\<\\>\\u2013\\u2019\\x0a\\\"]*)\\.");
     String Uni_NonBreakspace="\\u00A0";
@@ -240,6 +240,10 @@ TO DO: Capture this in-text definition pattern as an alternative:
     patternString[3]="\\\"(([\\w\\’' ]*)*[\\w\\’']+)\\\" means[: ]([\\w\\^\\w\\s\\(\\)\\:\\-;,\\/\\’'\\<\\>\\u2013\\u2019\\x0a\\\"]*)\\.";
     labelGroup[3]=1;
     textGroup[3]=3;
+    //no quotes, but number and dot or bracket through to .
+    patternString[4]="\\)|\\.(([\\w\\’' ]*)*[\\w\\’']+) means[: ]([\\w\\^\\w\\s\\(\\)\\:\\-;,\\/\\’'\\<\\>\\u2013\\u2019\\\"]*)\\.|\\x0a";
+    labelGroup[4]=1;
+    textGroup[4]=3;
 
     for (int sIndex=0;sIndex<numPatterns;sIndex++) {
     //
@@ -311,22 +315,31 @@ TO DO: Capture this in-text definition pattern as an alternative:
     
     //Pattern p = Pattern.compile("[[a-z][0-9]\\<\\>]*([A-Z' ]{2,}[A-Z'](?=\\x0A|\\x0d))");
     ClauseContainer myContainer=null;
-    String[] patternString = new String[3];
-    Integer[] groupIn = new Integer[3];
+    String[] patternString = new String[4];
+    Integer[] groupIn = new Integer[4];
     //setup
-    int numPatterns=3;
+    int numPatterns=4;
     patternString[0]="[[a-z][0-9]\\<\\>]*([A-Z']{1,}( )*[A-Z']*(?=\\x0A|\\<))";
     groupIn[0]=1;
+    //number after break, followed by dot and words, ended by period or end of line
     patternString[1]="(\\x0A)([0-9]*\\.( )*[[a-z][A-Z], ]+( |\\.|\\x0A))";
     groupIn[1]=2;
+    //several lines before line
     patternString[2]="(\\x0A)*([0-9]*\\.( )*[[a-z][A-Z], ]+( |\\.|\\x0A))";
-    groupIn[2]=2;
+    groupIn[2]=1;
+    //some statutes
+    String Uni_dashes = "\\u2010\\u2011\u2012\\u2013\\u2014\\u2015"; //u2010 is hyphen
+    patternString[2]="(\\x0A)*([0-9]*["+Uni_dashes+"]+[[a-z][A-Z], ]+( |\\.|\\x0A))";
+    groupIn[2]=1;
+    //last resort - just pick out the numbered paragraphs to the next break or stop.
+    patternString[3]="([0-9]*\\.( )*[[a-z][A-Z], ]+\\x0A)";
+    groupIn[3]=1;
 
     for (int sIndex=0;sIndex<numPatterns;sIndex++) {
     Pattern p = Pattern.compile(patternString[sIndex]);
     myContainer = new ClauseContainer();
     String output="";
-    System.out.println("pattern matcher set");
+    System.out.println("Pattern matcher set being considered: "+sIndex);
     Matcher matcher = p.matcher(mydata);
     int groupCount = matcher.groupCount();
     System.out.println("Groupcount : "+groupCount);
@@ -335,16 +348,23 @@ TO DO: Capture this in-text definition pattern as an alternative:
     while (matcher.find())
           {
             for (int i = 1; i <= groupCount; i++) {
-                // Group i substring
-                System.out.println("Group " + i + ": " + matcher.group(i));
+                // Group i substring output for testing
+                //System.out.println("Group " + i + ": " + matcher.group(i));
           }
-         int x = groupIn[sIndex];
+         String testString = matcher.group(groupIn[sIndex]);
          matchCount++; //no longer needed unless output
-         if (!matcher.group(x).equals("") && !matcher.group(x).equals(" ")) {
+         Boolean qualityMatch=false;
+         if (testString.equals("") || testString.equals(" ") || testString.length()<3) {
+            qualityMatch=false;
+         }
+         else {
+          qualityMatch=true;
+          }
+         if (qualityMatch==true) {
              Clause myC  = new Clause();
-             myC.setClauselabel(matcher.group(x));
-             myC.setHeading(matcher.group(x));
-             myClauseList.add(matcher.group(x));
+             myC.setClauselabel(testString);
+             myC.setHeading(testString);
+             myClauseList.add(testString);
              myContainer.addClause(myC);
           }
         }

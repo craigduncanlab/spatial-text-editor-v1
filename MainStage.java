@@ -179,8 +179,8 @@ public void setupInputStage(Stage textStage, String myTitle) {
         //config for window
         double leftColWidth = 650;
         double leftColHeight = 400;
-        double rightColWidth = 200;
-        double windowWidth = 900;
+        double rightColWidth = 150;
+        double windowWidth = 800;
         double windowHeight = leftColHeight+100;
         /* Setup a horizontal box with two text areas, but put first in scrollpane to allow scrolling */
         this.textArea1.setWrapText(true);
@@ -199,12 +199,14 @@ public void setupInputStage(Stage textStage, String myTitle) {
         this.textArea4 = new TextArea();
         this.textArea3.setPrefWidth(leftColWidth);
         this.textArea4.setPrefWidth(leftColWidth);
-        //
+        
+        /* UNUSUED
         TextArea textArea5 = new TextArea();
         TextArea textArea6 = new TextArea();
         textArea5.setPrefWidth(leftColWidth);
         textArea6.setPrefWidth(leftColWidth);
-        
+        */
+
         //Set horizontal boxes with spacing and child nodes *i.e. a row 
         HBox hbox2 = new HBox(0,this.textArea3,this.textArea4);
 
@@ -253,29 +255,34 @@ public void setupInputStage(Stage textStage, String myTitle) {
         //add your parent node to scene.  e.g. you put your vbox2 inside a scroll pane, add the scroll pane.
         this.MainScene = new Scene(scroll_rootNode, windowWidth, windowHeight); //width x height in pixels?  contents have diff sizes
         /*Adding this to avoid consumption of event by child controls i.e. this works first */
-        textStage.setX(200);
         textStage.setScene(MainScene);
         //Size and positioning
         textStage.sizeToScene(); 
-        textStage.setX(50); 
+        textStage.setX(20); 
         textStage.setY(50); 
         
     }
 
  /* 
  ---- SETUP A NEW STAGE TO DISPLAY MOVEABLE BOX OBJECTS--- 
-This is a standard size window in a fixed position (no need to pass arguments about size yet)
-Maybe have separate function to set size/position after creation.
-Return root node (in this case a Group object) to enable addition of further leaf nodes
-These are not instance variables.  Consider if necessary on other occasions.
+This is a simple generic scene creator for a Stage.  It sets size and Title and default position.  
+The Group object (root node) is placed in the scene without any text box etc.  
+Method will @return same Group layout object (root node) to enable addition of further leaf nodes
+
+Child objects can be added to root node later:
+myGroup_root.getChildren().add(defTextArea); //std Text Area as default (optional)
+defTextArea.setText("Some future contents");
+
+The Scene placed on the stage is a standard size window (wd x ht) in a fixed position (no need to pass arguments about size yet)
+
+Adds a generic event handler for future use.
  */
 
  public Group setupBlocksWindow(Stage myStage, String myTitle) {
         
-        /* MINIMUM SETUP USING GROUP LAYOUT  - WHICH LAYOUT IS MOST APPROPRIATE ?*/
         Group myGroup_root = new Group();
-        //add group layout object to scene
-        defScene = new Scene (myGroup_root,800,400); //default width x height (px)
+        //add group layout object as root node for Scene at time of creation
+        defScene = new Scene (myGroup_root,650,600); //default width x height (px)
         //optional event handler
         defScene.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
          @Override
@@ -284,14 +291,9 @@ These are not instance variables.  Consider if necessary on other occasions.
              }
         });
 
-        /* OLD: set some initial content
-        myGroup_root.getChildren().add(defTextArea); //std Text Area as default (optional)
-        defTextArea.setText("Some future contents");
-        */
-
         myStage.setScene(defScene); //this selects the stage as current scene
         myStage.setTitle(myTitle);
-        Rectangle2D primScreenBounds = Screen.getPrimary().getVisualBounds();
+        //OLD: Rectangle2D primScreenBounds = Screen.getPrimary().getVisualBounds();
         myStage.setX(0);
         myStage.setY(450);
         myStage.show();
@@ -307,18 +309,28 @@ These are not instance variables.  Consider if necessary on other occasions.
 
 **/
 
-public ScrollPane setupScrollTextWindow(Stage myStage, String myTitle) {
+public ScrollPane setupScrollTextWindow(Stage myStage, String width, String myTitle) {
         
+        //Layout
+        Rectangle2D ScreenBounds = Screen.getPrimary().getVisualBounds();
+        //
         ScrollPane scroll_root1 = new ScrollPane();
         scroll_root1.setFitToHeight(true);
         scroll_root1.setFitToWidth(true);
-        //add group layout object to scene 
-        Scene defScene = new Scene (scroll_root1,600,500); //width x height (px)
+        //default layout settings (display panels etc) 
+        int setWidth=500;
+        int setHeight=500;
+        double mySetX = ScreenBounds.getWidth() / 1.8;
+        //inspector panel settings
+        if (width.equals("inspector")) {
+            setWidth=250;
+            setHeight=250;
+            mySetX = ScreenBounds.getWidth() / 1.5; 
+        }
+        Scene defScene = new Scene (scroll_root1,setWidth,setHeight); //width x height (px)
         
-        //myStage.setX(200);
         //setup starting position near right side of screen
-        Rectangle2D ScreenBounds = Screen.getPrimary().getVisualBounds();
-        myStage.setX(ScreenBounds.getWidth() / 1.5); 
+        myStage.setX(mySetX); 
         myStage.setScene(defScene);
         //optional event handler
         defScene.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
@@ -331,7 +343,7 @@ public ScrollPane setupScrollTextWindow(Stage myStage, String myTitle) {
         myStage.setTitle(myTitle);
         myStage.show();
         return scroll_root1; 
-        //defTextArea.setText("Some future contents");
+        
         }
 
 private void setArea1Text(String fname) {
@@ -357,6 +369,34 @@ private String getArea1Text() {
 }
 */
 
+
+/* Method to see if any label or text contains legal 'role' words, for display purposes 
+
+Many of these are pair words: relationship dichotomies that are the result of looking at a single commercial or social context as the complete environment for the legal model, and then defining the rules.
+In that sense, rules that relate to the area are described independently of other competing labels for the objects that exist in the same factual situation.   Reference to any one of these terms tends to identify and therefore prioritise the area of law that uses the same terms.  Alternative descriptions are not necessarily invoked by a person who is led to use particular language.
+
+(For example, in law tutorial problems, the act of writing the question and using identified names or documents that share the same foundational language must involve participants with given roles, focussing on a given area of law.   'Recognition' of the classification system is easily taught - the further step required is to be able to recite and use the rules which apply in that context.  That discrete skill falls short of being able to do so for multiple areas of law that are not necessarily reflective in the language used in the initial narrative.  The narrator foregrounds a particular area of law by the chosen language.)
+
+TO DO: put into master groups for managing, but iterate through all.
+*/
+
+public Boolean isLegalRoleWord (String myWord) {
+    ArrayList<String> RoleWords = new ArrayList<String>(Arrays.asList("employer","employee","landlord","tenant","lessor","lessee","director","shareholder","trustee","beneficiary", "debtor","creditor", "payor", "payee","mortgagor","mortgagee","regulator","manager","partner","owner","guarantor","guarantee","seller","buyer","vendor","purchaser","grantor","grantee","distributor","bailor","bailee","master","servant","licensor","licensee","developer","carrier","lender","borrower"));
+    Iterator<String> myIterator = RoleWords.iterator(); //alternatively use Java method to see if in Array?
+    while (myIterator.hasNext()) {
+        String checkWord = myIterator.next();
+        if (myWord.equalsIgnoreCase(checkWord)) {
+            return true;
+        }
+        /* pedantic version with case checking
+        if (myWord.equals(checkWord)) {
+            return true;
+        }
+        */
+    }
+    return false;
+}
+
 /* ---- JAVAFX APPLICATION STARTS HERE --- */
   
     @Override
@@ -368,40 +408,25 @@ private String getArea1Text() {
        
         //*Stage that I will use for main text input display and editing
         Stage myStage = new Stage();
-        this.setupInputStage(myStage,"Text for Analysis");
+        this.setupInputStage(myStage,"Text Analysis");
         //set some default text in main text window
         //this.myTextFile="popstarlease.txt";
         this.myTextFile="electricity.txt";
         this.setArea1Text(this.myTextFile);
         this.setArea2Text(this.myTextFile);
         myStage.show();
-        
-        /* OLD:
-        Setup a default Stage as a graphics window with a group node
-        visualWindow = new Stage();
-        Group CommonWords_root = MainStage.this.setupBlocksWindow(visualWindow, "The Graphics Window");
-        Rectangle2D primScreenBounds = Screen.getPrimary().getVisualBounds();
-        visualWindow.setX(primScreenBounds.getWidth() / 1.5); 
-        visualWindow.setY(25);
-
-        inspectorWindow = new Stage();
-        inspectorGroup_root = MainStage.this.setupBlocksWindow(inspectorWindow, "Inspector Window");
-        inspectorGroup_root.getChildren().add(inspectorTextArea);
-        inspectorTextArea.setWrapText(true);
-        */
 
         /* Setup default Stage with Scrollpane to display Text as Inspector
         */
         inspectorWindow = new Stage();
-        //for large window:
-        //inspectorWindow.setX(primScreenBounds.getWidth() / 1.5); 
-        inspectorGroup_root = MainStage.this.setupScrollTextWindow(inspectorWindow, "Inspector Window");
+        inspectorGroup_root = MainStage.this.setupScrollTextWindow(inspectorWindow, "inspector", "Inspector Window");
         
         //Outer class method class to obtain text from analysis area
         String gotcha = MainStage.this.textArea1.getText();
         String newDefs = MainStage.this.getMatched(gotcha);
         //set the default scrollpane content to a designated text area and size scrollpane
         inspectorGroup_root.setContent(inspectorTextArea); 
+        //TO DO: remove these text setup lines?
         double width = 600; 
         double height = 500; 
         inspectorGroup_root.setPrefHeight(height);  
@@ -412,6 +437,8 @@ private String getArea1Text() {
 
         //TO DO: Setup another 'Stage' for file input, creation of toolbars etc.
     }
+
+
 
     /* This is a method to create a new eventhandler for the StackBox objects which are themselves a Stackpane that incorporate a Rectangle and a Text Node as components*/
 
@@ -490,6 +517,7 @@ private String getArea1Text() {
         System.out.println("Get DefIcons Button was pressed!");
         Stage adHoc = new Stage();
         defGroup_root = MainStage.this.setupBlocksWindow(adHoc, "Definitions Block Window");
+        adHoc.setY(600);
 
         //obtain data to display
         DefContainer myContainer = grabDefinitionsString(textArea1.getText());
@@ -504,8 +532,8 @@ private String getArea1Text() {
             String FreqCnt = Integer.toString(mydefinition.getFreq());
             String myCont = myLabel+"("+FreqCnt+")";
             StackBox b;
-            if (offY<=100) {
-                b = new StackBox(myCont); //default blue
+            if (isLegalRoleWord(myLabel)==true) {
+                b = new StackBox(myCont, "orange"); //default is blue
                 b.setContent(mydeftext); //to do - transfer defs to sep objects in StackBox
             } else {
                 b = new StackBox(myCont, "green");
@@ -518,7 +546,7 @@ private String getArea1Text() {
             b.setOnMouseDragged(DragBoxEventHandler);
             
             defGroup_root.getChildren().add(b);
-            if (offX>640) {
+            if (offX>440) {
                 offY=offY+65;
                 offX=0;
             }
@@ -615,6 +643,7 @@ private String getArea1Text() {
                     int offX = 0;
                     while (i.hasNext()) {
                         offX=offX+50;
+                        /* OLD:
                         StackBox b;
                         if (offX<=100) {
                             b = new StackBox(i.next()); //default blue
@@ -622,6 +651,16 @@ private String getArea1Text() {
                         } else {
                             b = new StackBox(i.next(), "yellow");
                             b.setContent("This is a yellow box");
+                        }
+                        */
+                        StackBox b;
+                        String newlabel = i.next();
+                        if (isLegalRoleWord(newlabel)==true) {
+                            b = new StackBox(newlabel, "orange"); //default is blue
+                            b.setContent(newlabel); //to do - transfer defs to sep objects in StackBox
+                        } else {
+                            b = new StackBox(newlabel, "green");
+                            b.setContent(newlabel);
                         }
                         b.setTranslateX(offX); //increments offset each time for display. 
                         //TO DO: set some default object refs (StackPane has current; these will be alternate indexes).
@@ -641,7 +680,8 @@ private String getArea1Text() {
         public void handle(ActionEvent event) {
             //make a new stage with scrollpane
             defsTextStage = new Stage();
-            defsTextStage_root = MainStage.this.setupScrollTextWindow(defsTextStage, "Definitions Text Extracted");
+            defsTextStage_root = MainStage.this.setupScrollTextWindow(defsTextStage, "display", "Definitions List");
+            defsTextStage.setY(350);
             //Outer class method class to obtain text from analysis area
             String gotcha = MainStage.this.textArea1.getText();
             String newDefs = MainStage.this.getMatched(gotcha);
