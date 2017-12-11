@@ -92,7 +92,7 @@ public class MainStage extends Application {
     Group ClauseGroup_root;
     //New clauses Work in Progress window
     Group myGroup_clauses;
-    SandboxManager mySandbox;
+    SpriteManager mySpriteManager;
     ClauseContainer clausesWIP;
 
 /*The main method uses the launch method of the Application class.
@@ -277,13 +277,13 @@ This is the only such window: the group box for adding clauses is unique and dec
 
 */
 
-public Group setupSandboxManager(Stage myStage, String myTitle) {
+public Group setupClauseWIPstage(Stage myStage, String myTitle) {
 
         myStage.setTitle(myTitle);
         
         
         Group myGroup_root = new Group(); //for root
-        mySandbox = new SandboxManager();
+        mySpriteManager = new SpriteManager();
         clausesWIP = new ClauseContainer();
         myGroup_clauses = new Group(); //for child node
         //add group layout object as root node for Scene at time of creation
@@ -495,7 +495,7 @@ public Boolean isLegalRoleWord (String myWord) {
 
         //setup clauses sandbox
         Stage ClauseSB = new Stage();
-        Group clausePlayBox = MainStage.this.setupSandboxManager(ClauseSB, "Clauses Sandbox");
+        Group clausePlayBox = MainStage.this.setupClauseWIPstage(ClauseSB, "Clauses WIP Sandbox");
 
         /* Setup default Stage with Scrollpane to display Text as Inspector
         */
@@ -550,7 +550,7 @@ public Boolean isLegalRoleWord (String myWord) {
                     System.out.println("Two clicks");
                     //toggle
                     //unfocus current Sprite - only works for the Sandbox? or record in any window?  
-                    SpriteBox hadFocus = mySandbox.getCurrentSprite();
+                    SpriteBox hadFocus = mySpriteManager.getCurrentSprite();
                     if (hadFocus!=null) {
                         hadFocus.endAlert();
                     }
@@ -564,7 +564,7 @@ public Boolean isLegalRoleWord (String myWord) {
                     else {
                         SpriteBox currentSprite = ((SpriteBox)(t.getSource()));
                         currentSprite.doAlert();
-                        mySandbox.setCurrentSprite(currentSprite);  //what if wrong window?
+                        mySpriteManager.setCurrentSprite(currentSprite);  //what if wrong window?
                         String myOutput = currentSprite.getContent();
                         inspectorTextArea.setText(myOutput);
 
@@ -572,7 +572,7 @@ public Boolean isLegalRoleWord (String myWord) {
                     */
                     SpriteBox currentSprite = ((SpriteBox)(t.getSource()));
                     currentSprite.doAlert();
-                    mySandbox.setCurrentSprite(currentSprite);  //what if wrong window?
+                    mySpriteManager.setCurrentSprite(currentSprite);  //what if wrong window?
                     String myOutput = currentSprite.getContent();
                     inspectorTextArea.setText(myOutput);
 
@@ -627,7 +627,7 @@ public Boolean isLegalRoleWord (String myWord) {
             b.setOnMousePressed(PressBoxEventHandler); 
             b.setOnMouseDragged(DragBoxEventHandler);
             //offset new sprite handling
-            int[] position = mySandbox.incrementXY();
+            int[] position = mySpriteManager.incrementXY();
             b.setTranslateX(position[0]);
             b.setTranslateY(position[1]); //TO DO: update property of group to keep track of last position added
             myGroup_clauses.getChildren().add(b); //add sprite to Stage
