@@ -34,7 +34,10 @@ public void setXY(int x, int y) {
     }
   
 /* Increment XY position for next box to be added
-TO DO:  keep track of last box as it moves and add new box relative to last box
+TO DO:  keep track of last box as it moves and add new box relative to last box.
+At moment, this is only the XY position of the sprite boxes in the Clause WIP area - so be careful.
+It is only used when adding new clauses to that Stage.  For a more general management of Sprites in ANY stage,
+more sophisticated tracking is needed.
 */
 
 public int[] incrementXY() {

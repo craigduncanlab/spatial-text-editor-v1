@@ -31,7 +31,7 @@ public class ColBox extends Rectangle{
         setWidth(150);
         setHeight(40);
         /* image too.  
-        //This works but proportions must be correct for rectangle if a fill
+        //This works but proportions must be correct for rectangle if image used as a fill
         Image img = new Image("paper.png");
         this.setFill(new ImagePattern(img));
         */

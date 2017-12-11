@@ -407,14 +407,20 @@ public Group setupBlocksButtonsStage(Stage myStage, String myTitle) {
         myStage.setY(450);
         myStage.show();
         
+        //Button for moving clauses
+        Button btnMoveClause = new Button();
+        btnMoveClause.setText("Move Clause to WIP");
+        btnMoveClause.setTooltip(new Tooltip ("Press to move clause to Clause WIP Window"));
+        btnMoveClause.setOnAction(MoveClausetoWIP);
+
         //Button for copying clauses
         Button btnCopyClause = new Button();
         btnCopyClause.setText("Copy Clause to WIP");
-        btnCopyClause.setTooltip(new Tooltip ("Press to copy clause to Clause WIP Window"));
-        btnCopyClause.setOnAction(CopyClausetoWIP);
+        btnCopyClause.setTooltip(new Tooltip ("[TBA] Press to copy clause to Clause WIP Window"));
+        //btnCopyClause.setOnAction(CopyClausetoWIP);
         
         //Set horizontal box to hold buttons
-        HBox hboxButtons = new HBox(0,btnCopyClause);
+        HBox hboxButtons = new HBox(0,btnMoveClause,btnCopyClause);
         VBox vbox1 = new VBox(0,myExtracted_clauses,hboxButtons);
         //
         myGroup_root.getChildren().add(vbox1); //add the vbox to the root node to hold everything
@@ -656,33 +662,67 @@ public Boolean isLegalRoleWord (String myWord) {
 
     //BUTTON EVENT HANDLERS
 
-
-    // Method to copy selected sprite to Clause WIP (will duplicate if already in WIP Stage)
-    //CopyClausetoWIP
+    // Method to move selected sprite to Clause WIP (will not duplicate)
     /*
-    
-    EventHandler<ActionEvent> addNewClauseBox = 
-    new EventHandler<ActionEvent>() {
+            The following 'add' actually copies to the second stage.
+            By moving the object or referring to it on the new Stage, it forces JavaFX to refresh.
 
-        @Override 
-        public void handle(ActionEvent event) {
-    */
+            Java FX does its own cleanup.
+
+            To achieve a 'copy' rather than a move, additional code needed.
+
+     */
+
+    EventHandler<ActionEvent> MoveClausetoWIP = 
+        new EventHandler<ActionEvent>() {
+ 
+        @Override
+        public void handle(ActionEvent t) {
+            //This sets the initial reference 
+            SpriteBox currentSprite = mySpriteManager.getCurrentSprite(); //not based on the button
+            //lose focus
+            currentSprite.endAlert();
+            //call method to add Sprite to ...
+            //offset new sprite handling
+            int[] position = mySpriteManager.incrementXY();
+            myGroup_clauses.getChildren().add(currentSprite); //add sprite to Stage for clause WIP
+            clausesWIP.addClause(currentSprite.getClause()); 
+            //TO DO: update property of group to keep track of last position added
+            //sprite management
+            currentSprite.doAlert();
+            mySpriteManager.setCurrentSprite(currentSprite);  //what if wrong window?
+            //now change position on new stage
+            currentSprite.setTranslateX(position[0]);
+            currentSprite.setTranslateY(position[1]); 
+        }
+    };
+
+
+    /* TO DO: Turn this into a copy not a move */
+
     EventHandler<ActionEvent> CopyClausetoWIP = 
         new EventHandler<ActionEvent>() {
  
         @Override
         public void handle(ActionEvent t) {
+            //This sets the initial reference 
             SpriteBox currentSprite = mySpriteManager.getCurrentSprite(); //not based on the button
+            //lose focus
+            currentSprite.endAlert();
             //call method to add Sprite to ...
             //offset new sprite handling
             int[] position = mySpriteManager.incrementXY();
-            currentSprite.setTranslateX(position[0]);
-            currentSprite.setTranslateY(position[1]); //TO DO: update property of group to keep track of last position added
             myGroup_clauses.getChildren().add(currentSprite); //add sprite to Stage for clause WIP
             clausesWIP.addClause(currentSprite.getClause()); 
+            //TO DO: update property of group to keep track of last position added
+            //sprite management
+            currentSprite.doAlert();
+            mySpriteManager.setCurrentSprite(currentSprite);  //what if wrong window?
+            //now change position on new stage
+            currentSprite.setTranslateX(position[0]);
+            currentSprite.setTranslateY(position[1]); 
         }
     };
-
 
     /* Event handler for adding a new clause box to Sandbox Stage*/
 
