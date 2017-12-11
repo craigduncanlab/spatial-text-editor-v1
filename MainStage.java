@@ -74,6 +74,8 @@ public class MainStage extends Application {
     //SpriteBox littleStack;
     Scene graphicscene; //the scene in the second stage (window)
     */
+    //General Sprite (block) manager
+    SpriteManager mySpriteManager;
     //inspector window
     Stage inspectorWindow;
     Scene inspectorScene;
@@ -90,9 +92,11 @@ public class MainStage extends Application {
     //Clause analysis window
     Stage ClauseStage;
     Group ClauseGroup_root;
+    //updated clause extract/analysis window
+    Group myExtracted_clauses;
+    Scene ClauseExScene;
     //New clauses Work in Progress window
     Group myGroup_clauses;
-    SpriteManager mySpriteManager;
     ClauseContainer clausesWIP;
 
 /*The main method uses the launch method of the Application class.
@@ -283,7 +287,6 @@ public Group setupClauseWIPstage(Stage myStage, String myTitle) {
         
         
         Group myGroup_root = new Group(); //for root
-        mySpriteManager = new SpriteManager();
         clausesWIP = new ClauseContainer();
         myGroup_clauses = new Group(); //for child node
         //add group layout object as root node for Scene at time of creation
@@ -378,6 +381,51 @@ Adds a generic event handler for future use.
 
 }
 
+/* SETUP STAGE TO DISPLAY BLOCKS WITH SOME SIMPLE BUTTONS */
+
+public Group setupBlocksButtonsStage(Stage myStage, String myTitle) {
+
+        myStage.setTitle(myTitle);
+        
+        
+        Group myGroup_root = new Group(); //for root
+        ClauseContainer clausesExtracted = new ClauseContainer(); //TO DO: Instance variable
+        myExtracted_clauses = new Group(); //for child node
+        //add group layout object as root node for Scene at time of creation
+        ClauseExScene = new Scene (myGroup_root,650,600); //default width x height (px)
+        //optional event handler
+        ClauseExScene.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
+         @Override
+         public void handle(MouseEvent mouseEvent) {
+         System.out.println("Extracted Clause Window: Mouse click detected! " + mouseEvent.getSource());
+             }
+        });
+
+               //
+        myStage.setScene(ClauseExScene); //this selects the stage as current scene
+        myStage.setX(100);
+        myStage.setY(450);
+        myStage.show();
+        
+        //Button for copying clauses
+        Button btnCopyClause = new Button();
+        btnCopyClause.setText("Copy Clause to WIP");
+        btnCopyClause.setTooltip(new Tooltip ("Press to copy clause to Clause WIP Window"));
+        btnCopyClause.setOnAction(CopyClausetoWIP);
+        
+        //Set horizontal box to hold buttons
+        HBox hboxButtons = new HBox(0,btnCopyClause);
+        VBox vbox1 = new VBox(0,myExtracted_clauses,hboxButtons);
+        //
+        myGroup_root.getChildren().add(vbox1); //add the vbox to the root node to hold everything
+        int totalwidth=650;
+        vbox1.setPrefWidth(totalwidth); //this is in different units to textarea
+       
+        //return the child node, not the root in this case?
+        return myExtracted_clauses;
+        
+    }
+
 /** Setup independent text inspector window 
 @parameter Requires a Stage object and a title as arguments
 @Returns a Scrollpane representing the root node
@@ -449,12 +497,10 @@ private String getArea1Text() {
 
 /* Method to see if any label or text contains legal 'role' words, for display purposes 
 
-Many of these are pair words: relationship dichotomies that are the result of looking at a single commercial or social context as the complete environment for the legal model, and then defining the rules.
-In that sense, rules that relate to the area are described independently of other competing labels for the objects that exist in the same factual situation.   Reference to any one of these terms tends to identify and therefore prioritise the area of law that uses the same terms.  Alternative descriptions are not necessarily invoked by a person who is led to use particular language.
+Many of these are pair words: relationship dichotomies; 
+a RELATIVE inequality or division of social, economic or legal power that defines a transaction or struture, and the role of the participants.
 
-(For example, in law tutorial problems, the act of writing the question and using identified names or documents that share the same foundational language must involve participants with given roles, focussing on a given area of law.   'Recognition' of the classification system is easily taught - the further step required is to be able to recite and use the rules which apply in that context.  That discrete skill falls short of being able to do so for multiple areas of law that are not necessarily reflective in the language used in the initial narrative.  The narrator foregrounds a particular area of law by the chosen language.)
-
-TO DO: put into master groups for managing, but iterate through all.
+TO DO: put into groups for managing different areas of law, but iterate through all.
 */
 
 public Boolean isLegalRoleWord (String myWord) {
@@ -482,6 +528,9 @@ public Boolean isLegalRoleWord (String myWord) {
         primaryStage.setTitle("File Utilities");
         //primaryStage.show();
         primaryStage.close();
+
+        //the object that manages sprite with focus etc
+        mySpriteManager = new SpriteManager();
        
         //*Stage that I will use for main text input display and editing
         Stage myStage = new Stage();
@@ -518,8 +567,6 @@ public Boolean isLegalRoleWord (String myWord) {
 
         //TO DO: Setup another 'Stage' for file input, creation of toolbars etc.
     }
-
-
 
     /* This is a method to create a new eventhandler for the SpriteBox objects which are themselves a Stackpane that incorporate a Rectangle and a Text Node as components
 
@@ -610,9 +657,36 @@ public Boolean isLegalRoleWord (String myWord) {
     //BUTTON EVENT HANDLERS
 
 
+    // Method to copy selected sprite to Clause WIP (will duplicate if already in WIP Stage)
+    //CopyClausetoWIP
+    /*
+    
+    EventHandler<ActionEvent> addNewClauseBox = 
+    new EventHandler<ActionEvent>() {
+
+        @Override 
+        public void handle(ActionEvent event) {
+    */
+    EventHandler<ActionEvent> CopyClausetoWIP = 
+        new EventHandler<ActionEvent>() {
+ 
+        @Override
+        public void handle(ActionEvent t) {
+            SpriteBox currentSprite = mySpriteManager.getCurrentSprite(); //not based on the button
+            //call method to add Sprite to ...
+            //offset new sprite handling
+            int[] position = mySpriteManager.incrementXY();
+            currentSprite.setTranslateX(position[0]);
+            currentSprite.setTranslateY(position[1]); //TO DO: update property of group to keep track of last position added
+            myGroup_clauses.getChildren().add(currentSprite); //add sprite to Stage for clause WIP
+            clausesWIP.addClause(currentSprite.getClause()); 
+        }
+    };
+
+
     /* Event handler for adding a new clause box to Sandbox Stage*/
 
-     EventHandler<ActionEvent> addNewClauseBox = 
+    EventHandler<ActionEvent> addNewClauseBox = 
     new EventHandler<ActionEvent>() {
 
         @Override 
@@ -662,7 +736,9 @@ public Boolean isLegalRoleWord (String myWord) {
         public void handle(ActionEvent event) {
         System.out.println("Get DefIcons Button was pressed!");
         Stage adHoc = new Stage();
+
         defGroup_root = MainStage.this.setupBlocksWindow(adHoc, "Definitions Block Window");
+        
         adHoc.setY(600);
 
         //obtain data to display
@@ -716,7 +792,11 @@ public Boolean isLegalRoleWord (String myWord) {
         System.out.println("Clause Boxes Button was pressed!");
         //make a new stage
         ClauseStage = new Stage();
+        /* OLD:
         ClauseGroup_root = MainStage.this.setupBlocksWindow(ClauseStage, "Extracted Clauses");
+        */
+        ClauseGroup_root = MainStage.this.setupBlocksButtonsStage(ClauseStage, "Extracted Clauses");
+        
         //TO DO: get source of data
         ClauseContainer myContainer = getClauseContainer(textArea1.getText());
         ArrayList<Clause> myClauseList = myContainer.getClauseArray();
@@ -732,11 +812,14 @@ public Boolean isLegalRoleWord (String myWord) {
             SpriteBox b;
             if (offY<=100) {
                 b = new SpriteBox(myCont); //default blue
-                b.setContent(myclausetext); //to do - transfer defs to sep objects in SpriteBox
+                //b.setContent(myclausetext); //to do - transfer defs to sep objects in SpriteBox
             } else {
                 b = new SpriteBox(myCont, "green");
-                b.setContent(myclausetext);
+                //b.setContent(myclausetext);
             }
+            b.setContent(myclausetext);  //this will be overriden
+            b.setClauseText(myclausetext); //overrides box - i.e sets inner object text and Sprite to the 'label'
+            b.setClauseLabel(myLabel);
             b.setTranslateX(offX); //increments offset each time for display. 
             //TO DO: set some default object refs (StackPane has current; these will be alternate indexes).
             b.setTranslateY(offY);
