@@ -36,9 +36,11 @@ public class SpriteBox extends StackPane {
     //instance variables are the graphic box and its text, and location.
     //Not shared with class unless 'static' applied.
     //StackPane boxPane = new StackPane(); 
+    //These are the data objects held internally:
     ColBox myBox;
     Clause myClause;
-    Text myLabel;
+    //These are the superficial sprite values - can sync with internal objects vice versa
+    Text boxtext;
     String contents;
     int Xpos = 0;
     int Ypos = 0;
@@ -47,13 +49,13 @@ public class SpriteBox extends StackPane {
     String alertColour="red";
 
     //default constructor
-    public SpriteBox(String myLabel) {
+    public SpriteBox(String startLabel) {
     	myBox = new ColBox();
         myClause = new Clause();
         defaultColour="blue";
         this.setCursor(Cursor.HAND); 
         //set GUI text to passed string
-        Text boxtext = new Text (myLabel);//myBox.getLabel();
+        this.boxtext = new Text (startLabel);//myBox.getLabel();
         //just set size and use default font
         Font boxfont=Font.font ("Verdana", 10);
         boxtext.setFont(boxfont);
@@ -67,13 +69,13 @@ public class SpriteBox extends StackPane {
         this.getChildren().addAll(myBox,boxtext);
      }  
     // constructor with colour
-    public SpriteBox(String myLabel, String mycolour) {
+    public SpriteBox(String startLabel, String mycolour) {
         //myBox = new ColBox(myText,mycolour);
         myClause = new Clause();
         myBox = new ColBox(mycolour);
         defaultColour=mycolour;
         this.setCursor(Cursor.HAND); 
-        Text boxtext = new Text (myLabel);//myBox.getLabel();
+        this.boxtext = new Text (startLabel);//myBox.getLabel();
         double fontsize=12;
         Font boxfont = new Font ("Arial", fontsize);
         boxtext.setFont(boxfont);
@@ -81,6 +83,9 @@ public class SpriteBox extends StackPane {
         this.getChildren().addAll(myBox,boxtext);
      }
     
+
+     /* SUPERFICIAL SPRITE APPEARANCE */
+
     public int[] getXY() {
         return new int[]{this.Xpos,this.Ypos};
     }
@@ -91,11 +96,13 @@ public class SpriteBox extends StackPane {
     }
      
     public Text getLabel() {
-        return myLabel;
+        return boxtext;
     }
 
     public void setLabel(String myString) {
-        this.myLabel.setText(myString);
+        if (!myString.equals("")) {
+            this.boxtext.setText(myString);
+        }
     }
 
     public void setContent(String myString) {
@@ -104,14 +111,6 @@ public class SpriteBox extends StackPane {
 
     public String getContent() {
         return this.contents;
-    }
-
-    public String getClauseText() {
-        return this.myClause.getClause();
-    }
-
-    public void setClauseText(String myString) {
-        this.myClause.setClausetext(myString);
     }
 
     public void SetColour(String mycol) {
@@ -135,5 +134,36 @@ public class SpriteBox extends StackPane {
         this.isAlert=false;
         myBox.setColour(defaultColour);
     }
+
+    /* ----  INTERNAL OBJECT DATA --- */
+
+    /* Get the whole clause from this spritebox */
+
+    public Clause getClause() {
+        return this.myClause;
+    }
+
+    /* Sync or obtain text from internal clause container */    
+
+    public String getClauseText() {
+        return this.myClause.getClause();
+    }
+
+    /* Sync internal clause container text with external data */  
+
+    public void setClauseText(String myString) {
+        this.myClause.setClausetext(myString);
+        //sync the content of this spritebox too i.e. displayed in inspector
+        //TO DO: inspector should look straight to clause text?  mirror for definitions? defs are stripped down clauses?
+        this.setContent(myString);
+    }
+
+    /* Set label and sync internal clause container label with spritebox label */  
+
+    public void setClauseLabel(String myString) {
+        this.myClause.setClauselabel(myString);
+        this.setLabel(myString);
+    }
+
 
 }

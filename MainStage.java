@@ -92,7 +92,7 @@ public class MainStage extends Application {
     Group ClauseGroup_root;
     //New clauses Work in Progress window
     Group myGroup_clauses;
-    ClauseSandbox mySandbox;
+    SandboxManager mySandbox;
     ClauseContainer clausesWIP;
 
 /*The main method uses the launch method of the Application class.
@@ -277,13 +277,13 @@ This is the only such window: the group box for adding clauses is unique and dec
 
 */
 
-public Group setupClauseSandbox(Stage myStage, String myTitle) {
+public Group setupSandboxManager(Stage myStage, String myTitle) {
 
         myStage.setTitle(myTitle);
         
         
         Group myGroup_root = new Group(); //for root
-        mySandbox = new ClauseSandbox();
+        mySandbox = new SandboxManager();
         clausesWIP = new ClauseContainer();
         myGroup_clauses = new Group(); //for child node
         //add group layout object as root node for Scene at time of creation
@@ -314,6 +314,12 @@ public Group setupClauseSandbox(Stage myStage, String myTitle) {
         btnDeleteClause.setText("Remove Clause");
         //btnDeleteClause.setOnAction(extractDefinitions);
 
+        //Button for summary print list of clauses
+        Button btnClausePrint = new Button();
+        btnClausePrint.setTooltip(new Tooltip ("Press to list all clauses in inspector/console"));
+        btnClausePrint.setText("Print List");
+        btnClausePrint.setOnAction(printClauseList);
+
         //Button for export/document clauses TO DO: some config or separate panel.
         Button btnExportClause = new Button();
         btnExportClause.setTooltip(new Tooltip ("Press to output clauses as RTF"));
@@ -321,7 +327,7 @@ public Group setupClauseSandbox(Stage myStage, String myTitle) {
         //btnDeleteClause.setOnAction(extractDefinitions);
 
         //Set horizontal box to hold buttons
-        HBox hboxButtons = new HBox(0,btnNewClause,btnDeleteClause);
+        HBox hboxButtons = new HBox(0,btnNewClause,btnDeleteClause,btnClausePrint);
         VBox vbox1 = new VBox(0,myGroup_clauses,hboxButtons);
         //
         myGroup_root.getChildren().add(vbox1); //add the vbox to the root node to hold everything
@@ -489,7 +495,7 @@ public Boolean isLegalRoleWord (String myWord) {
 
         //setup clauses sandbox
         Stage ClauseSB = new Stage();
-        Group clausePlayBox = MainStage.this.setupClauseSandbox(ClauseSB, "Clauses Sandbox");
+        Group clausePlayBox = MainStage.this.setupSandboxManager(ClauseSB, "Clauses Sandbox");
 
         /* Setup default Stage with Scrollpane to display Text as Inspector
         */
@@ -515,7 +521,12 @@ public Boolean isLegalRoleWord (String myWord) {
 
 
 
-    /* This is a method to create a new eventhandler for the SpriteBox objects which are themselves a Stackpane that incorporate a Rectangle and a Text Node as components*/
+    /* This is a method to create a new eventhandler for the SpriteBox objects which are themselves a Stackpane that incorporate a Rectangle and a Text Node as components
+
+    //unfocus current Sprite - only works for the Sandbox.  
+    Need to refine scope so that it works with current window
+
+    */
 
     EventHandler<MouseEvent> PressBoxEventHandler = 
         new EventHandler<MouseEvent>() {
@@ -538,18 +549,33 @@ public Boolean isLegalRoleWord (String myWord) {
                 case 2:
                     System.out.println("Two clicks");
                     //toggle
+                    //unfocus current Sprite - only works for the Sandbox? or record in any window?  
+                    SpriteBox hadFocus = mySandbox.getCurrentSprite();
+                    if (hadFocus!=null) {
+                        hadFocus.endAlert();
+                    }
+                    /* OLD: if this sprite had focus, then toggle
                     Boolean isAlert = ((SpriteBox)(t.getSource())).isAlert();
                     if (isAlert==true) {
                         ((SpriteBox)(t.getSource())).endAlert();
                         //toDO: clear the inspector window contents
                     }
+                    
                     else {
-                        ((SpriteBox)(t.getSource())).doAlert();
-                        String myOutput = ((SpriteBox)(t.getSource())).getContent();
+                        SpriteBox currentSprite = ((SpriteBox)(t.getSource()));
+                        currentSprite.doAlert();
+                        mySandbox.setCurrentSprite(currentSprite);  //what if wrong window?
+                        String myOutput = currentSprite.getContent();
                         inspectorTextArea.setText(myOutput);
 
                     }
-                    //where t is the current SpriteBox
+                    */
+                    SpriteBox currentSprite = ((SpriteBox)(t.getSource()));
+                    currentSprite.doAlert();
+                    mySandbox.setCurrentSprite(currentSprite);  //what if wrong window?
+                    String myOutput = currentSprite.getContent();
+                    inspectorTextArea.setText(myOutput);
+
                     break;
                 case 3:
                     System.out.println("Three clicks");
@@ -584,7 +610,7 @@ public Boolean isLegalRoleWord (String myWord) {
     //BUTTON EVENT HANDLERS
 
 
-    /* Event handler for adding a new clause box */
+    /* Event handler for adding a new clause box to Sandbox Stage*/
 
      EventHandler<ActionEvent> addNewClauseBox = 
     new EventHandler<ActionEvent>() {
@@ -595,19 +621,38 @@ public Boolean isLegalRoleWord (String myWord) {
             String label = "New Clause";
             String text = "Default text inside Clause";
             b = new SpriteBox(label, "orange"); //default is blue
-            b.setContent(text);
+            b.setContent("some text to put in spritebox");
+            b.setClauseText(text); //overrides box - i.e sets inner object text and Sprite to the 'label'
+            b.setClauseLabel(label);
             b.setOnMousePressed(PressBoxEventHandler); 
             b.setOnMouseDragged(DragBoxEventHandler);
-            //offset handling
+            //offset new sprite handling
             int[] position = mySandbox.incrementXY();
             b.setTranslateX(position[0]);
             b.setTranslateY(position[1]); //TO DO: update property of group to keep track of last position added
-            myGroup_clauses.getChildren().add(b);
-            //clausesWIP.add
+            myGroup_clauses.getChildren().add(b); //add sprite to Stage
+            clausesWIP.addClause(b.getClause()); //add clause from sprite to clauses container
             }
         };
 
-    /* Notice that I've included event handlers for each definition block added, so that they can handle mouse events inside the Window they've been added to 
+    //printClauseList
+        EventHandler<ActionEvent> printClauseList = 
+        new EventHandler<ActionEvent>() {
+        @Override 
+        public void handle(ActionEvent event) {
+             inspectorTextArea.setText("This is where list of clauses will appear");
+             clausesWIP.doPrintIteration();
+             String output=clausesWIP.getClauseAndText();
+             inspectorTextArea.setText(output);
+             //TO DO: Have a separate "Output/Preview" Window to show clause output.  Maybe HTMLview?
+            }
+        };
+
+
+    /* 
+
+    Notice that I've included event handlers for each definition block added, so that they can handle mouse events inside the Window they've been added to 
+    
     */
 
     EventHandler<ActionEvent> makeDefIcons = 
@@ -798,5 +843,7 @@ public Boolean isLegalRoleWord (String myWord) {
             System.out.println("Get Defs Button was pressed!");
             }
         };
+
+
 
 }
