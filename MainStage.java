@@ -68,11 +68,12 @@ public class MainStage extends Application {
     //variables for mouse events TO DO : RENAME
     double orgSceneX, orgSceneY;
     double orgTranslateX, orgTranslateY;
-    //Declare any objects for 2nd window here
+    /*Declare any objects for 2nd window here
     Stage visualWindow;
-    DefBox littleBox;
-    StackBox littleStack;
+    //DefBox littleBox;
+    //SpriteBox littleStack;
     Scene graphicscene; //the scene in the second stage (window)
+    */
     //inspector window
     Stage inspectorWindow;
     Scene inspectorScene;
@@ -86,10 +87,13 @@ public class MainStage extends Application {
     //definitions extraction window
     Stage defsTextStage;
     ScrollPane defsTextStage_root;
-    //Clause window
+    //Clause analysis window
     Stage ClauseStage;
-
     Group ClauseGroup_root;
+    //New clauses Work in Progress window
+    Group myGroup_clauses;
+    ClauseSandbox mySandbox;
+    ClauseContainer clausesWIP;
 
 /*The main method uses the launch method of the Application class.
 https://docs.oracle.com/javase/8/javafx/api/javafx/application/Application.html
@@ -230,7 +234,7 @@ public void setupInputStage(Stage textStage, String myTitle) {
         //Button for Clause blocks with Action Event handler
         Button btnClauses = new Button();
         btnClauses.setTooltip(new Tooltip ("Press to extract Clauses from top Text Area"));
-        btnClauses.setText("Show Clause Boxes");
+        btnClauses.setText("Extract Clause Icons");
         btnClauses.setOnAction(makeClauseIcons);
 
         //Set horizontal box to hold buttons
@@ -262,6 +266,73 @@ public void setupInputStage(Stage textStage, String myTitle) {
         textStage.setY(50); 
         
     }
+
+/* Setup method to create a space to add or remove clauses, and then process them into some kind of output
+
+At this stage, the root node is a Group, which sizes according to the children (i.e. no size if empty)
+
+This can be contrasted with a pane which has some sort of minimum size?  Design decision.
+
+This is the only such window: the group box for adding clauses is unique and declared as an instance variable.
+
+*/
+
+public Group setupClauseSandbox(Stage myStage, String myTitle) {
+
+        myStage.setTitle(myTitle);
+        
+        
+        Group myGroup_root = new Group(); //for root
+        mySandbox = new ClauseSandbox();
+        clausesWIP = new ClauseContainer();
+        myGroup_clauses = new Group(); //for child node
+        //add group layout object as root node for Scene at time of creation
+        defScene = new Scene (myGroup_root,650,600); //default width x height (px)
+        //optional event handler
+        defScene.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
+         @Override
+         public void handle(MouseEvent mouseEvent) {
+         System.out.println("Clause Sandbox Mouse click detected! " + mouseEvent.getSource());
+             }
+        });
+
+               //
+        myStage.setScene(defScene); //this selects the stage as current scene
+        myStage.setX(100);
+        myStage.setY(450);
+        myStage.show();
+        
+        //Button for new clauses
+        Button btnNewClause = new Button();
+        btnNewClause.setText("Add New Clause");
+        btnNewClause.setTooltip(new Tooltip ("Press to add a new clause"));
+        btnNewClause.setOnAction(addNewClauseBox);
+        
+        //Button for removing clauses
+        Button btnDeleteClause = new Button();
+        btnDeleteClause.setTooltip(new Tooltip ("Press to remove selected clause"));
+        btnDeleteClause.setText("Remove Clause");
+        //btnDeleteClause.setOnAction(extractDefinitions);
+
+        //Button for export/document clauses TO DO: some config or separate panel.
+        Button btnExportClause = new Button();
+        btnExportClause.setTooltip(new Tooltip ("Press to output clauses as RTF"));
+        btnExportClause.setText("RTF Export");
+        //btnDeleteClause.setOnAction(extractDefinitions);
+
+        //Set horizontal box to hold buttons
+        HBox hboxButtons = new HBox(0,btnNewClause,btnDeleteClause);
+        VBox vbox1 = new VBox(0,myGroup_clauses,hboxButtons);
+        //
+        myGroup_root.getChildren().add(vbox1); //add the vbox to the root node to hold everything
+        int totalwidth=650;
+        vbox1.setPrefWidth(totalwidth); //this is in different units to textarea
+       
+        //return the child node, not the root in this case?
+        return myGroup_clauses;
+        
+    }
+
 
  /* 
  ---- SETUP A NEW STAGE TO DISPLAY MOVEABLE BOX OBJECTS--- 
@@ -416,6 +487,10 @@ public Boolean isLegalRoleWord (String myWord) {
         this.setArea2Text(this.myTextFile);
         myStage.show();
 
+        //setup clauses sandbox
+        Stage ClauseSB = new Stage();
+        Group clausePlayBox = MainStage.this.setupClauseSandbox(ClauseSB, "Clauses Sandbox");
+
         /* Setup default Stage with Scrollpane to display Text as Inspector
         */
         inspectorWindow = new Stage();
@@ -440,7 +515,7 @@ public Boolean isLegalRoleWord (String myWord) {
 
 
 
-    /* This is a method to create a new eventhandler for the StackBox objects which are themselves a Stackpane that incorporate a Rectangle and a Text Node as components*/
+    /* This is a method to create a new eventhandler for the SpriteBox objects which are themselves a Stackpane that incorporate a Rectangle and a Text Node as components*/
 
     EventHandler<MouseEvent> PressBoxEventHandler = 
         new EventHandler<MouseEvent>() {
@@ -450,8 +525,8 @@ public Boolean isLegalRoleWord (String myWord) {
             orgSceneX = t.getSceneX();
             orgSceneY = t.getSceneY();
             // If you are only moving child objects not panes
-            orgTranslateX = ((StackBox)(t.getSource())).getTranslateX();
-            orgTranslateY = ((StackBox)(t.getSource())).getTranslateY();
+            orgTranslateX = ((SpriteBox)(t.getSource())).getTranslateX();
+            orgTranslateY = ((SpriteBox)(t.getSource())).getTranslateY();
             System.out.println("getx: "+ orgSceneX+ " gety: "+orgSceneY);
             //change colour if double click
 
@@ -463,18 +538,18 @@ public Boolean isLegalRoleWord (String myWord) {
                 case 2:
                     System.out.println("Two clicks");
                     //toggle
-                    Boolean isAlert = ((StackBox)(t.getSource())).isAlert();
+                    Boolean isAlert = ((SpriteBox)(t.getSource())).isAlert();
                     if (isAlert==true) {
-                        ((StackBox)(t.getSource())).endAlert();
+                        ((SpriteBox)(t.getSource())).endAlert();
                         //toDO: clear the inspector window contents
                     }
                     else {
-                        ((StackBox)(t.getSource())).doAlert();
-                        String myOutput = ((StackBox)(t.getSource())).getContent();
+                        ((SpriteBox)(t.getSource())).doAlert();
+                        String myOutput = ((SpriteBox)(t.getSource())).getContent();
                         inspectorTextArea.setText(myOutput);
 
                     }
-                    //where t is the current Stackbox
+                    //where t is the current SpriteBox
                     break;
                 case 3:
                     System.out.println("Three clicks");
@@ -484,7 +559,9 @@ public Boolean isLegalRoleWord (String myWord) {
         }
     };
     
-     /* This is a method to create a new eventhandler for the StackBox objects */
+     /* This is eventhandler interface to create a new eventhandler class for the SpriteBox objects 
+     This uses a lambda expression to create an override of the handle method
+     */
      /* These currently have no limits on how far you can drag */
 
     EventHandler<MouseEvent> DragBoxEventHandler = 
@@ -496,8 +573,8 @@ public Boolean isLegalRoleWord (String myWord) {
             double offsetY = t.getSceneY() - orgSceneY;
             double newTranslateX = orgTranslateX + offsetX;
             double newTranslateY = orgTranslateY + offsetY;
-            ((StackBox)(t.getSource())).setTranslateX(newTranslateX);
-            ((StackBox)(t.getSource())).setTranslateY(newTranslateY);
+            ((SpriteBox)(t.getSource())).setTranslateX(newTranslateX);
+            ((SpriteBox)(t.getSource())).setTranslateY(newTranslateY);
             System.out.println("The handler for drag box is acting");
             t.consume();//check
 
@@ -505,6 +582,30 @@ public Boolean isLegalRoleWord (String myWord) {
     };
 
     //BUTTON EVENT HANDLERS
+
+
+    /* Event handler for adding a new clause box */
+
+     EventHandler<ActionEvent> addNewClauseBox = 
+    new EventHandler<ActionEvent>() {
+
+        @Override 
+        public void handle(ActionEvent event) {
+            SpriteBox b;
+            String label = "New Clause";
+            String text = "Default text inside Clause";
+            b = new SpriteBox(label, "orange"); //default is blue
+            b.setContent(text);
+            b.setOnMousePressed(PressBoxEventHandler); 
+            b.setOnMouseDragged(DragBoxEventHandler);
+            //offset handling
+            int[] position = mySandbox.incrementXY();
+            b.setTranslateX(position[0]);
+            b.setTranslateY(position[1]); //TO DO: update property of group to keep track of last position added
+            myGroup_clauses.getChildren().add(b);
+            //clausesWIP.add
+            }
+        };
 
     /* Notice that I've included event handlers for each definition block added, so that they can handle mouse events inside the Window they've been added to 
     */
@@ -531,12 +632,12 @@ public Boolean isLegalRoleWord (String myWord) {
             String mydeftext = mydefinition.getDef();
             String FreqCnt = Integer.toString(mydefinition.getFreq());
             String myCont = myLabel+"("+FreqCnt+")";
-            StackBox b;
+            SpriteBox b;
             if (isLegalRoleWord(myLabel)==true) {
-                b = new StackBox(myCont, "orange"); //default is blue
-                b.setContent(mydeftext); //to do - transfer defs to sep objects in StackBox
+                b = new SpriteBox(myCont, "orange"); //default is blue
+                b.setContent(mydeftext); //to do - transfer defs to sep objects in SpriteBox
             } else {
-                b = new StackBox(myCont, "green");
+                b = new SpriteBox(myCont, "green");
                 b.setContent(mydeftext);
             }
             b.setTranslateX(offX); //increments offset each time for display. 
@@ -570,7 +671,7 @@ public Boolean isLegalRoleWord (String myWord) {
         System.out.println("Clause Boxes Button was pressed!");
         //make a new stage
         ClauseStage = new Stage();
-        ClauseGroup_root = MainStage.this.setupBlocksWindow(ClauseStage, "The Clause Window");
+        ClauseGroup_root = MainStage.this.setupBlocksWindow(ClauseStage, "Extracted Clauses");
         //TO DO: get source of data
         ClauseContainer myContainer = getClauseContainer(textArea1.getText());
         ArrayList<Clause> myClauseList = myContainer.getClauseArray();
@@ -583,12 +684,12 @@ public Boolean isLegalRoleWord (String myWord) {
             String myclausetext = myclause.getClause();
             //String FreqCnt = Integer.toString(myclause.getFreq());
             String myCont = myLabel; //+"("+FreqCnt+")";
-            StackBox b;
+            SpriteBox b;
             if (offY<=100) {
-                b = new StackBox(myCont); //default blue
-                b.setContent(myclausetext); //to do - transfer defs to sep objects in StackBox
+                b = new SpriteBox(myCont); //default blue
+                b.setContent(myclausetext); //to do - transfer defs to sep objects in SpriteBox
             } else {
-                b = new StackBox(myCont, "green");
+                b = new SpriteBox(myCont, "green");
                 b.setContent(myclausetext);
             }
             b.setTranslateX(offX); //increments offset each time for display. 
@@ -629,7 +730,7 @@ public Boolean isLegalRoleWord (String myWord) {
 
                     //---ADD YELLOW BOXES WITH COMMON WORDS TO GRAPHICS WINDOW---
 
-                    //TO DO: The StackBoxes will be meta-objects include both defs, clause and data.
+                    //TO DO: The SpriteBoxes will be meta-objects include both defs, clause and data.
                     //They should incorporate the text or contents objects so that the GUI can feed this back and forward from text edit windows etc as required.
                     WordTool myHelper = new WordTool();
                     ArrayList<String> boxList = new ArrayList<String>();
@@ -644,22 +745,22 @@ public Boolean isLegalRoleWord (String myWord) {
                     while (i.hasNext()) {
                         offX=offX+50;
                         /* OLD:
-                        StackBox b;
+                        SpriteBox b;
                         if (offX<=100) {
-                            b = new StackBox(i.next()); //default blue
+                            b = new SpriteBox(i.next()); //default blue
                             b.setContent("This is a blue box");
                         } else {
-                            b = new StackBox(i.next(), "yellow");
+                            b = new SpriteBox(i.next(), "yellow");
                             b.setContent("This is a yellow box");
                         }
                         */
-                        StackBox b;
+                        SpriteBox b;
                         String newlabel = i.next();
                         if (isLegalRoleWord(newlabel)==true) {
-                            b = new StackBox(newlabel, "orange"); //default is blue
-                            b.setContent(newlabel); //to do - transfer defs to sep objects in StackBox
+                            b = new SpriteBox(newlabel, "orange"); //default is blue
+                            b.setContent(newlabel); //to do - transfer defs to sep objects in SpriteBox
                         } else {
-                            b = new StackBox(newlabel, "green");
+                            b = new SpriteBox(newlabel, "green");
                             b.setContent(newlabel);
                         }
                         b.setTranslateX(offX); //increments offset each time for display. 
