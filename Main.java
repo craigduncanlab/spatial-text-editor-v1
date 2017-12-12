@@ -4,38 +4,38 @@ JavaFX implementation of GUI started 17.11.2017 by Craig Duncan
  
 
 import javafx.application.Application;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
+import javafx.stage.Stage;
+import javafx.stage.Screen;
 //Screen positioning
 import javafx.geometry.Rectangle2D;
-import javafx.stage.Screen;
-//Scene graph (nodes)
+import javafx.geometry.Insets;
+//Scene graph (nodes) and traversal
 import javafx.scene.Group;
 import javafx.scene.Scene;
-import javafx.stage.Stage;
-//traversal of scene graph
 import javafx.scene.Node; 
 import javafx.scene.Parent;
 //Scene - Text as text
 import javafx.scene.text.Text;  //nb you can't stack textarea and shape controls but this works
 //Scene - Text controls 
+import javafx.scene.control.ScrollPane; // This is still not considered 'layout' i.e. it's content
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextInputControl;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Button;
 import javafx.scene.control.Tooltip;
-//Scene - general appearance & layout
-import javafx.scene.layout.StackPane;
+//Scene - general appearance & layout of Stages, nodes
+import javafx.scene.layout.StackPane; //these still have individual positions (like Sprites)
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.layout.HBox;
-import javafx.geometry.Insets;
-//for scroll panes
- import javafx.scene.control.ScrollPane;
- //for Mouse Click and Drag
- import javafx.scene.input.MouseEvent;
- import javafx.scene.Cursor;
+
+//for UI and Mouse Click and Drag
+import javafx.scene.input.MouseEvent;
+import javafx.scene.Cursor;
+// event handlers
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
  //ArrayList etc
  import java.util.*;
 
@@ -50,7 +50,7 @@ Note that JavaFX applications have a completely new command line interface:
 https://docs.oracle.com/javase/8/javafx/api/javafx/application/Application.Parameters.html
 
 */
-public class MainStage extends Application {
+public class Main extends Application {
     //setup instance variables here.  Static if shared across class (i.e. static=same memory location used)
     //instance variables for Screens to hold them if changed.
     Stage textStage = new Stage(); //basic constructor for main text stage
@@ -295,13 +295,18 @@ public Group setupClauseWIPstage(Stage myStage, String myTitle) {
         defScene.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
          @Override
          public void handle(MouseEvent mouseEvent) {
-         System.out.println("Clause Sandbox Mouse click detected! " + mouseEvent.getSource());
+         System.out.println("Clause WIP Mouse click detected! " + mouseEvent.getSource());
+         mySpriteManager.setStageFocus("ClauseWIP");
              }
         });
 
                //
         myStage.setScene(defScene); //this selects the stage as current scene
-        myStage.setX(100);
+        /*myStage.setX(100);*/
+        Rectangle2D ScreenBounds = Screen.getPrimary().getVisualBounds();
+        double mySetX = ScreenBounds.getWidth() / 1.8;
+        //myStage.setX(500);
+        myStage.setX(mySetX);
         myStage.setY(450);
         myStage.show();
         
@@ -368,6 +373,7 @@ Adds a generic event handler for future use.
          @Override
          public void handle(MouseEvent mouseEvent) {
          System.out.println("Mouse click detected! " + mouseEvent.getSource());
+         mySpriteManager.setStageFocus("blocks");
              }
         });
 
@@ -398,6 +404,7 @@ public Group setupBlocksButtonsStage(Stage myStage, String myTitle) {
          @Override
          public void handle(MouseEvent mouseEvent) {
          System.out.println("Extracted Clause Window: Mouse click detected! " + mouseEvent.getSource());
+         mySpriteManager.setStageFocus("ClauseWIP");
              }
         });
 
@@ -431,6 +438,61 @@ public Group setupBlocksButtonsStage(Stage myStage, String myTitle) {
         return myExtracted_clauses;
         
     }
+
+/* Setup Stage as a Toolbar Panel for Sprite Move, Copy functions etc */
+
+public Group setupToolbarPanel(Stage myStage, String myTitle) {
+
+        myStage.setTitle(myTitle);
+        //TO DO: Instance variable
+        Group toolbar_root = new Group(); //for root
+        Scene toolbarScene = new Scene (toolbar_root,180,150); //default width x height (px)
+        //optional event handler
+        toolbarScene.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
+         @Override
+         public void handle(MouseEvent mouseEvent) {
+         System.out.println("Extracted Clause Window: Mouse click detected! " + mouseEvent.getSource());
+         mySpriteManager.setStageFocus("Toolbar");
+             }
+        });
+
+               //
+        myStage.setScene(toolbarScene); //this selects the stage as current scene
+        //Layout
+        Rectangle2D ScreenBounds = Screen.getPrimary().getVisualBounds();
+        double mySetX = ScreenBounds.getWidth() / 1.1;
+        //myStage.setX(500);
+        myStage.setX(mySetX);
+        myStage.setY(50);
+        myStage.show();
+        
+        //Button for moving clauses
+        Button btnMoveClause = new Button();
+        btnMoveClause.setText("Move Clause to WIP");
+        btnMoveClause.setTooltip(new Tooltip ("Press to move clause to Clause WIP Window"));
+        btnMoveClause.setOnAction(MoveClausetoWIP);
+
+        //Button for copying clauses
+        Button btnCopyClause = new Button();
+        btnCopyClause.setText("Copy Clause to WIP");
+        btnCopyClause.setTooltip(new Tooltip ("[TBA] Press to copy clause to Clause WIP Window"));
+        //btnCopyClause.setOnAction(CopyClausetoWIP);
+
+        //TO DO:  Buttons for 'Copy to Library' {Definition Library}{Clause Library}
+        //Button for "Load a clause library from disk"  etc
+        
+        //Set horizontal box to hold buttons
+        //HBox hboxButtons = new HBox(0,btnMoveClause,btnCopyClause);
+        VBox vbox1 = new VBox(0,btnMoveClause,btnCopyClause);
+        //
+        toolbar_root.getChildren().add(vbox1); //add the vbox to the root node to hold everything
+        int totalwidth=190;
+        vbox1.setPrefWidth(totalwidth); //this is in different units to textarea
+       
+        //return the child node, not the root in this case?
+        return toolbar_root;
+}
+
 
 /** Setup independent text inspector window 
 @parameter Requires a Stage object and a title as arguments
@@ -548,18 +610,22 @@ public Boolean isLegalRoleWord (String myWord) {
         this.setArea2Text(this.myTextFile);
         myStage.show();
 
+        //setup main toolbar
+        Stage toolbarStage = new Stage();
+        Group toolbarGroup = Main.this.setupToolbarPanel(toolbarStage, "Toolbar");
+
         //setup clauses sandbox
         Stage ClauseSB = new Stage();
-        Group clausePlayBox = MainStage.this.setupClauseWIPstage(ClauseSB, "Clauses WIP Sandbox");
+        Group clausePlayBox = Main.this.setupClauseWIPstage(ClauseSB, "WIP Sandbox/Clause Staging Area");
 
         /* Setup default Stage with Scrollpane to display Text as Inspector
         */
         inspectorWindow = new Stage();
-        inspectorGroup_root = MainStage.this.setupScrollTextWindow(inspectorWindow, "inspector", "Inspector Window");
+        inspectorGroup_root = Main.this.setupScrollTextWindow(inspectorWindow, "inspector", "Inspector Window");
         
         //Outer class method class to obtain text from analysis area
-        String gotcha = MainStage.this.textArea1.getText();
-        String newDefs = MainStage.this.getMatched(gotcha);
+        String gotcha = Main.this.textArea1.getText();
+        String newDefs = Main.this.getMatched(gotcha);
         //set the default scrollpane content to a designated text area and size scrollpane
         inspectorGroup_root.setContent(inspectorTextArea); 
         //TO DO: remove these text setup lines?
@@ -607,6 +673,8 @@ public Boolean isLegalRoleWord (String myWord) {
                     if (hadFocus!=null) {
                         hadFocus.endAlert();
                     }
+                    SpriteBox currentSprite = ((SpriteBox)(t.getSource()));
+                    currentSprite.doAlert();
                     /* OLD: if this sprite had focus, then toggle
                     Boolean isAlert = ((SpriteBox)(t.getSource())).isAlert();
                     if (isAlert==true) {
@@ -623,8 +691,13 @@ public Boolean isLegalRoleWord (String myWord) {
 
                     }
                     */
-                    SpriteBox currentSprite = ((SpriteBox)(t.getSource()));
-                    currentSprite.doAlert();
+                    
+                    //change target in WIP stage
+                    
+                    if (mySpriteManager.getStageFocus().equals("ClauseWIP")) {
+                        mySpriteManager.setTargetSprite(currentSprite);
+                    }
+                    
                     mySpriteManager.setCurrentSprite(currentSprite);  //what if wrong window?
                     String myOutput = currentSprite.getContent();
                     inspectorTextArea.setText(myOutput);
@@ -648,13 +721,20 @@ public Boolean isLegalRoleWord (String myWord) {
  
         @Override
         public void handle(MouseEvent t) {
+            SpriteBox currentSprite = ((SpriteBox)(t.getSource()));
             double offsetX = t.getSceneX() - orgSceneX;
             double offsetY = t.getSceneY() - orgSceneY;
             double newTranslateX = orgTranslateX + offsetX;
             double newTranslateY = orgTranslateY + offsetY;
-            ((SpriteBox)(t.getSource())).setTranslateX(newTranslateX);
-            ((SpriteBox)(t.getSource())).setTranslateY(newTranslateY);
+            currentSprite.setTranslateX(newTranslateX);
+            currentSprite.setTranslateY(newTranslateY);
             System.out.println("The handler for drag box is acting");
+            //change the target to the last moved Sprite in WIP stage?
+            /*
+            if(mySpriteManager.getStageFocus().equals("ClauseWIP")) {
+                mySpriteManager.setTargetSprite(currentSprite);
+            }
+            */
             t.consume();//check
 
         }
@@ -684,16 +764,14 @@ public Boolean isLegalRoleWord (String myWord) {
             currentSprite.endAlert();
             //call method to add Sprite to ...
             //offset new sprite handling
-            int[] position = mySpriteManager.incrementXY();
-            myGroup_clauses.getChildren().add(currentSprite); //add sprite to Stage for clause WIP
+            
+            //add sprite to Stage for clause WIP.  This will clean up object elsewhere...
+            myGroup_clauses.getChildren().add(currentSprite); 
             clausesWIP.addClause(currentSprite.getClause()); 
             //TO DO: update property of group to keep track of last position added
-            //sprite management
+            //sprite management - alerts and focus
             currentSprite.doAlert();
-            mySpriteManager.setCurrentSprite(currentSprite);  //what if wrong window?
-            //now change position on new stage
-            currentSprite.setTranslateX(position[0]);
-            currentSprite.setTranslateY(position[1]); 
+            mySpriteManager.setAsTarget(currentSprite);
         }
     };
 
@@ -711,20 +789,19 @@ public Boolean isLegalRoleWord (String myWord) {
             currentSprite.endAlert();
             //call method to add Sprite to ...
             //offset new sprite handling
-            int[] position = mySpriteManager.incrementXY();
             myGroup_clauses.getChildren().add(currentSprite); //add sprite to Stage for clause WIP
             clausesWIP.addClause(currentSprite.getClause()); 
             //TO DO: update property of group to keep track of last position added
             //sprite management
             currentSprite.doAlert();
-            mySpriteManager.setCurrentSprite(currentSprite);  //what if wrong window?
-            //now change position on new stage
-            currentSprite.setTranslateX(position[0]);
-            currentSprite.setTranslateY(position[1]); 
+            mySpriteManager.setAsTarget(currentSprite); 
         }
     };
 
-    /* Event handler for adding a new clause box to Sandbox Stage*/
+    /* Event handler for adding a new clause box to Sandbox Stage
+    TO DO: Prevent user from attempting to add same object to same stage twice.
+    i.e. if focus is on clause WIP stage, then either copy, or disallow.
+    */
 
     EventHandler<ActionEvent> addNewClauseBox = 
     new EventHandler<ActionEvent>() {
@@ -741,11 +818,13 @@ public Boolean isLegalRoleWord (String myWord) {
             b.setOnMousePressed(PressBoxEventHandler); 
             b.setOnMouseDragged(DragBoxEventHandler);
             //offset new sprite handling
-            int[] position = mySpriteManager.incrementXY();
-            b.setTranslateX(position[0]);
-            b.setTranslateY(position[1]); //TO DO: update property of group to keep track of last position added
             myGroup_clauses.getChildren().add(b); //add sprite to Stage
             clausesWIP.addClause(b.getClause()); //add clause from sprite to clauses container
+            //alerts and focus
+            SpriteBox CS = mySpriteManager.getCurrentSprite();
+            CS.endAlert();
+            b.doAlert();
+            mySpriteManager.setAsTarget(b); 
             }
         };
 
@@ -758,7 +837,10 @@ public Boolean isLegalRoleWord (String myWord) {
              clausesWIP.doPrintIteration();
              String output=clausesWIP.getClauseAndText();
              inspectorTextArea.setText(output);
-             //TO DO: Have a separate "Output/Preview" Window to show clause output.  Maybe HTMLview?
+             /* TO DO: Have a separate "Output/Preview" Window to show clause output.  
+             //Maybe HTMLview?
+             i.e. this will be an 'output console', but within the application.
+             */
             }
         };
 
@@ -777,7 +859,7 @@ public Boolean isLegalRoleWord (String myWord) {
         System.out.println("Get DefIcons Button was pressed!");
         Stage adHoc = new Stage();
 
-        defGroup_root = MainStage.this.setupBlocksWindow(adHoc, "Definitions Block Window");
+        defGroup_root = Main.this.setupBlocksWindow(adHoc, "Definitions Block Window");
         
         adHoc.setY(600);
 
@@ -833,9 +915,9 @@ public Boolean isLegalRoleWord (String myWord) {
         //make a new stage
         ClauseStage = new Stage();
         /* OLD:
-        ClauseGroup_root = MainStage.this.setupBlocksWindow(ClauseStage, "Extracted Clauses");
+        ClauseGroup_root = Main.this.setupBlocksWindow(ClauseStage, "Extracted Clauses");
         */
-        ClauseGroup_root = MainStage.this.setupBlocksButtonsStage(ClauseStage, "Extracted Clauses");
+        ClauseGroup_root = Main.this.setupBlocksButtonsStage(ClauseStage, "Extracted Clauses");
         
         //TO DO: get source of data
         ClauseContainer myContainer = getClauseContainer(textArea1.getText());
@@ -887,14 +969,14 @@ public Boolean isLegalRoleWord (String myWord) {
         public void handle(ActionEvent event) {
                 System.out.println("Word Count Button was pressed!");
                 //Outer class method class
-                String gotcha = MainStage.this.textArea1.getText();
-                String newTA = MainStage.this.getCommonWordsNow(gotcha);
-                MainStage.this.textArea2.setText(newTA);
+                String gotcha = Main.this.textArea1.getText();
+                String newTA = Main.this.getCommonWordsNow(gotcha);
+                Main.this.textArea2.setText(newTA);
                 //new stage
                 Stage MainWords = new Stage();
-                Group CountGroup_root = MainStage.this.setupBlocksWindow(MainWords, "Common Words Window");
+                Group CountGroup_root = Main.this.setupBlocksWindow(MainWords, "Common Words Window");
                 //new one
-                //MainStage.this.getMatched(gotcha);
+                //Main.this.getMatched(gotcha);
 
                     //---ADD YELLOW BOXES WITH COMMON WORDS TO GRAPHICS WINDOW---
 
@@ -949,11 +1031,11 @@ public Boolean isLegalRoleWord (String myWord) {
         public void handle(ActionEvent event) {
             //make a new stage with scrollpane
             defsTextStage = new Stage();
-            defsTextStage_root = MainStage.this.setupScrollTextWindow(defsTextStage, "display", "Definitions List");
+            defsTextStage_root = Main.this.setupScrollTextWindow(defsTextStage, "display", "Definitions List");
             defsTextStage.setY(350);
             //Outer class method class to obtain text from analysis area
-            String gotcha = MainStage.this.textArea1.getText();
-            String newDefs = MainStage.this.getMatched(gotcha);
+            String gotcha = Main.this.textArea1.getText();
+            String newDefs = Main.this.getMatched(gotcha);
             //set the default scrollpane content to a designated text area and size it
             defsTextStage_root.setContent(textArea3); 
             double width = 800; 
