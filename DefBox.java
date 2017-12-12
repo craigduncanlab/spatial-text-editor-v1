@@ -5,6 +5,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.paint.ImagePattern;
 
+
 public class DefBox extends Rectangle{   
     //set default or current colour here?
     Color myColour; //colour object for this instance

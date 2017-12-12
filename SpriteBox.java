@@ -39,11 +39,12 @@ public class SpriteBox extends StackPane {
     //These are the data objects held internally:
     ColBox myBox;
     Clause myClause;
+    String Category=""; //will be Clause, Definition etc
     //These are the superficial sprite values - can sync with internal objects vice versa
     Text boxtext;
-    String contents;
-    int Xpos = 0;
-    int Ypos = 0;
+    String contents;  //This may not be needed - this is additional text to the Clause object etc
+    double Xpos = 0;
+    double Ypos = 0;
     Boolean isAlert=false;
     String defaultColour="";
     String alertColour="red";
@@ -86,11 +87,19 @@ public class SpriteBox extends StackPane {
 
      /* SUPERFICIAL SPRITE APPEARANCE */
 
-    public int[] getXY() {
-        return new int[]{this.Xpos,this.Ypos};
+    public double[] getXY() {
+        return new double[]{this.Xpos,this.Ypos};
     }
 
-    public void setXY(int x, int y) {
+    public double getX() {
+        return this.Xpos;
+    }
+
+    public double getY() {
+        return this.Ypos;
+    }
+
+    public void setXY(double x, double y) {
         this.Xpos=x;
         this.Ypos=y;
     }
@@ -137,7 +146,23 @@ public class SpriteBox extends StackPane {
 
     /* ----  INTERNAL OBJECT DATA --- */
 
-    /* Get the whole clause from this spritebox */
+    public void setInternalClause(String myLabel, String myHeading, String myText, String myCategory){
+        this.myClause.setClausetext(myText);
+        this.myClause.setClauselabel(myLabel);
+        this.myClause.setHeading(myHeading);
+        this.myClause.setCategory(myCategory);
+        System.out.println("set internal clause category:"+myCategory);
+
+        //sync relevant Spritebox appearance based on Clause variables
+        this.setContent(myText);
+        this.setCategory(myCategory);
+        this.boxtext.setText(myLabel);
+    }
+
+    /* Add or remove internal Clause object */
+    public void setClause(Clause inputClause){
+        this.myClause = inputClause;
+    }
 
     public Clause getClause() {
         return this.myClause;
@@ -162,7 +187,24 @@ public class SpriteBox extends StackPane {
 
     public void setClauseLabel(String myString) {
         this.myClause.setClauselabel(myString);
-        this.setLabel(myString);
+        //this.setLabel(myString);  //in case you want box to have freq count on face of it etc leave off
+    }
+
+    /* Set / sync internal clause container heading */  
+
+    public void setClauseHeading(String myString) {
+        this.myClause.setHeading(myString);
+    }
+
+    public String getClauseHeading() {
+        return this.myClause.getHeading();
+    }
+
+    /* Set / sync internal clause category */  
+
+    public void setCategory(String myString) {
+        this.myClause.setCategory(myString);  //sets internal clause category
+        this.setCategory(myString); //sets sprite category to same.  needed?
     }
 
 

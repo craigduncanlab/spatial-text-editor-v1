@@ -201,7 +201,84 @@ TO DO: Capture this in-text definition pattern as an alternative:
 [this|the|a] ... ("definition")
     */
 
+  public ClauseContainer doDefTextSearch(String mydata) {
+    ClauseContainer myContainer = new ClauseContainer();
+    String output="";
+    String[] patternString = new String[5];
+    Integer[] labelGroup = new Integer[5];
+    Integer[] textGroup = new Integer[5];
+    //This works for quoted definitions only:
+    //OLD: Pattern p = Pattern.compile("\\\"(([\\w\\’' ]*)*[\\w\\’']+)\\\" means[: ]([\\w\\^\\w\\s\\(\\)\\:\\-;,\\/\\’'\\<\\>\\u2013\\u2019\\x0a\\\"]*)\\.");
+    String Uni_NonBreakspace="\\u00A0";
+    String soft_break="\\x0d";
+    String all_breaks="\\x0d\\x0a";
+    String Uni_single_qt = "\\u2018\\u2019";
+    String Uni_dashes = "\\u2010\\u2011\u2012\\u2013\\u2014\\u2015"; //u2010 is hyphen
+    String Uni_dbl_qt = "\\u201c\\u201d\\u201e\\u201f\\\""; //not using \\x22 for now
+    //This LooseRegEx does not include the : ; or . as it assumes they are the end of definition delimiter
+    String LooseRegEx="[\\w\\d\\s\\(\\)\\-,\\/\\’'\\<\\>\\[\\]"+soft_break+Uni_dbl_qt+Uni_single_qt+Uni_dashes+Uni_NonBreakspace+" ]*";
+    int numPatterns=4;
+    //patternString[0]="(?=\\x0A)(([\\w\\’' ]*)[\\w\\’']+) means[\\-\\-:, ]"+LooseRegEx+"\\;"+LooseRegEx+"\\x0A"+"(?=[[A-Z][a-z][0-9],\\’' ]+means)";
+    // ----unquoted definitions pattern (e.g. statutes) --- 
+    //can't use alternate means or includes because they need to occur at start
+    //patternString[0]="\\x0A(([\\w\\’' ]*)*[\\w\\’'\\(\\)]+)(( means| includes)"+LooseRegEx+")(?=([\\;\\.:]\\x0A))";
+    //(?<!a)b, which is b not preceeded by a
+    //a(?!b), which is a not followed by b
+    //OLD:patternString[0]="\\x0A(([\\w\\’' ]*)*[\\w\\’'\\(\\)]+) ((?<!and )includes|means(?! inquiry)"+LooseRegEx+")(?=([\\;\\.:]))";
+    patternString[0]="\\x0A([\\w\\’'\\(\\) ]+)* ((?<!and )(includes|means)(?! inquiry)(?! by which)"+LooseRegEx+")(?=([\\;\\.:]\\x0A))";
+    labelGroup[0]=1;
+    textGroup[0]=2;
+    // ----quoted definitions pattern (e.g. contracts) ---   MAYBE COMBINE ALTERNATES
+    patternString[1]=Uni_dbl_qt+"(([\\w\\’' ]*)[\\w\\’']+)"+Uni_dbl_qt+" means[\\-:, ]([\\w\\^\\w\\s\\(\\)\\:\\-;,\\/\\’'\\<\\>\\u2013\\u2019\\x0a\\\"]*)\\.";
+    labelGroup[1]=1;
+    textGroup[1]=3;
+    patternString[2]="\\x0A(([\\w\\’' ]*)[\\w\\’']+) means[\\-:, ]([\\w\\^\\w\\s\\(\\)\\:\\-;,\\/\\’'\\<\\>\\u2013\\u2019\\x0a\\\"]*)\\.";
+    labelGroup[2]=1;
+    textGroup[2]=3;
+    // ----quoted definitions pattern (e.g. contracts) ---   original pattern 
+    patternString[3]="\\\"(([\\w\\’' ]*)*[\\w\\’']+)\\\" means[: ]([\\w\\^\\w\\s\\(\\)\\:\\-;,\\/\\’'\\<\\>\\u2013\\u2019\\x0a\\\"]*)\\.";
+    labelGroup[3]=1;
+    textGroup[3]=3;
+    //no quotes, but number and dot or bracket through to .
+    patternString[4]="\\)|\\.(([\\w\\’' ]*)*[\\w\\’']+) means[: ]([\\w\\^\\w\\s\\(\\)\\:\\-;,\\/\\’'\\<\\>\\u2013\\u2019\\\"]*)\\.|\\x0a";
+    labelGroup[4]=1;
+    textGroup[4]=3;
 
+    for (int sIndex=0;sIndex<numPatterns;sIndex++) {
+    //
+    Pattern p = Pattern.compile(patternString[sIndex]);
+    Matcher matcher = p.matcher(mydata);
+    int groupCount = matcher.groupCount();
+    int matchCount=0;
+    System.out.println("Text search loop  - sindex: "+sIndex);
+    while (matcher.find())
+        {
+         //System.out.println(matcher.group(1)+" group 2:"+matcher.group(2)+" group 3:"+matcher.group(3));
+            for (int i = 1; i <= groupCount; i++) {
+                // Group i substring
+                System.out.println("Group " + i + ": " + matcher.group(i));
+          }
+         Clause myDef;  //scope
+         String label="";
+         label=matcher.group(labelGroup[sIndex]);
+         if (!label.equals("") && !label.equals(" ")) {
+             String text = matcher.group(textGroup[sIndex]);
+             matchCount++; 
+             myDef = new Clause(label,label,text,"definition");
+             myContainer.addClause(myDef);
+          }
+        }
+              if (matchCount>4) {
+              System.out.println("Four matches and exit"+sIndex);
+              this.updateClauseFreq(myContainer,mydata);
+              return myContainer;
+              }
+        }
+      this.updateClauseFreq(myContainer,mydata);
+      return myContainer;
+    }
+
+  /* OLD
   public DefContainer doDefTextSearch(String mydata) {
     DefContainer myContainer = new DefContainer();
     String output="";
@@ -220,7 +297,7 @@ TO DO: Capture this in-text definition pattern as an alternative:
     String LooseRegEx="[\\w\\d\\s\\(\\)\\-,\\/\\’'\\<\\>\\[\\]"+soft_break+Uni_dbl_qt+Uni_single_qt+Uni_dashes+Uni_NonBreakspace+" ]*";
     int numPatterns=4;
     //patternString[0]="(?=\\x0A)(([\\w\\’' ]*)[\\w\\’']+) means[\\-\\-:, ]"+LooseRegEx+"\\;"+LooseRegEx+"\\x0A"+"(?=[[A-Z][a-z][0-9],\\’' ]+means)";
-    /* ----unquoted definitions pattern (e.g. statutes) --- */
+    // ----unquoted definitions pattern (e.g. statutes) --- 
     //can't use alternate means or includes because they need to occur at start
     //patternString[0]="\\x0A(([\\w\\’' ]*)*[\\w\\’'\\(\\)]+)(( means| includes)"+LooseRegEx+")(?=([\\;\\.:]\\x0A))";
     //(?<!a)b, which is b not preceeded by a
@@ -229,14 +306,14 @@ TO DO: Capture this in-text definition pattern as an alternative:
     patternString[0]="\\x0A([\\w\\’'\\(\\) ]+)* ((?<!and )(includes|means)(?! inquiry)(?! by which)"+LooseRegEx+")(?=([\\;\\.:]\\x0A))";
     labelGroup[0]=1;
     textGroup[0]=2;
-    /* ----quoted definitions pattern (e.g. contracts) ---   MAYBE COMBINE ALTERNATES*/
+    // ----quoted definitions pattern (e.g. contracts) ---   MAYBE COMBINE ALTERNATES
     patternString[1]=Uni_dbl_qt+"(([\\w\\’' ]*)[\\w\\’']+)"+Uni_dbl_qt+" means[\\-:, ]([\\w\\^\\w\\s\\(\\)\\:\\-;,\\/\\’'\\<\\>\\u2013\\u2019\\x0a\\\"]*)\\.";
     labelGroup[1]=1;
     textGroup[1]=3;
     patternString[2]="\\x0A(([\\w\\’' ]*)[\\w\\’']+) means[\\-:, ]([\\w\\^\\w\\s\\(\\)\\:\\-;,\\/\\’'\\<\\>\\u2013\\u2019\\x0a\\\"]*)\\.";
     labelGroup[2]=1;
     textGroup[2]=3;
-    /* ----quoted definitions pattern (e.g. contracts) ---   original pattern */
+    // ----quoted definitions pattern (e.g. contracts) ---   original pattern 
     patternString[3]="\\\"(([\\w\\’' ]*)*[\\w\\’']+)\\\" means[: ]([\\w\\^\\w\\s\\(\\)\\:\\-;,\\/\\’'\\<\\>\\u2013\\u2019\\x0a\\\"]*)\\.";
     labelGroup[3]=1;
     textGroup[3]=3;
@@ -280,9 +357,38 @@ TO DO: Capture this in-text definition pattern as an alternative:
       return myContainer;
     }
 
+    */
+
     /* Method to update the frequency count of the current set of definitions for the given String 
+    This will search on the Clause "Label", but it should probably search on Heading, which is specific to the clause;
+    the Label is for GUI purposes.
     
     */
+
+  public ClauseContainer updateClauseFreq(ClauseContainer myContainer, String mydata) {
+    //iterate again and update the frequency of use of Defs
+    //TO DO : Make a hash map instead of arraylist with the definition label and the def object?
+    ArrayList<Clause> myDList = myContainer.getClauseArray();
+    Iterator<Clause> myiterator = myDList.iterator();
+      while (myiterator.hasNext()) {
+        Clause mydefinition = myiterator.next();
+        String myLabel = mydefinition.getLabel(); //not needed now
+        String myHeading = mydefinition.getHeading();
+        //String mytext = mydefinition.getDef();
+        Pattern pd = Pattern.compile(myHeading);
+        Matcher checkDefs = pd.matcher(mydata);
+         while (checkDefs.find())
+         {
+           mydefinition.incFreq();
+         }
+         String FreqCnt = Integer.toString(mydefinition.getFreq());
+
+         //OK: System.out.println(myLabel+" : "+FreqCnt);
+        }    
+  return myContainer;
+}
+
+/* OLD
 
     public DefContainer updateDefFreq(DefContainer myContainer, String mydata) {
     //iterate again and update the frequency of use of Defs
@@ -305,6 +411,7 @@ TO DO: Capture this in-text definition pattern as an alternative:
         }    
   return myContainer;
 }
+*/
 
 /*  Method to find clauses and store them in clause objects
     Assumes headings are capital letters on a single row
@@ -351,20 +458,20 @@ TO DO: Capture this in-text definition pattern as an alternative:
                 // Group i substring output for testing
                 //System.out.println("Group " + i + ": " + matcher.group(i));
           }
-         String testString = matcher.group(groupIn[sIndex]);
+         String headingString = matcher.group(groupIn[sIndex]);
          matchCount++; //no longer needed unless output
          Boolean qualityMatch=false;
-         if (testString.equals("") || testString.equals(" ") || testString.length()<3) {
+         if (headingString.equals("") || headingString.equals(" ") || headingString.length()<3) {
             qualityMatch=false;
          }
          else {
           qualityMatch=true;
           }
+
          if (qualityMatch==true) {
-             Clause myC  = new Clause();
-             myC.setClauselabel(testString);
-             myC.setHeading(testString);
-             myClauseList.add(testString);
+             //Clause myC  = new Clause();
+             Clause myC = new Clause(headingString,headingString,"","clause");
+             myClauseList.add(headingString);
              myContainer.addClause(myC);
           }
         }
@@ -401,7 +508,7 @@ public Boolean checkHeadingExtraction(ClauseContainer myContainer) {
     System.out.println("Clause text extract");
     ArrayList<Clause> myCList = myContainer.getClauseArray();
     Iterator<Clause> myiterator = myCList.iterator();
-    System.out.println("Array Size: "+myCList.size()); //conveniently ArrayList is in Collections with a size method
+    System.out.println("Array Size: "+myCList.size()); //conveniently, ArrayList is in Collections with a size method
     if (myiterator!=null) {
     String[] indexedList = new String[150];
     indexedList[0] = "";
