@@ -438,7 +438,11 @@ TO DO: Capture this in-text definition pattern as an alternative:
     String Uni_dashes = "\\u2010\\u2011\u2012\\u2013\\u2014\\u2015"; //u2010 is hyphen
     patternString[2]="(\\x0A)*([0-9]*["+Uni_dashes+"]+[[a-z][A-Z], ]+( |\\.|\\x0A))";
     groupIn[2]=1;
-    //last resort - just pick out the numbered paragraphs to the next break or stop.
+    //last resort
+    /* just pick out the numbered paragraphs to the next break or stop.
+    This should be a clause extract with headings as 'null' rather than the headings extract.
+    May need some operator feedback on results.
+    */
     patternString[3]="([0-9]*\\.( )*[[a-z][A-Z], ]+\\x0A)";
     groupIn[3]=1;
 

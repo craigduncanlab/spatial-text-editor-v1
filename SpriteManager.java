@@ -1,4 +1,5 @@
-/* A Class to hold details for management of the main Clause Sandbox Window */
+/* A Class to hold details for management of the main Clause Sandbox Window 
+TO DO: Hold position information for saves? */
 
 public class SpriteManager {
 
@@ -39,7 +40,7 @@ public void setXY(double x, double y) {
 
     }
   
-/* Increment XY position for next box to be added but not current box.
+/* Increment XY position for next Sprite Box to be added but not current box.
 TO DO:  keep track of last box as it moves and add new box relative to last box.
 At moment, this is only the XY position of the sprite boxes in the Clause WIP area - so be careful.
 It is only used when adding new clauses to that Stage.  For a more general management of Sprites in ANY stage,

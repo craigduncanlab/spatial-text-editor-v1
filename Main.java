@@ -17,6 +17,7 @@ import javafx.scene.Parent;
 //Scene - Text as text
 import javafx.scene.text.Text;  //nb you can't stack textarea and shape controls but this works
 //Scene - Text controls 
+
 import javafx.scene.control.ScrollPane; // This is still not considered 'layout' i.e. it's content
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextInputControl;
@@ -24,6 +25,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.Button;
 import javafx.scene.control.Tooltip;
 //Scene - general appearance & layout of Stages, nodes
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane; //these still have individual positions (like Sprites)
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.FlowPane;
@@ -68,36 +70,37 @@ public class Main extends Application {
     //variables for mouse events TO DO : RENAME
     double orgSceneX, orgSceneY;
     double orgTranslateX, orgTranslateY;
-    /*Declare any objects for 2nd window here
-    Stage visualWindow;
-    //DefBox littleBox;
-    //SpriteBox littleStack;
-    Scene graphicscene; //the scene in the second stage (window)
-    */
     //General Sprite (block) manager
     SpriteManager mySpriteManager;
-    //inspector window
+    //Inspector window (no edits)
     Stage inspectorWindow;
     Scene inspectorScene;
     ScrollPane inspectorGroup_root;
     TextArea inspectorTextArea = new TextArea();
-    //Definitions window
+    //Definitions window (icons)
     Stage defWindow;
     Scene defScene;
     Group defGroup_root;
     TextArea defTextArea = new TextArea();
-    //definitions extraction window
+    //Extracted Definitions window (text)
     Stage defsTextStage;
     ScrollPane defsTextStage_root;
-    //Clause analysis window
+    //Clause analysis window [OLD]
     Stage ClauseStage;
     Group ClauseGroup_root;
-    //updated clause extract/analysis window
+    //Extracted Clauses window
     Group myExtracted_clauses;
     Scene ClauseExScene;
     //New clauses Work in Progress window
     Group myGroup_clauses;
     ClauseContainer clausesWIP;
+    //Clause editor
+    TextArea labelEdit;
+    TextArea headingEdit;
+    TextArea textEdit;
+    TextArea categoryEdit;
+    //Group editGroup_root;
+    Pane editGroup_root;
 
 /*The main method uses the launch method of the Application class.
 https://docs.oracle.com/javase/8/javafx/api/javafx/application/Application.html
@@ -125,29 +128,12 @@ private void printStatsfromFile(String fname) {
     myTool.printCountFromFile(fname);
 }
 
-/* OLD
-private DefContainer grabDefinitionsFile(String fname) {
-    WordTool myTool = new WordTool();
-    String data = myTool.getFileAsString(fname);
-    DefContainer defbox = myTool.doDefTextSearch(data);
-    return defbox;
-} 
-*/
 private ClauseContainer grabDefinitionsFile(String fname) {
     WordTool myTool = new WordTool();
     String data = myTool.getFileAsString(fname);
     ClauseContainer defbox = myTool.doDefTextSearch(data);
     return defbox;
 }
-
-/* OLD
-
-private DefContainer grabDefinitionsString(String mydata) {
-    WordTool myTool = new WordTool();
-    DefContainer defbox = myTool.doDefTextSearch(mydata);
-    return defbox;
-} 
-*/
 
 private ClauseContainer grabDefinitionsString(String mydata) {
     WordTool myTool = new WordTool();
@@ -174,14 +160,7 @@ private String getMatched(String data) {
     return defbox.getClauseAndText();
                 
 }
-/* OLD
-private String getMatched(String data) {
-    WordTool myTool = new WordTool();
-    DefContainer defbox = myTool.doDefTextSearch(data);
-    return defbox.getDefAndText();
-                
-}
-*/
+
 //used by event handler
 private String getCommonWordsNow(String data) {
     WordTool myTool = new WordTool();
@@ -422,7 +401,7 @@ Adds a generic event handler for future use.
 /* SETUP STAGE TO DISPLAY BLOCKS WITH SOME SIMPLE BUTTONS
 TO DO: PHASE OUT WITH THE EXTRA BUTTONS */
 
-public Group setupBlocksButtonsStage(Stage myStage, String myTitle) {
+public Group setupDisplayInputClauses(Stage myStage, String myTitle) {
 
         myStage.setTitle(myTitle);
         
@@ -447,6 +426,7 @@ public Group setupBlocksButtonsStage(Stage myStage, String myTitle) {
         myStage.setY(450);
         myStage.show();
         
+        /* OLD
         //Button for moving clauses
         Button btnMoveClause = new Button();
         btnMoveClause.setText("Move to WIP");
@@ -462,6 +442,7 @@ public Group setupBlocksButtonsStage(Stage myStage, String myTitle) {
         //Set horizontal box to hold buttons
         HBox hboxButtons = new HBox(0,btnMoveClause,btnCopyClause);
         //VBox vbox1 = new VBox(0,myExtracted_clauses,hboxButtons);
+        */
         VBox vbox1 = new VBox(0,myExtracted_clauses);// buttons not needed
         myGroup_root.getChildren().add(vbox1); //add the vbox to the root node to hold everything
         int totalwidth=650;
@@ -472,6 +453,84 @@ public Group setupBlocksButtonsStage(Stage myStage, String myTitle) {
         
     }
 
+/* Setup Stage as a Clause inspection and edit Window */
+
+public Pane setupEditorPanel(Stage myStage, String myTitle) {
+
+        myStage.setTitle(myTitle);
+        //TO DO: Instance variable
+        //Group editorPanel_root = new Group(); 
+        Pane editorPanel_root = new Pane();
+
+        Scene editorScene = new Scene (editorPanel_root,200,350); //default width x height (px)
+        //optional event handler
+        editorScene.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
+         @Override
+         public void handle(MouseEvent mouseEvent) {
+         System.out.println("editor Panel Window: Mouse click detected! " + mouseEvent.getSource());
+         mySpriteManager.setStageFocus("Editor");
+             }
+        });
+        //TextArea and contents
+        Text labelTag = new Text("Label:");
+        labelEdit = new TextArea();
+        Text headingTag = new Text("heading:");
+        headingEdit = new TextArea();
+        Text contentsTag = new Text("Contents:");
+        textEdit = new TextArea();
+        textEdit.setPrefHeight(300);
+        Text categoryTag = new Text("Category:");
+        categoryEdit = new TextArea();
+        //
+        VBox vboxEdit = new VBox(0,labelTag,labelEdit,headingTag,headingEdit,contentsTag,textEdit,categoryTag,categoryEdit);
+        vboxEdit.setPrefWidth(150);
+        vboxEdit.setPrefHeight(250);
+        //vboxEdit.setVgrow(textEdit, Priority.ALWAYS);
+        //
+        SpriteBox focusSprite = mySpriteManager.getCurrentSprite();
+        Clause focusClause = focusSprite.getClause();
+        labelEdit.setText(focusClause.getLabel());
+        headingEdit.setText(focusClause.getHeading());
+        textEdit.setText(focusClause.getClause());
+        categoryEdit.setText(focusClause.getCategory());
+        //
+        myStage.setScene(editorScene); //this selects the stage as current scene
+        //Layout
+        Rectangle2D ScreenBounds = Screen.getPrimary().getVisualBounds();
+        double mySetX = ScreenBounds.getWidth() / 1.1;
+        //myStage.setX(500);
+        myStage.setX(mySetX);
+        myStage.setY(150);
+        myStage.show();
+        
+        //Button for saving clauses
+        Button btnEditSave = new Button();
+        btnEditSave.setText("Save Edits");
+        btnEditSave.setTooltip(new Tooltip ("Press to Save current edits"));
+        //btnEditSave.setOnAction(EditSave);
+
+        //Button for cancel
+        Button btnEditCancel = new Button();
+        btnEditCancel.setText("Cancel Edits");
+        btnEditCancel.setTooltip(new Tooltip ("Press to Cancel current edits"));
+        //btnEditCancel.setOnAction(EditCancel);
+        
+        
+        //Set horizontal box to hold buttons
+        HBox hboxButtons = new HBox(0,btnEditSave,btnEditCancel);
+        //Finish
+        VBox vboxAll = new VBox(0,vboxEdit,hboxButtons);
+        vboxAll.setPrefWidth(200);
+        //
+        editorPanel_root.getChildren().add(vboxAll); //add the vbox to the root node to hold everything
+        int totalwidth=190;
+        vboxAll.setPrefWidth(totalwidth); //this is in different units to textarea
+       
+        //return the child node, not the root in this case? e.g.vBoxEdit?
+        return editorPanel_root;
+}
+
+
 /* Setup Stage as a Toolbar Panel for Sprite Move, Copy functions etc */
 
 public Group setupToolbarPanel(Stage myStage, String myTitle) {
@@ -479,7 +538,7 @@ public Group setupToolbarPanel(Stage myStage, String myTitle) {
         myStage.setTitle(myTitle);
         //TO DO: Instance variable
         Group toolbar_root = new Group(); //for root
-        Scene toolbarScene = new Scene (toolbar_root,180,150); //default width x height (px)
+        Scene toolbarScene = new Scene (toolbar_root,150,150); //default width x height (px)
         //optional event handler
         toolbarScene.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
          @Override
@@ -501,7 +560,7 @@ public Group setupToolbarPanel(Stage myStage, String myTitle) {
         
         //Button for moving clauses
         Button btnMoveClause = new Button();
-        btnMoveClause.setText("Move to WIP");
+        btnMoveClause.setText("to WIP Stage");
         btnMoveClause.setTooltip(new Tooltip ("Press to move clause to Clause WIP Window"));
         btnMoveClause.setOnAction(MoveClausetoWIP);
 
@@ -511,12 +570,18 @@ public Group setupToolbarPanel(Stage myStage, String myTitle) {
         btnCopyClause.setTooltip(new Tooltip ("[TBA] Press to copy clause to Clause WIP Window"));
         //btnCopyClause.setOnAction(CopyClausetoWIP);
 
+        Button btnDoEdit = new Button();
+        btnDoEdit.setText("Edit");
+        btnDoEdit.setTooltip(new Tooltip ("Press to Edit Selection (Red Block)"));
+        btnDoEdit.setOnAction(DoEditStage);
+
+
         //TO DO:  Buttons for 'Copy to Library' {Definition Library}{Clause Library}
         //Button for "Load a clause library from disk"  etc
         
         //Set horizontal box to hold buttons
         //HBox hboxButtons = new HBox(0,btnMoveClause,btnCopyClause);
-        VBox vbox1 = new VBox(0,btnMoveClause,btnCopyClause);
+        VBox vbox1 = new VBox(0,btnMoveClause,btnCopyClause,btnDoEdit);
         //
         toolbar_root.getChildren().add(vbox1); //add the vbox to the root node to hold everything
         int totalwidth=190;
@@ -586,15 +651,6 @@ private void setArea2Text(String fname) {
         //send some stats to console
         this.printStatsfromFile(fname);
 }
-
-/*
-private String getArea1Text() {
-        //get stats from file and put in textarea 2
-        return this.textArea1.getText();
-        //return myStats;
-}
-*/
-
 
 /* Method to see if any label or text contains legal 'role' words, for display purposes 
 
@@ -700,7 +756,7 @@ public Boolean isLegalRoleWord (String myWord) {
                     break;
                 case 2:
                     System.out.println("Two clicks");
-                    //toggle
+                    
                     //unfocus current Sprite - only works for the Sandbox? or record in any window?  
                     SpriteBox hadFocus = mySpriteManager.getCurrentSprite();
                     if (hadFocus!=null) {
@@ -708,23 +764,6 @@ public Boolean isLegalRoleWord (String myWord) {
                     }
                     SpriteBox currentSprite = ((SpriteBox)(t.getSource()));
                     currentSprite.doAlert();
-                    /* OLD: if this sprite had focus, then toggle
-                    Boolean isAlert = ((SpriteBox)(t.getSource())).isAlert();
-                    if (isAlert==true) {
-                        ((SpriteBox)(t.getSource())).endAlert();
-                        //toDO: clear the inspector window contents
-                    }
-                    
-                    else {
-                        SpriteBox currentSprite = ((SpriteBox)(t.getSource()));
-                        currentSprite.doAlert();
-                        mySpriteManager.setCurrentSprite(currentSprite);  //what if wrong window?
-                        String myOutput = currentSprite.getContent();
-                        inspectorTextArea.setText(myOutput);
-
-                    }
-                    */
-                    
                     //change target in WIP stage
                     
                     if (mySpriteManager.getStageFocus().equals("ClauseWIP")) {
@@ -796,9 +835,6 @@ public Boolean isLegalRoleWord (String myWord) {
             SpriteBox currentSprite = mySpriteManager.getCurrentSprite(); //not based on the button
             //lose focus
             currentSprite.endAlert();
-            //call method to add Sprite to ...
-            //offset new sprite handling
-            
             //add sprite to Stage for clause WIP.  This will clean up object elsewhere...
             myGroup_clauses.getChildren().add(currentSprite); 
             clausesWIP.addClause(currentSprite.getClause()); 
@@ -821,7 +857,6 @@ public Boolean isLegalRoleWord (String myWord) {
             SpriteBox currentSprite = mySpriteManager.getCurrentSprite(); //not based on the button
             //lose focus
             currentSprite.endAlert();
-            //call method to add Sprite to ...
             //offset new sprite handling
             myGroup_clauses.getChildren().add(currentSprite); //add sprite to Stage for clause WIP
             clausesWIP.addClause(currentSprite.getClause()); 
@@ -831,6 +866,28 @@ public Boolean isLegalRoleWord (String myWord) {
             mySpriteManager.setAsTarget(currentSprite); 
         }
     };
+
+    /* Invoke the SpriteBox/Clause Editor */
+
+    /* 
+
+    Event handlers for each SpriteBox added, so that they can handle mouse events inside the Window they've been added to 
+    
+    */
+
+    EventHandler<ActionEvent> DoEditStage = 
+    new EventHandler<ActionEvent>() {
+
+        @Override 
+        public void handle(ActionEvent event) {
+        System.out.println("Edit Button was pressed!");
+        Stage editorStage = new Stage();
+
+        editGroup_root = Main.this.setupEditorPanel(editorStage, "Editor");
+        }    
+    };
+     
+
 
     /* Event handler for adding a new definition box to WIP staging area
     TO DO: Prevent user from attempting to add same object to same stage twice.
@@ -852,15 +909,7 @@ public Boolean isLegalRoleWord (String myWord) {
             b = new SpriteBox(label, "green"); //default definition colour is green
             b.setContent("some text to put in spritebox");
             b.setClause(myClause);
-            System.out.println("Calling setup clause for internal data with categories etc in addnewDefBox");
-            //b.setInternalClause(label,heading,text,category);
             clausesWIP.addClause(b.getClause()); //add clause from sprite to clauses container
-            /* OLD
-            b.setClauseText(text); //overrides box - i.e sets inner object text and Sprite to the 'label'
-            b.setClauseLabel(label);
-            b.setClauseHeading(heading);
-            b.setCategory(category);
-            */
             b.setOnMousePressed(PressBoxEventHandler); 
             b.setOnMouseDragged(DragBoxEventHandler);
             //offset new sprite handling
@@ -876,6 +925,7 @@ public Boolean isLegalRoleWord (String myWord) {
 /* Event handler for adding a new clause box to WIP staging area
     TO DO: Prevent user from attempting to add same object to same stage twice.
     i.e. if focus is on clause WIP stage, then either copy, or disallow.
+    TO DO: Make this a generic add "SpriteBox", then vary the internal clause (incl category, colour) based on calling button
     */
 
     EventHandler<ActionEvent> addNewClauseBox = 
@@ -889,20 +939,11 @@ public Boolean isLegalRoleWord (String myWord) {
             String heading = "Default Clause Heading";
             String category = "clause";
             Clause myClause = new Clause(label,heading,text,category); 
-            //everthing after here is common to new clauses and definitions
             b = new SpriteBox(label, "blue"); //default clause colour is blue
-            b.setContent("some text to put in spritebox");
-            //Sprite methods to update clase object inside box
-            System.out.println("Calling setup clause for internal data with categories etc in addnewClauseBox");
-            //b.setInternalClause(label,heading,text,category);
+            //everthing after here is common to new clauses and definitions
             b.setClause(myClause);
             clausesWIP.addClause(b.getClause()); //add clause in Sprite to Clauses container
-            /* OLD
-            b.setClauseText(text); //overrides box - i.e sets inner object text and Sprite to the 'label'
-            b.setClauseLabel(label);
-            b.setClauseHeading(heading);
-            b.setCategory(category);
-            */
+            //event handler
             b.setOnMousePressed(PressBoxEventHandler); 
             b.setOnMouseDragged(DragBoxEventHandler);
             //offset new sprite handling
@@ -935,7 +976,7 @@ public Boolean isLegalRoleWord (String myWord) {
 
     /* 
 
-    Notice that I've included event handlers for each definition block added, so that they can handle mouse events inside the Window they've been added to 
+    Event handlers for each SpriteBox added, so that they can handle mouse events inside the Window they've been added to 
     
     */
 
@@ -960,31 +1001,6 @@ public Boolean isLegalRoleWord (String myWord) {
         int offY=0;
         while (myiterator.hasNext()) {
             Clause mydefinition = myiterator.next();
-            //get enclosed clause information
-            /* OLD
-            String myLabel = mydefinition.getLabel();
-            String myHeading = mydefinition.getHeading(); //defs have no sep heading for now
-            String myCategory = mydefinition.getCategory();
-            String mydeftext = mydefinition.getClause();
-            String FreqCnt = Integer.toString(mydefinition.getFreq());
-            */
-
-            
-        /* OLD
-        DefContainer myContainer = grabDefinitionsString(textArea1.getText());
-        ArrayList<Definition> myDList = myContainer.getDefArray();
-        Iterator<Definition> myiterator = myDList.iterator();
-
-        int offX=0;
-        int offY=0;
-        while (myiterator.hasNext()) {
-            Definition mydefinition = myiterator.next();
-            String myLabel = mydefinition.getLabel();
-            String mydeftext = mydefinition.getDef();
-            String FreqCnt = Integer.toString(mydefinition.getFreq());
-            String myCont = myLabel+"("+FreqCnt+")";
-            SpriteBox b;
-            */
             //box setup
             String FreqCnt = Integer.toString(mydefinition.getFreq());
             String myLabel = mydefinition.getLabel();
@@ -997,12 +1013,7 @@ public Boolean isLegalRoleWord (String myWord) {
                 b = new SpriteBox(boxLabel, "green");
                 //b.setContent(mydeftext);
             }
-            System.out.println("Calling setup clause for internal data with categories etc in makeDefIcons");
             b.setClause(mydefinition);
-            //b.setContent(mydeftext); //for sprite; this will be overwritten
-            /* OLD: set contents of internal data
-            b.setInternalClause(label,heading,text,category);
-            */
             //location
             b.setTranslateX(offX);         
             b.setTranslateY(offY);
@@ -1023,7 +1034,8 @@ public Boolean isLegalRoleWord (String myWord) {
         }    
     };
      
-    /* Notice that I've included event handlers for each clause block added, so that they can handle mouse events inside the Window they've been added to 
+    /* 
+    Event handlers for each clause block added, so that they can handle mouse events inside the Window they've been added to 
     */
 
 
@@ -1035,12 +1047,10 @@ public Boolean isLegalRoleWord (String myWord) {
         System.out.println("Clause Boxes Button was pressed!");
         //make a new stage
         ClauseStage = new Stage();
-        /* OLD:
-        ClauseGroup_root = Main.this.setupBlocksWindow(ClauseStage, "Extracted Clauses");
-        */
+        //ClauseGroup_root = Main.this.setupBlocksWindow(ClauseStage, "Extracted Clauses");
 
         //TO DO: remove setup with the buttons??
-        ClauseGroup_root = Main.this.setupBlocksButtonsStage(ClauseStage, "Extracted Clauses");
+        ClauseGroup_root = Main.this.setupDisplayInputClauses(ClauseStage, "Extracted Clauses");
         
         //TO DO: get source of data
         ClauseContainer myContainer = getClauseContainer(textArea1.getText());
@@ -1050,27 +1060,6 @@ public Boolean isLegalRoleWord (String myWord) {
         int offY=0;
         while (myiterator.hasNext()) {
             Clause myclause = myiterator.next();
-            //TO DO: 
-            /* OLD
-            String myLabel = myclause.getLabel();
-            String myHeading = myclause.getHeading();
-            String myCategory = myclause.getCategory();
-            String myclausetext = myclause.getClause();
-            //String FreqCnt = Integer.toString(myclause.getFreq());
-            String boxLabel = myLabel; //+"("+FreqCnt+")";
-            SpriteBox b;
-            if (offY<=100) {
-                b = new SpriteBox(boxLabel); //default blue
-                //b.setContent(myclausetext); //to do - transfer defs to sep objects in SpriteBox
-            } else {
-                b = new SpriteBox(boxLabel, "green");
-                //b.setContent(myclausetext);
-            }
-            b.setContent(myclausetext);  //this will be overriden
-            //
-            System.out.println("Calling setup clause for internal data with categories etc in addnewDefBox");
-            b.setInternalClause(label,heading,text,category);
-            */
             //box setup
             String FreqCnt = Integer.toString(myclause.getFreq());
             String myLabel = myclause.getLabel();
@@ -1083,7 +1072,6 @@ public Boolean isLegalRoleWord (String myWord) {
                 b = new SpriteBox(boxLabel, "blue");
                 //b.setContent(mydeftext);
             }
-            System.out.println("Calling setup clause for internal data with categories etc in makeClauseIcons");
             b.setClause(myclause);
             //location
             b.setTranslateX(offX); 
@@ -1119,8 +1107,6 @@ public Boolean isLegalRoleWord (String myWord) {
                 //new stage
                 Stage MainWords = new Stage();
                 Group CountGroup_root = Main.this.setupBlocksWindow(MainWords, "Common Words Window");
-                //new one
-                //Main.this.getMatched(gotcha);
 
                     //---ADD YELLOW BOXES WITH COMMON WORDS TO GRAPHICS WINDOW---
 
@@ -1138,16 +1124,6 @@ public Boolean isLegalRoleWord (String myWord) {
                     int offX = 0;
                     while (i.hasNext()) {
                         offX=offX+50;
-                        /* OLD:
-                        SpriteBox b;
-                        if (offX<=100) {
-                            b = new SpriteBox(i.next()); //default blue
-                            b.setContent("This is a blue box");
-                        } else {
-                            b = new SpriteBox(i.next(), "yellow");
-                            b.setContent("This is a yellow box");
-                        }
-                        */
                         SpriteBox b;
                         String newlabel = i.next();
                         if (isLegalRoleWord(newlabel)==true) {
@@ -1192,7 +1168,4 @@ public Boolean isLegalRoleWord (String myWord) {
             System.out.println("Get Defs Button was pressed!");
             }
         };
-
-
-
 }
