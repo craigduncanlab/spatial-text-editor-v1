@@ -23,6 +23,9 @@ import javafx.scene.control.TextInputControl;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Button;
 import javafx.scene.control.Tooltip;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuBar;
 //Scene - general appearance & layout of Stages, nodes
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane; //these still have individual positions (like Sprites)
@@ -79,6 +82,9 @@ public class Main extends Application {
     Stage ParentStage;
     Group ParentWIPGroup;
     ClauseContainer ParentWIPClauseContainer;
+    //importStage
+    Stage importStage;
+
     //Inspector window (no edits)
     Stage inspectorWindow;
     Scene inspectorScene;
@@ -97,6 +103,7 @@ public class Main extends Application {
     TextArea categoryEdit;
     Clause editClause;
     //Group editGroup_root;
+    Stage editorStage;
     Pane editGroup_root;
 
 /*The main method uses the launch method of the Application class.
@@ -281,9 +288,54 @@ public Group setupClauseWIPstage(Stage myStage, String myTitle) {
         Group myGroup_root = new Group(); //for root
         ParentWIPClauseContainer = new ClauseContainer();
         ParentWIPGroup = new Group(); //for child node
+
+
+        MenuBar menuBar = new MenuBar();
+        //Make a vertical menu and add some MenuItems to it
+        Menu menuViews = new Menu("Views");
+        MenuItem menuImporter = new MenuItem("Importer");
+        MenuItem menuEditor = new MenuItem("Editor");
+        MenuItem menuInspector = new MenuItem("Inspector");
+        menuViews.getItems().addAll(
+            menuImporter,
+            menuEditor,
+            menuInspector);
+
+        menuInspector.setOnAction(new EventHandler<ActionEvent>() {
+        public void handle(ActionEvent t) {
+                if (inspectorWindow.isShowing()==false) {
+                    inspectorWindow.show();
+                }
+            }
+        });
+
+        menuEditor.setOnAction(new EventHandler<ActionEvent>() {
+        public void handle(ActionEvent t) {
+                if (editorStage.isShowing()==false) {
+                    editorStage.show();
+                }
+            }
+        });
+
+        menuImporter.setOnAction(new EventHandler<ActionEvent>() {
+        public void handle(ActionEvent t) {
+                if (importStage.isShowing()==false) {
+                    importStage.show();
+                }
+            }
+        });
+
+        //To add Menus you simply use 'getMenus' on the MenuBar and do not add to Scene.
+        //menuBar.getMenus().addAll(menuViews);
+        menuBar.getMenus().add(menuViews);    
+
+
         //add group layout object as root node for Scene at time of creation
         //defScene = new Scene (myGroup_root,650,300); //default width x height (px)
         defScene = new Scene (myGroup_root,myStageManager.getBigX(),myStageManager.getBigY(), Color.BEIGE);
+        //scene.getRoot()).getChildren().addAll(menuBar);
+        ParentWIPGroup.getChildren().addAll(menuBar);
+
         //optional event handler
         defScene.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
          @Override
@@ -299,6 +351,9 @@ public Group setupClauseWIPstage(Stage myStage, String myTitle) {
         myStageManager.setPosition(ParentStage,myStage,"WIP");
         myStage.show();
         
+
+
+
         /*
         //Button for new clauses
         Button btnNewClause = new Button();
@@ -680,14 +735,14 @@ public Boolean isLegalRoleWord (String myWord) {
         Group clausePlayBox = Main.this.setupClauseWIPstage(ParentStage, "Main Stage");
 
         //*Stage that I will use for main text input display and editing
-        Stage myStage = new Stage();
-        this.setupImportStage(myStage,"Text Importer");
+        importStage = new Stage();
+        this.setupImportStage(importStage,"Text Importer");
         //set some default text in main text window
         //this.myTextFile="popstarlease.txt";
         this.myTextFile="electricity.txt";
         this.setArea1Text(this.myTextFile);
         this.setArea2Text(this.myTextFile);
-        myStage.show();
+        importStage.show();
 
         //setup main toolbar
         Stage toolbarStage = new Stage();
@@ -855,7 +910,7 @@ public Boolean isLegalRoleWord (String myWord) {
         @Override 
         public void handle(ActionEvent event) {
         System.out.println("Edit Button was pressed!");
-        Stage editorStage = new Stage();
+        editorStage = new Stage();
 
         editGroup_root = Main.this.setupEditorPanel(editorStage, "Editor");
         }    
