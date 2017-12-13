@@ -754,7 +754,7 @@ public Boolean isLegalRoleWord (String myWord) {
                         mySpriteManager.setTargetSprite(currentSprite);
                     }
                     
-                    mySpriteManager.setCurrentSprite(currentSprite);  //what if wrong window?
+                    mySpriteManager.setCurrentSprite(currentSprite);  //what if not on MainStage?
                     Clause internalClause = currentSprite.getClause();
                     String myOutput = internalClause.getClause();
 
@@ -1101,12 +1101,15 @@ public Boolean isLegalRoleWord (String myWord) {
         @Override 
         public void handle(ActionEvent event) {
             //make a new stage with scrollpane
-            SpriteBox focusSprite = mySpriteManager.getCurrentSprite();
+            
             //editClause = focusSprite.getClause();
             editClause.setClauselabel(labelEdit.getText());
             editClause.setHeading(headingEdit.getText());
             editClause.setClausetext(textEdit.getText());
             editClause.setCategory(categoryEdit.getText());
+            //update the SpriteBox on the GUI
+            SpriteBox focusSprite = mySpriteManager.getCurrentSprite();
+            focusSprite.setClause(editClause);
             System.out.println("Clause updated!");
             }
         };
