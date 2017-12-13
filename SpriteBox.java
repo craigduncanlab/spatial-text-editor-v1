@@ -75,6 +75,12 @@ public class SpriteBox extends StackPane {
         myClause = new Clause(); //no details in clause yet; Null.
         Font boxfont=Font.font ("Verdana", 10);
         boxtext.setFont(boxfont);
+        boxtext.setWrappingWidth(120);
+        /*
+        boxtext.setWrapText(true);
+        boxtext.setMaxWidth(40);
+        boxtext.setMaxHeight(30);
+        */
         this.setCursor(Cursor.HAND);
         this.getChildren().addAll(myBox,boxtext); 
     }

@@ -71,9 +71,10 @@ public class Main extends Application {
     //variables for mouse events TO DO : RENAME
     double orgSceneX, orgSceneY;
     double orgTranslateX, orgTranslateY;
-    //General Sprite (block) manager
+    //General managers
     SpriteManager mySpriteManager;
     StageManager myStageManager = new StageManager();
+    ControlsManager myControlsManager = new ControlsManager();
     //Main Stage (window) that owns all other Stages
     Stage ParentStage;
     Group ParentWIPGroup;
@@ -94,6 +95,7 @@ public class Main extends Application {
     TextArea headingEdit;
     TextArea textEdit;
     TextArea categoryEdit;
+    Clause editClause;
     //Group editGroup_root;
     Pane editGroup_root;
 
@@ -178,8 +180,6 @@ public void setupInputStage(Stage textStage, String myTitle) {
         
          //This Vbox only has 1 child, a text area, and no spacing setting.
         //VBox vbox = new VBox(textArea);//unused
-        int widthcol1=66; //columns? Think of in % terms?
-        int widthcol2=33;
         int totalwidth=900; //this is pixels?
         
         //config for window
@@ -211,6 +211,7 @@ public void setupInputStage(Stage textStage, String myTitle) {
 
         //Button for Word Counts with Action Event handler
         Button btn = new Button();
+        //myControlsManager.newStdButton();
         btn.setText("Update Word Counts");
         btn.setOnAction(updateWordCounts);
         
@@ -373,7 +374,7 @@ public Pane setupEditorPanel(Stage myStage, String myTitle) {
         //Group editorPanel_root = new Group(); 
         Pane editorPanel_root = new Pane();
 
-        Scene editorScene = new Scene (editorPanel_root,200,350, Color.GREY); //default width x height (px)
+        Scene editorScene = new Scene (editorPanel_root,300,600, Color.GREY); //default width x height (px)
         //optional event handler
         editorScene.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
          @Override
@@ -389,21 +390,22 @@ public Pane setupEditorPanel(Stage myStage, String myTitle) {
         headingEdit = new TextArea();
         Text contentsTag = new Text("Contents:");
         textEdit = new TextArea();
-        textEdit.setPrefHeight(300);
+        textEdit.setMinHeight(300);
+        textEdit.setWrapText(true);
         Text categoryTag = new Text("Category:");
         categoryEdit = new TextArea();
         //
         VBox vboxEdit = new VBox(0,labelTag,labelEdit,headingTag,headingEdit,contentsTag,textEdit,categoryTag,categoryEdit);
-        vboxEdit.setPrefWidth(150);
-        vboxEdit.setPrefHeight(250);
+        vboxEdit.setMinWidth(300);  //150
+        vboxEdit.setPrefHeight(500); //250
         //vboxEdit.setVgrow(textEdit, Priority.ALWAYS);
         //
         SpriteBox focusSprite = mySpriteManager.getCurrentSprite();
-        Clause focusClause = focusSprite.getClause();
-        labelEdit.setText(focusClause.getLabel());
-        headingEdit.setText(focusClause.getHeading());
-        textEdit.setText(focusClause.getClause());
-        categoryEdit.setText(focusClause.getCategory());
+        editClause = focusSprite.getClause();
+        labelEdit.setText(editClause.getLabel());
+        headingEdit.setText(editClause.getHeading());
+        textEdit.setText(editClause.getClause());
+        categoryEdit.setText(editClause.getCategory());
         //
         myStage.setScene(editorScene); //this selects the stage as current scene
         //Layout
@@ -411,10 +413,10 @@ public Pane setupEditorPanel(Stage myStage, String myTitle) {
         myStage.show();
         
         //Button for saving clauses
-        Button btnEditSave = new Button();
-        btnEditSave.setText("Save Edits");
-        btnEditSave.setTooltip(new Tooltip ("Press to Save current edits"));
-        //btnEditSave.setOnAction(EditSave);
+        Button btnUpdate = new Button();
+        btnUpdate.setText("Update");
+        btnUpdate.setTooltip(new Tooltip ("Press to Save current edits"));
+        btnUpdate.setOnAction(UpdateEditor);
 
         //Button for cancel
         Button btnEditCancel = new Button();
@@ -424,7 +426,7 @@ public Pane setupEditorPanel(Stage myStage, String myTitle) {
         
         
         //Set horizontal box to hold buttons
-        HBox hboxButtons = new HBox(0,btnEditSave,btnEditCancel);
+        HBox hboxButtons = new HBox(0,btnUpdate,btnEditCancel);
         //Finish
         VBox vboxAll = new VBox(0,vboxEdit,hboxButtons);
         vboxAll.setPrefWidth(200);
@@ -462,13 +464,15 @@ public Group setupToolbarPanel(Stage myStage, String myTitle) {
         myStage.show();
         
         //Button for new clauses
-        Button btnNewClause = new Button();
+        //Button btnNewClause = new Button();
+        Button btnNewClause = myControlsManager.newStdButton();
         btnNewClause.setText("Add New Clause");
         btnNewClause.setTooltip(new Tooltip ("Press to add a new clause"));
         btnNewClause.setOnAction(addNewClauseBox);
 
         //Button for new definitions addNewDefBox
-        Button btnNewDef = new Button();
+        //Button btnNewDef = new Button();
+        Button btnNewDef = myControlsManager.newStdButton();
         btnNewDef.setText("Add New Def");
         btnNewDef.setTooltip(new Tooltip ("Press to add a new definition"));
         btnNewDef.setOnAction(addNewDefBox);
@@ -482,7 +486,7 @@ public Group setupToolbarPanel(Stage myStage, String myTitle) {
         */
 
         //Button for summary print list of clauses
-        Button btnClausePrint = new Button();
+        Button btnClausePrint = myControlsManager.newStdButton();
         btnClausePrint.setTooltip(new Tooltip ("Press to list all clauses in inspector/console"));
         btnClausePrint.setText("List Stage");
         btnClausePrint.setOnAction(printClauseList);
@@ -495,8 +499,8 @@ public Group setupToolbarPanel(Stage myStage, String myTitle) {
         */
 
         //Button for moving clauses
-        Button btnMoveClause = new Button();
-        btnMoveClause.setText("Import to Stage");
+        Button btnMoveClause = myControlsManager.newStdButton();
+        btnMoveClause.setText("Place on Stage");
         btnMoveClause.setTooltip(new Tooltip ("Press to move clause to Clause WIP Window"));
         btnMoveClause.setOnAction(MoveClausetoWIP);
 
@@ -507,7 +511,7 @@ public Group setupToolbarPanel(Stage myStage, String myTitle) {
         //btnCopyClause.setOnAction(CopyClausetoWIP);
         */
 
-        Button btnDoEdit = new Button();
+        Button btnDoEdit = myControlsManager.newStdButton();
         btnDoEdit.setText("Edit");
         btnDoEdit.setTooltip(new Tooltip ("Press to Edit Selection (Red Block)"));
         btnDoEdit.setOnAction(DoEditStage);
@@ -1030,4 +1034,22 @@ public Boolean isLegalRoleWord (String myWord) {
             System.out.println("Get Defs Button was pressed!");
             }
         };
+
+        /* Update Clause in Editor */
+        //update word counts
+        EventHandler<ActionEvent> UpdateEditor = 
+        new EventHandler<ActionEvent>() {
+        @Override 
+        public void handle(ActionEvent event) {
+            //make a new stage with scrollpane
+            SpriteBox focusSprite = mySpriteManager.getCurrentSprite();
+            //editClause = focusSprite.getClause();
+            editClause.setClauselabel(labelEdit.getText());
+            editClause.setHeading(headingEdit.getText());
+            editClause.setClausetext(textEdit.getText());
+            editClause.setCategory(categoryEdit.getText());
+            System.out.println("Clause updated!");
+            }
+        };
+        
 }
