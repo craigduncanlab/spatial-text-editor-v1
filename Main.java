@@ -905,9 +905,8 @@ public Boolean isLegalRoleWord (String myWord) {
             String text = "means...[default text inside definition]";
             String category = "definition";
             Clause myClause = new Clause(label,heading,text,category); 
-             //everthing after here is common to new clauses and definitions
-            b = new SpriteBox(label, "green"); //default definition colour is green
-            b.setContent("some text to put in spritebox");
+            //common
+            b = new SpriteBox(); //leave default settings to the 'setClause' method in SpriteBox
             b.setClause(myClause);
             clausesWIP.addClause(b.getClause()); //add clause from sprite to clauses container
             b.setOnMousePressed(PressBoxEventHandler); 
@@ -939,8 +938,9 @@ public Boolean isLegalRoleWord (String myWord) {
             String heading = "Default Clause Heading";
             String category = "clause";
             Clause myClause = new Clause(label,heading,text,category); 
-            b = new SpriteBox(label, "blue"); //default clause colour is blue
+            //b = new SpriteBox(label, "blue"); //default clause colour is blue
             //everthing after here is common to new clauses and definitions
+            b = new SpriteBox(); //leave default settings to the 'setClause' method in SpriteBox
             b.setClause(myClause);
             clausesWIP.addClause(b.getClause()); //add clause in Sprite to Clauses container
             //event handler
@@ -1001,19 +1001,10 @@ public Boolean isLegalRoleWord (String myWord) {
         int offY=0;
         while (myiterator.hasNext()) {
             Clause mydefinition = myiterator.next();
-            //box setup
-            String FreqCnt = Integer.toString(mydefinition.getFreq());
-            String myLabel = mydefinition.getLabel();
-            String boxLabel = mydefinition.getLabel()+"("+FreqCnt+")";
-            SpriteBox b;
-            if (isLegalRoleWord(myLabel)==true) {
-                b = new SpriteBox(boxLabel, "orange"); 
-                
-            } else {
-                b = new SpriteBox(boxLabel, "green");
-                //b.setContent(mydeftext);
+            if (isLegalRoleWord(mydefinition.getLabel())==true) {
+                mydefinition.setCategory("legalrole");
             }
-            b.setClause(mydefinition);
+            SpriteBox b = new SpriteBox(mydefinition);
             //location
             b.setTranslateX(offX);         
             b.setTranslateY(offY);
@@ -1108,39 +1099,33 @@ public Boolean isLegalRoleWord (String myWord) {
                 Stage MainWords = new Stage();
                 Group CountGroup_root = Main.this.setupBlocksWindow(MainWords, "Common Words Window");
 
-                    //---ADD YELLOW BOXES WITH COMMON WORDS TO GRAPHICS WINDOW---
-
-                    //TO DO: The SpriteBoxes will be meta-objects include both defs, clause and data.
-                    //They should incorporate the text or contents objects so that the GUI can feed this back and forward from text edit windows etc as required.
-                    WordTool myHelper = new WordTool();
-                    ArrayList<String> boxList = new ArrayList<String>();
-                    try {
-                    boxList = myHelper.commonBoxSet(gotcha);
+                //Spriteboxes holding common words
+                WordTool myHelper = new WordTool();
+                ArrayList<String> boxList = new ArrayList<String>();
+                try {
+                boxList = myHelper.commonBoxSet(gotcha);
+                }
+                catch (Exception e) {
+                           e.printStackTrace();
+                          } 
+                Iterator<String> i = boxList.iterator();
+                int offX = 0;
+                while (i.hasNext()) {
+                    //create 'clause' from the word, not just an empty spritebox
+                    String newlabel = i.next();
+                    Clause cword = new Clause (newlabel,newlabel,"","default");
+                    if (isLegalRoleWord(newlabel)==true) {
+                        cword.setCategory("legalrole");
                     }
-                    catch (Exception e) {
-                               e.printStackTrace();
-                              } 
-                    Iterator<String> i = boxList.iterator();
-                    int offX = 0;
-                    while (i.hasNext()) {
-                        offX=offX+50;
-                        SpriteBox b;
-                        String newlabel = i.next();
-                        if (isLegalRoleWord(newlabel)==true) {
-                            b = new SpriteBox(newlabel, "orange"); //default is blue
-                            b.setContent(newlabel); //to do - transfer defs to sep objects in SpriteBox
-                        } else {
-                            b = new SpriteBox(newlabel, "green");
-                            b.setContent(newlabel);
-                        }
-                        b.setTranslateX(offX); //increments offset each time for display. 
-                        //TO DO: set some default object refs (StackPane has current; these will be alternate indexes).
-                        b.setTranslateY(offX);
-                        b.setOnMousePressed(PressBoxEventHandler); 
-                        b.setOnMouseDragged(DragBoxEventHandler);
-                        
-                        CountGroup_root.getChildren().add(b);
-                    }
+                    //new Spritebox to hold new clause
+                    SpriteBox b = new SpriteBox(cword);
+                    offX=offX+50;  //increments offset each time
+                    b.setTranslateX(offX); 
+                    b.setTranslateY(offX);
+                    b.setOnMousePressed(PressBoxEventHandler); 
+                    b.setOnMouseDragged(DragBoxEventHandler);      
+                    CountGroup_root.getChildren().add(b);
+                }
             }
         };
         //

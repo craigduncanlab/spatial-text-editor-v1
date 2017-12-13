@@ -11,12 +11,18 @@ public class ColBox extends Rectangle{
     Color myColour; //colour object for this instance
     String boxcolour; //to hold String with colour description.
 
+    /* Some sample colours:
+    "chocolate", "salmon", "gold", "coral", "darkorchid",
+            "darkgoldenrod", "lightsalmon", "black", "rosybrown", "blue",
+            "blueviolet", "brown");
+    */
+
 //default constructor
     public ColBox() {
-    	this.setColour("blue");
+    	this.setColour("salmon"); //default
         setWidth(150);
         setHeight(40);
-        //setArcWidth(60);  //do this enough you get a circle
+        //setArcWidth(60);  //do this enough you get a circle.  option
         //setArcHeight(60);                
         //-->setFill(myColour.deriveColor(0, 1.2, 1, 0.6));  //allows for transparency so order not so important
         //setFill(myColour);
@@ -26,7 +32,7 @@ public class ColBox extends Rectangle{
 
     //constructor with colour
     public ColBox(String mycol) {
-        this.setColour("blue");
+        this.setColour("salmon"); //default just in case
         this.setColour(mycol);
         setWidth(150);
         setHeight(40);
@@ -63,6 +69,14 @@ public class ColBox extends Rectangle{
         }
         if (mycol.equals("orange")) {
             myColour = Color.ORANGE;
+            this.boxcolour = mycol;
+        }
+        if (mycol.equals("salmon")) {
+            myColour = Color.SALMON;
+            this.boxcolour = mycol;
+        }
+        if (mycol.equals("gold")) {
+            myColour = Color.GOLD;
             this.boxcolour = mycol;
         }
         //update the Colour for display; allows for transparency

@@ -41,7 +41,7 @@ public class SpriteBox extends StackPane {
     Clause myClause;
     String Category=""; //will be Clause, Definition etc
     //These are the superficial sprite values - can sync with internal objects vice versa
-    Text boxtext;
+    Text boxtext = new Text ("empty box");//default value for every SpriteBox
     String contents;  //This may not be needed - this is additional text to the Clause object etc
     double Xpos = 0;
     double Ypos = 0;
@@ -49,7 +49,36 @@ public class SpriteBox extends StackPane {
     String defaultColour="";
     String alertColour="red";
 
-    //default constructor
+
+    //basic default constructor
+    public SpriteBox() {
+        myBox = new ColBox();   //no specific colour?  default is blue?
+        myClause = new Clause(); //no details in clause yet; not preloaded values
+        //defaultColour="blue";
+        this.setCursor(Cursor.HAND); 
+        Font boxfont=Font.font ("Verdana", 10);
+        boxtext.setFont(boxfont);
+        //boxtext.setFont(new Font(10));
+        /* set specific font and size
+        double fontsize=10;
+        Font boxfont = new Font ("Arial", fontsize);
+        boxtext.setFont(boxfont);
+        */
+        //boxtext.setTextAlignment(TextAlignment.CENTER);
+        this.getChildren().addAll(myBox,boxtext);
+    }
+
+    //default constructor with initial Clause included
+    public SpriteBox(Clause inputClause) {
+        myBox = new ColBox();   //default box is blue
+        this.setCursor(Cursor.HAND); 
+        Font boxfont=Font.font ("Verdana", 10);
+        boxtext.setFont(boxfont);
+        this.setClause(inputClause);
+        this.getChildren().addAll(myBox,boxtext);
+    }
+
+    //default constructor with label
     public SpriteBox(String startLabel) {
     	myBox = new ColBox();
         myClause = new Clause();
@@ -144,14 +173,43 @@ public class SpriteBox extends StackPane {
         myBox.setColour(defaultColour);
     }
 
+    /*Appearance based on Clause properties */
+
+    private void updateAppearance() {
+        //set Sprite label to Clause label
+        this.boxtext.setText(this.myClause.getLabel());
+
+        //set colour of SpriteBox based on Clause category
+        switch(this.myClause.getCategory()){
+            case "definition":
+                this.SetColour("green");
+                //
+                //box setup to show freq of definitions as well
+                String FreqCnt = Integer.toString(myClause.getFreq());
+                this.boxtext.setText(this.myClause.getLabel()+"("+FreqCnt+")");
+                break;
+            case "clause":
+                this.SetColour("yellow");
+                break;
+            case "legalrole":
+                this.SetColour("orange");
+                break;
+            default:
+                this.SetColour("blue");
+                break;
+            }
+        //to do : set shape based on category too
+        }
+
     /* ----  INTERNAL OBJECT DATA --- */
+
+    /** Method to set individual parameters of internal Clause in SpriteBox */
 
     public void setInternalClause(String myLabel, String myHeading, String myText, String myCategory){
         this.myClause.setClausetext(myText);
         this.myClause.setClauselabel(myLabel);
         this.myClause.setHeading(myHeading);
         this.myClause.setCategory(myCategory);
-        System.out.println("set internal clause category:"+myCategory);
 
         //sync relevant Spritebox appearance based on Clause variables
         this.setContent(myText);
@@ -159,10 +217,16 @@ public class SpriteBox extends StackPane {
         this.boxtext.setText(myLabel);
     }
 
-    /* Add or remove internal Clause object */
+    /* Add or remove internal Clause object 
+    I could use the 'Category' property of this to make settings for the appearance of the SpriteBox.
+    If categories of Clauses change, I can make a single change here.
+
+    */
     public void setClause(Clause inputClause){
         this.myClause = inputClause;
-    }
+        this.updateAppearance();
+        }
+
 
     public Clause getClause() {
         return this.myClause;
