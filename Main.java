@@ -135,7 +135,7 @@ private ClauseContainer grabDefinitionsFile(String fname) {
     return defbox;
 }
 
-private ClauseContainer grabDefinitionsString(String mydata) {
+private ClauseContainer extractDefinitionsFromSampleString(String mydata) {
     WordTool myTool = new WordTool();
     ClauseContainer defbox = myTool.doDefTextSearch(mydata);
     return defbox;
@@ -143,7 +143,7 @@ private ClauseContainer grabDefinitionsString(String mydata) {
 
 //return a ClauseContainer object with clauses after using text document as input
 
-private ClauseContainer getClauseContainer(String mydata) {
+private ClauseContainer extractClausesFromSampleText(String mydata) {
     WordTool myTool = new WordTool();
     //TO DO: add options for different clause extractions
     ClauseContainer clauseCarton = myTool.ClauseCapHeadingExtract(mydata);
@@ -397,61 +397,6 @@ Adds a generic event handler for future use.
         return myGroup_root;
 
 }
-
-/* SETUP STAGE TO DISPLAY BLOCKS WITH SOME SIMPLE BUTTONS
-TO DO: PHASE OUT WITH THE EXTRA BUTTONS */
-
-public Group setupDisplayInputClauses(Stage myStage, String myTitle) {
-
-        myStage.setTitle(myTitle);
-        
-        
-        Group myGroup_root = new Group(); //for root
-        ClauseContainer clausesExtracted = new ClauseContainer(); //TO DO: Instance variable
-        myExtracted_clauses = new Group(); //for child node
-        //add group layout object as root node for Scene at time of creation
-        ClauseExScene = new Scene (myGroup_root,650,600); //default width x height (px)
-        //optional event handler
-        ClauseExScene.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
-         @Override
-         public void handle(MouseEvent mouseEvent) {
-         System.out.println("Extracted Clause Window: Mouse click detected! " + mouseEvent.getSource());
-         mySpriteManager.setStageFocus("ClauseWIP");
-             }
-        });
-
-               //
-        myStage.setScene(ClauseExScene); //this selects the stage as current scene
-        myStage.setX(100);
-        myStage.setY(450);
-        myStage.show();
-        
-        /* OLD
-        //Button for moving clauses
-        Button btnMoveClause = new Button();
-        btnMoveClause.setText("Move to WIP");
-        btnMoveClause.setTooltip(new Tooltip ("Press to move block to WIP (staging) Window"));
-        btnMoveClause.setOnAction(MoveClausetoWIP);
-
-        //Button for copying clauses
-        Button btnCopyClause = new Button();
-        btnCopyClause.setText("Copy to WIP");
-        btnCopyClause.setTooltip(new Tooltip ("[TBA] Press to copy block to WIP (staging) Window"));
-        //btnCopyClause.setOnAction(CopyClausetoWIP);
-        
-        //Set horizontal box to hold buttons
-        HBox hboxButtons = new HBox(0,btnMoveClause,btnCopyClause);
-        //VBox vbox1 = new VBox(0,myExtracted_clauses,hboxButtons);
-        */
-        VBox vbox1 = new VBox(0,myExtracted_clauses);// buttons not needed
-        myGroup_root.getChildren().add(vbox1); //add the vbox to the root node to hold everything
-        int totalwidth=650;
-        vbox1.setPrefWidth(totalwidth); //this is in different units to textarea
-       
-        //return the child node, not the root in this case?
-        return myExtracted_clauses;
-        
-    }
 
 /* Setup Stage as a Clause inspection and edit Window */
 
@@ -985,15 +930,38 @@ public Boolean isLegalRoleWord (String myWord) {
 
         @Override 
         public void handle(ActionEvent event) {
+        //obtain data to display
+        ClauseContainer myContainer = extractDefinitionsFromSampleString(textArea1.getText());
         System.out.println("Get DefIcons Button was pressed!");
-        Stage adHoc = new Stage();
+        displaySpritesInNewStage(myContainer, "Definitions Block Window");
+        }
+    };
 
-        defGroup_root = Main.this.setupBlocksWindow(adHoc, "Definitions Block Window");
+    /* 
+    Event handlers for each clause block added, so that they can handle mouse events inside the Window they've been added to 
+    */
+
+
+    EventHandler<ActionEvent> makeClauseIcons = 
+    new EventHandler<ActionEvent>() {
+        @Override 
+
+        public void handle(ActionEvent event) {
+        //TO DO: get source of data
+        ClauseContainer myContainer = extractClausesFromSampleText(textArea1.getText());
+        System.out.println("Clause Icons Button was pressed!");
+        displaySpritesInNewStage(myContainer, "Extracted Words/Clauses");
+        }
+    };
+
+    public void displaySpritesInNewStage(ClauseContainer inputContainer, String myTitle) {
+        ClauseContainer myContainer = inputContainer;
+        Stage adHoc = new Stage();
+        defGroup_root = Main.this.setupBlocksWindow(adHoc, myTitle);
         
         adHoc.setY(600);
 
-        //obtain data to display
-        ClauseContainer myContainer = grabDefinitionsString(textArea1.getText());
+        //process
         ArrayList<Clause> myDList = myContainer.getClauseArray();
         Iterator<Clause> myiterator = myDList.iterator();
 
@@ -1023,68 +991,7 @@ public Boolean isLegalRoleWord (String myWord) {
         }
         adHoc.show();
         }    
-    };
      
-    /* 
-    Event handlers for each clause block added, so that they can handle mouse events inside the Window they've been added to 
-    */
-
-
-    EventHandler<ActionEvent> makeClauseIcons = 
-    new EventHandler<ActionEvent>() {
-        @Override 
-
-        public void handle(ActionEvent event) {
-        System.out.println("Clause Boxes Button was pressed!");
-        //make a new stage
-        ClauseStage = new Stage();
-        //ClauseGroup_root = Main.this.setupBlocksWindow(ClauseStage, "Extracted Clauses");
-
-        //TO DO: remove setup with the buttons??
-        ClauseGroup_root = Main.this.setupDisplayInputClauses(ClauseStage, "Extracted Clauses");
-        
-        //TO DO: get source of data
-        ClauseContainer myContainer = getClauseContainer(textArea1.getText());
-        ArrayList<Clause> myClauseList = myContainer.getClauseArray();
-        Iterator<Clause> myiterator = myClauseList.iterator();
-        int offX=0;
-        int offY=0;
-        while (myiterator.hasNext()) {
-            Clause myclause = myiterator.next();
-            //box setup
-            String FreqCnt = Integer.toString(myclause.getFreq());
-            String myLabel = myclause.getLabel();
-            String boxLabel = myclause.getLabel()+"("+FreqCnt+")";
-            SpriteBox b;
-            if (isLegalRoleWord(myLabel)==true) {
-                b = new SpriteBox(boxLabel, "orange"); //default is blue
-                
-            } else {
-                b = new SpriteBox(boxLabel, "blue");
-                //b.setContent(mydeftext);
-            }
-            b.setClause(myclause);
-            //location
-            b.setTranslateX(offX); 
-            b.setTranslateY(offY);
-            //event handlers
-            b.setOnMousePressed(PressBoxEventHandler); 
-            b.setOnMouseDragged(DragBoxEventHandler);
-            
-            ClauseGroup_root.getChildren().add(b);
-            if (offX>640) {
-                offY=offY+65;
-                offX=0;
-            }
-            else {
-                offX = offX+160;
-            }
-        }
-        ClauseStage.show();
-            }
-
-        };
-
         //update word counts
         EventHandler<ActionEvent> updateWordCounts = 
         new EventHandler<ActionEvent>() {
