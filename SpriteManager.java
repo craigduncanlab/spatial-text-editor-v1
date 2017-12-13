@@ -6,6 +6,8 @@ public class SpriteManager {
 //Stackbox boxWithFocus = null;
 SpriteBox currentSprite = null;
 SpriteBox targetSprite = null;
+double stageX = 0;
+double stageY = 0;
 String StageFocus = "";
 
 
@@ -40,38 +42,23 @@ public void setXY(double x, double y) {
 
     }
   
-/* Increment XY position for next Sprite Box to be added but not current box.
-TO DO:  keep track of last box as it moves and add new box relative to last box.
-At moment, this is only the XY position of the sprite boxes in the Clause WIP area - so be careful.
-It is only used when adding new clauses to that Stage.  For a more general management of Sprites in ANY stage,
-more sophisticated tracking is needed.
+/* 
+    Method to vary position of latest Sprite added to Stage.
+    TO DO: add to most recent Sprite
 */
 
-public void setAsTarget(SpriteBox mySprite) {
-        /*OLD - tiled
-
-        if (currentBoxX>440) {
-                currentBoxY=currentBoxY+65;
-                currentBoxX=0;
-            }
-            else {
-                currentBoxX = currentBoxX+160;
-            }
-		*/
-        double x=0;
-        double y=0;
-        double[] c;
-        if (targetSprite!=null) {
-            c = this.targetSprite.getXY();
-            x = c[0]+15;
-            y = c[1]+65;
+public void placeOnMainStage(SpriteBox mySprite) {
+        
+         if (this.currentSprite!=null) {  //might be no current sprite if not dbl clicked
+                this.currentSprite.endAlert();
         }
+        this.stageX=this.stageX+50;
+        this.stageY=this.stageY+50;
+        mySprite.setTranslateX(this.stageX);
+        mySprite.setTranslateY(this.stageY); 
         //
-        this.currentSprite=mySprite;
-        this.targetSprite=mySprite; 
-        this.setXY(x,y);
-        this.currentSprite.setTranslateX(x);
-        this.currentSprite.setTranslateY(y);  
+        this.setCurrentSprite(mySprite); 
+        this.currentSprite.doAlert();
     }
 
 public void setStageFocus(String myFocus) {

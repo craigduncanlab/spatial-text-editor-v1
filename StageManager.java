@@ -96,19 +96,26 @@ public void setPosition(Stage Parent, Stage myStage, String myCategory) {
 
             case "toolbar":
                 myStage.initOwner(Parent);
-                myStage.setX(800);
-                myStage.setY(0);
-                myStage.toFront();
-                break;
-
-            case "filewindow":
-                myStage.initOwner(Parent);
-                myStage.setX(800);
+                myStage.setX(210);
                 myStage.setY(500);
                 myStage.toFront();
                 break;
+
+            case "inspector":  
+                myStage.initOwner(Parent);
+                myStage.setX(150);
+                myStage.setY(550);
+                myStage.toFront();
+                break;
+
+            case "importwindow":
+                myStage.initOwner(Parent);
+                myStage.setX(800);
+                myStage.setY(200);
+                myStage.toFront();
+                break;
             
-            case "scrollpanel":
+            case "display":  
                 myStage.initOwner(Parent);
                 myStage.setX(800);
                 myStage.setY(550);

@@ -76,6 +76,8 @@ public class Main extends Application {
     StageManager myStageManager = new StageManager();
     //Main Stage (window) that owns all other Stages
     Stage ParentStage;
+    Group ParentWIPGroup;
+    ClauseContainer ParentWIPClauseContainer;
     //Inspector window (no edits)
     Stage inspectorWindow;
     Scene inspectorScene;
@@ -87,9 +89,6 @@ public class Main extends Application {
     //Extracted Definitions window (text)
     Stage defsTextStage;
     ScrollPane defsTextStage_root;
-    //New clauses Work in Progress window
-    Group myGroup_clauses;
-    ClauseContainer clausesWIP;
     //Clause editor
     TextArea labelEdit;
     TextArea headingEdit;
@@ -246,7 +245,7 @@ public void setupInputStage(Stage textStage, String myTitle) {
         //add Scene to Stage and position it
         textStage.setScene(MainScene);
         textStage.sizeToScene(); 
-        myStageManager.setPosition(ParentStage,textStage, "filewindow");
+        myStageManager.setPosition(ParentStage,textStage, "importwindow");
         textStage.show();
         
     }
@@ -263,8 +262,8 @@ public Group setupClauseWIPstage(Stage myStage, String myTitle) {
         
         
         Group myGroup_root = new Group(); //for root
-        clausesWIP = new ClauseContainer();
-        myGroup_clauses = new Group(); //for child node
+        ParentWIPClauseContainer = new ClauseContainer();
+        ParentWIPGroup = new Group(); //for child node
         //add group layout object as root node for Scene at time of creation
         //defScene = new Scene (myGroup_root,650,300); //default width x height (px)
         defScene = new Scene (myGroup_root,myStageManager.getBigX(),myStageManager.getBigY(), Color.BEIGE);
@@ -283,6 +282,7 @@ public Group setupClauseWIPstage(Stage myStage, String myTitle) {
         myStageManager.setPosition(ParentStage,myStage,"WIP");
         myStage.show();
         
+        /*
         //Button for new clauses
         Button btnNewClause = new Button();
         btnNewClause.setText("Add New Clause");
@@ -315,14 +315,16 @@ public Group setupClauseWIPstage(Stage myStage, String myTitle) {
 
         //Set horizontal box to hold buttons
         HBox hboxButtons = new HBox(0,btnNewDef,btnNewClause,btnDeleteClause,btnClausePrint);
-        VBox vbox1 = new VBox(0,myGroup_clauses,hboxButtons);
+        VBox vbox1 = new VBox(0,ParentWIPGroup,hboxButtons);
+        */
         //
+        VBox vbox1 = new VBox(0,ParentWIPGroup);
         myGroup_root.getChildren().add(vbox1); //add the vbox to the root node to hold everything
         int totalwidth=650;
         vbox1.setPrefWidth(totalwidth); //this is in different units to textarea
        
         //return the child node, not the root in this case?
-        return myGroup_clauses;
+        return ParentWIPGroup;
         
     }
 
@@ -453,23 +455,57 @@ public Group setupToolbarPanel(Stage myStage, String myTitle) {
              }
         });
 
-               //
+        //
         myStage.setScene(toolbarScene); //this selects the stage as current scene
         //Layout
-        myStageManager.setPosition(ParentStage,myStage,"toolbar");
+        myStageManager.setPosition(ParentStage,myStage,"WIP Toolbar");
         myStage.show();
         
+        //Button for new clauses
+        Button btnNewClause = new Button();
+        btnNewClause.setText("Add New Clause");
+        btnNewClause.setTooltip(new Tooltip ("Press to add a new clause"));
+        btnNewClause.setOnAction(addNewClauseBox);
+
+        //Button for new definitions addNewDefBox
+        Button btnNewDef = new Button();
+        btnNewDef.setText("Add New Def");
+        btnNewDef.setTooltip(new Tooltip ("Press to add a new definition"));
+        btnNewDef.setOnAction(addNewDefBox);
+        
+        /*
+        //Button for removing clauses
+        Button btnDeleteClause = new Button();
+        btnDeleteClause.setTooltip(new Tooltip ("Press to remove selected clause"));
+        btnDeleteClause.setText("Remove Clause");
+        //btnDeleteClause.setOnAction(extractDefinitions);
+        */
+
+        //Button for summary print list of clauses
+        Button btnClausePrint = new Button();
+        btnClausePrint.setTooltip(new Tooltip ("Press to list all clauses in inspector/console"));
+        btnClausePrint.setText("List Stage");
+        btnClausePrint.setOnAction(printClauseList);
+
+        /*//Button for export/document clauses TO DO: some config or separate panel.
+        Button btnExportClause = new Button();
+        btnExportClause.setTooltip(new Tooltip ("Press to output clauses as RTF"));
+        btnExportClause.setText("RTF Export");
+        //btnDeleteClause.setOnAction(extractDefinitions);
+        */
+
         //Button for moving clauses
         Button btnMoveClause = new Button();
-        btnMoveClause.setText("to WIP Stage");
+        btnMoveClause.setText("Import to Stage");
         btnMoveClause.setTooltip(new Tooltip ("Press to move clause to Clause WIP Window"));
         btnMoveClause.setOnAction(MoveClausetoWIP);
 
-        //Button for copying clauses
+        /* //Button for copying clauses
         Button btnCopyClause = new Button();
         btnCopyClause.setText("Copy to WIP");
         btnCopyClause.setTooltip(new Tooltip ("[TBA] Press to copy clause to Clause WIP Window"));
         //btnCopyClause.setOnAction(CopyClausetoWIP);
+        */
 
         Button btnDoEdit = new Button();
         btnDoEdit.setText("Edit");
@@ -482,7 +518,9 @@ public Group setupToolbarPanel(Stage myStage, String myTitle) {
         
         //Set horizontal box to hold buttons
         //HBox hboxButtons = new HBox(0,btnMoveClause,btnCopyClause);
-        VBox vbox1 = new VBox(0,btnMoveClause,btnCopyClause,btnDoEdit);
+        VBox vbox1 = new VBox(0,btnNewDef,btnNewClause,btnClausePrint,btnMoveClause,btnDoEdit);
+        
+        //VBox vbox1 = new VBox(0,btnMoveClause,btnCopyClause,btnDoEdit);
         //
         toolbar_root.getChildren().add(vbox1); //add the vbox to the root node to hold everything
         int totalwidth=190;
@@ -501,7 +539,7 @@ public Group setupToolbarPanel(Stage myStage, String myTitle) {
 
 **/
 
-public ScrollPane setupScrollTextWindow(Stage myStage, String width, String myTitle) {
+public ScrollPane setupScrollTextWindow(Stage myStage, String StageType, String myTitle) {
         
         
         ScrollPane scroll_root1 = new ScrollPane();
@@ -512,7 +550,7 @@ public ScrollPane setupScrollTextWindow(Stage myStage, String width, String myTi
         int setHeight=500;
          
         //inspector panel settings
-        if (width.equals("inspector")) {
+        if (StageType.equals("inspector")) {
             setWidth=250;
             setHeight=250; 
         }
@@ -528,7 +566,7 @@ public ScrollPane setupScrollTextWindow(Stage myStage, String width, String myTi
         });
         //Size and positioning
         myStage.setScene(defScene);
-        myStageManager.setPosition(ParentStage, myStage, "scrollpanel");
+        myStageManager.setPosition(ParentStage, myStage, StageType);
         myStage.setTitle(myTitle);
         myStage.show();
         return scroll_root1; 
@@ -575,6 +613,15 @@ public Boolean isLegalRoleWord (String myWord) {
     return false;
 }
 
+/* Method to pass over request to place sprite to SpriteManager 
+    Adds the instance variable Group for benefit of the SpriteManager
+    */
+
+    public void placeOnMainStage(SpriteBox thisSprite) {
+        ParentWIPGroup.getChildren().add(thisSprite); 
+        mySpriteManager.placeOnMainStage(thisSprite);
+    }
+
 /* ---- JAVAFX APPLICATION STARTS HERE --- */
   
     @Override
@@ -589,11 +636,11 @@ public Boolean isLegalRoleWord (String myWord) {
        
         //setup clauses sandbox as first Stage (preserves order for display)
         ParentStage = new Stage();
-        Group clausePlayBox = Main.this.setupClauseWIPstage(ParentStage, "WIP Sandbox/Clause Staging Area");
+        Group clausePlayBox = Main.this.setupClauseWIPstage(ParentStage, "Main Stage");
 
         //*Stage that I will use for main text input display and editing
         Stage myStage = new Stage();
-        this.setupInputStage(myStage,"Text Analysis");
+        this.setupInputStage(myStage,"Text Importer");
         //set some default text in main text window
         //this.myTextFile="popstarlease.txt";
         this.myTextFile="electricity.txt";
@@ -698,12 +745,6 @@ public Boolean isLegalRoleWord (String myWord) {
             currentSprite.setTranslateX(newTranslateX);
             currentSprite.setTranslateY(newTranslateY);
             System.out.println("The handler for drag box is acting");
-            //change the target to the last moved Sprite in WIP stage?
-            /*
-            if(mySpriteManager.getStageFocus().equals("ClauseWIP")) {
-                mySpriteManager.setTargetSprite(currentSprite);
-            }
-            */
             t.consume();//check
 
         }
@@ -732,15 +773,10 @@ public Boolean isLegalRoleWord (String myWord) {
             //lose focus
             currentSprite.endAlert();
             //add sprite to Stage for clause WIP.  This will clean up object elsewhere...
-            myGroup_clauses.getChildren().add(currentSprite); 
-            clausesWIP.addClause(currentSprite.getClause()); 
-            //TO DO: update property of group to keep track of last position added
-            //sprite management - alerts and focus
-            currentSprite.doAlert();
-            mySpriteManager.setAsTarget(currentSprite);
+            ParentWIPClauseContainer.addClause(currentSprite.getClause()); 
+            placeOnMainStage(currentSprite);
         }
     };
-
 
     /* TO DO: Turn this into a copy not a move */
 
@@ -753,13 +789,9 @@ public Boolean isLegalRoleWord (String myWord) {
             SpriteBox currentSprite = mySpriteManager.getCurrentSprite(); //not based on the button
             //lose focus
             currentSprite.endAlert();
-            //offset new sprite handling
-            myGroup_clauses.getChildren().add(currentSprite); //add sprite to Stage for clause WIP
-            clausesWIP.addClause(currentSprite.getClause()); 
-            //TO DO: update property of group to keep track of last position added
-            //sprite management
-            currentSprite.doAlert();
-            mySpriteManager.setAsTarget(currentSprite); 
+            
+            ParentWIPClauseContainer.addClause(currentSprite.getClause()); 
+            placeOnMainStage(currentSprite); 
         }
     };
 
@@ -804,16 +836,10 @@ public Boolean isLegalRoleWord (String myWord) {
             //common
             b = new SpriteBox(); //leave default settings to the 'setClause' method in SpriteBox
             b.setClause(myClause);
-            clausesWIP.addClause(b.getClause()); //add clause from sprite to clauses container
+            ParentWIPClauseContainer.addClause(b.getClause()); //add clause from sprite to clauses container
             b.setOnMousePressed(PressBoxEventHandler); 
             b.setOnMouseDragged(DragBoxEventHandler);
-            //offset new sprite handling
-            myGroup_clauses.getChildren().add(b); //add sprite to Stage
-            //alerts and focus
-            SpriteBox CS = mySpriteManager.getCurrentSprite();
-            CS.endAlert();
-            b.doAlert();
-            mySpriteManager.setAsTarget(b); 
+            placeOnMainStage(b); 
             }
         };
 
@@ -836,20 +862,13 @@ public Boolean isLegalRoleWord (String myWord) {
             Clause myClause = new Clause(label,heading,text,category); 
             //b = new SpriteBox(label, "blue"); //default clause colour is blue
             //everthing after here is common to new clauses and definitions
-            b = new SpriteBox(); //leave default settings to the 'setClause' method in SpriteBox
-            b.setClause(myClause);
-            clausesWIP.addClause(b.getClause()); //add clause in Sprite to Clauses container
+            b = new SpriteBox(myClause); //leave default settings to the 'setClause' method in SpriteBox
+            //b.setClause(myClause);
+            ParentWIPClauseContainer.addClause(myClause); //add clause in Sprite to Clauses container
             //event handler
             b.setOnMousePressed(PressBoxEventHandler); 
             b.setOnMouseDragged(DragBoxEventHandler);
-            //offset new sprite handling
-            myGroup_clauses.getChildren().add(b); //add sprite to Stage
-            
-            //alerts and focus
-            SpriteBox CS = mySpriteManager.getCurrentSprite();
-            CS.endAlert();
-            b.doAlert();
-            mySpriteManager.setAsTarget(b); 
+            placeOnMainStage(b); 
             }
         };
 
@@ -859,8 +878,8 @@ public Boolean isLegalRoleWord (String myWord) {
         @Override 
         public void handle(ActionEvent event) {
              //inspectorTextArea.setText("This is where list of clauses will appear");
-             clausesWIP.doPrintIteration();
-             String output=clausesWIP.getClauseAndText();
+             ParentWIPClauseContainer.doPrintIteration();
+             String output=ParentWIPClauseContainer.getClauseAndText();
              inspectorTextArea.setText(output);
              /* TO DO: Have a separate "Output/Preview" Window to show clause output.  
              //Maybe HTMLview?
