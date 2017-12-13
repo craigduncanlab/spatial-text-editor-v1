@@ -213,7 +213,7 @@ TO DO: Capture this in-text definition pattern as an alternative:
     String soft_break="\\x0d";
     String all_breaks="\\x0d\\x0a";
     String Uni_single_qt = "\\u2018\\u2019";
-    String Uni_dashes = "\\u2010\\u2011\u2012\\u2013\\u2014\\u2015"; //u2010 is hyphen
+    String Uni_dashes = "\\u2010\\u2011\\u2012\\u2013\\u2014\\u2015"; //u2010 is hyphen
     String Uni_dbl_qt = "\\u201c\\u201d\\u201e\\u201f\\\""; //not using \\x22 for now
     //This LooseRegEx does not include the : ; or . as it assumes they are the end of definition delimiter
     String LooseRegEx="[\\w\\d\\s\\(\\)\\-,\\/\\’'\\<\\>\\[\\]"+soft_break+Uni_dbl_qt+Uni_single_qt+Uni_dashes+Uni_NonBreakspace+" ]*";
@@ -291,7 +291,7 @@ TO DO: Capture this in-text definition pattern as an alternative:
     String soft_break="\\x0d";
     String all_breaks="\\x0d\\x0a";
     String Uni_single_qt = "\\u2018\\u2019";
-    String Uni_dashes = "\\u2010\\u2011\u2012\\u2013\\u2014\\u2015"; //u2010 is hyphen
+    String Uni_dashes = "\\u2010\\u2011\\u2012\\u2013\\u2014\\u2015"; //u2010 is hyphen
     String Uni_dbl_qt = "\\u201c\\u201d\\u201e\\u201f\\\""; //not using \\x22 for now
     //This LooseRegEx does not include the : ; or . as it assumes they are the end of definition delimiter
     String LooseRegEx="[\\w\\d\\s\\(\\)\\-,\\/\\’'\\<\\>\\[\\]"+soft_break+Uni_dbl_qt+Uni_single_qt+Uni_dashes+Uni_NonBreakspace+" ]*";
@@ -413,12 +413,101 @@ TO DO: Capture this in-text definition pattern as an alternative:
 }
 */
 
+/*  
+
+  Method to find stautory sections (clauses) and store them in clause objects
+    
+*/
+
+  public ClauseContainer StatuteSectionImport(String mydata) {
+    
+    //Pattern p = Pattern.compile("[[a-z][0-9]\\<\\>]*([A-Z' ]{2,}[A-Z'](?=\\x0A|\\x0d))");
+    ClauseContainer myContainer=null;
+    String[] patternString = new String[4];
+    Integer[] groupIn = new Integer[4];
+    //setup
+    int numPatterns=1;
+    /*
+    patternString[0]="[[a-z][0-9]\\<\\>]*([A-Z']{1,}( )*[A-Z']*(?=\\x0A|\\<))";
+    groupIn[0]=1;
+    //number after break, followed by dot and words, ended by period or end of line
+    patternString[1]="(\\x0A)([0-9]*\\.( )*[[a-z][A-Z], ]+( |\\.|\\x0A))";
+    groupIn[1]=2;
+    //several lines before line
+    patternString[2]="(\\x0A)*([0-9]*\\.( )*[[a-z][A-Z], ]+( |\\.|\\x0A))";
+    groupIn[2]=1;
+    */
+    //some statutes
+    //patternString[0]="(\\x0A)*([0-9]*["+Uni_dashes+"]+[[a-z][A-Z], ]+( |\\.|\\x0A))";
+    String Uni_NonBreakspace="\\u00A0";
+    String soft_break="\\x0d";
+    String all_breaks="\\x0d\\x0a";
+    String Uni_single_qt = "\\u2018\\u2019";
+    String Uni_dashes = "\\u2010\\u2011\\u2012\\u2013\\u2014\\u2015"; //u2010 is hyphen
+    String Uni_dbl_qt = "\\u201c\\u201d\\u201e\\u201f\\\""; //not using \\x22 for now
+    //This LooseRegEx does not include the : ; or . as it assumes they are the end of definition delimiter
+    String LooseRegEx="[\\w\\d\\s\\(\\)\\:\\-\\;,\\/\\’'\\<\\>\\[\\]"+all_breaks+Uni_dbl_qt+Uni_single_qt+Uni_dashes+Uni_NonBreakspace+" ]*";
+    patternString[0]="\\x0A(?=Schedule"+LooseRegEx+"\\x0A+)*(?=Part["+LooseRegEx+"].*\\x0A+)*(?=Division"+LooseRegEx+"\\x0A+)*([0-9]{1,3}[A-Z]{0,1}["+Uni_dashes+"]+[[a-z][A-Z], ]+( |\\.|\\x0A))";
+    groupIn[0]=1;
+    //last resort
+    /* just pick out the numbered paragraphs to the next break or stop.
+    This should be a clause extract with headings as 'null' rather than the headings extract.
+    May need some operator feedback on results.
+    
+    patternString[3]="([0-9]*\\.( )*[[a-z][A-Z], ]+\\x0A)";
+    groupIn[3]=1;
+    */
+
+    for (int sIndex=0;sIndex<numPatterns;sIndex++) {
+    Pattern p = Pattern.compile(patternString[sIndex]);
+    myContainer = new ClauseContainer();
+    String output="";
+    System.out.println("Pattern matcher set being considered: "+sIndex);
+    Matcher matcher = p.matcher(mydata);
+    int groupCount = matcher.groupCount();
+    System.out.println("Groupcount : "+groupCount);
+    int matchCount=0;
+    ArrayList<String> myClauseList = new ArrayList<String>();
+    while (matcher.find())
+          {
+            for (int i = 1; i <= groupCount; i++) {
+                // Group i substring output for testing
+                System.out.println("Group " + i + ": " + matcher.group(i));
+          }
+         String headingString = matcher.group(groupIn[sIndex]);
+         matchCount++; //no longer needed unless output
+         Boolean qualityMatch=false;
+         if (headingString.equals("") || headingString.equals(" ") || headingString.length()<3) {
+            qualityMatch=false;
+         }
+         else {
+          qualityMatch=true;
+          }
+
+         if (qualityMatch==true) {
+             //Clause myC  = new Clause();
+             Clause myC = new Clause(headingString,headingString,"","clause");
+             myClauseList.add(headingString);
+             myContainer.addClause(myC);
+          }
+        }
+    System.out.println("Finished Statute Heading search");
+    System.out.println("# of Headings Found: "+myClauseList.size()); 
+    if (myClauseList.size()>4) {
+      return this.StatuteTextExtract(myContainer, mydata);
+    }
+    }
+    //populate clause text before returning
+    return this.StatuteTextExtract(myContainer, mydata);
+    }
+
+
 /*  Method to find clauses and store them in clause objects
     Assumes headings are capital letters on a single row
     
 */
 
-  public ClauseContainer ClauseCapHeadingExtract(String mydata) {
+  public ClauseContainer ClauseImport(String mydata) {
     
     //Pattern p = Pattern.compile("[[a-z][0-9]\\<\\>]*([A-Z' ]{2,}[A-Z'](?=\\x0A|\\x0d))");
     ClauseContainer myContainer=null;
@@ -506,10 +595,15 @@ public Boolean checkHeadingExtraction(ClauseContainer myContainer) {
     }
 
 }
-    /* Method to populate clause text from Clause Headings */
+
+    /*
+
+    Statute text extract 
     
-    public ClauseContainer ClauseTextExtract(ClauseContainer myContainer, String mydata) {
-    System.out.println("Clause text extract");
+    */
+
+    public ClauseContainer StatuteTextExtract(ClauseContainer myContainer, String mydata) {
+    System.out.println("Statute text extract");
     ArrayList<Clause> myCList = myContainer.getClauseArray();
     Iterator<Clause> myiterator = myCList.iterator();
     System.out.println("Array Size: "+myCList.size()); //conveniently, ArrayList is in Collections with a size method
@@ -518,7 +612,21 @@ public Boolean checkHeadingExtraction(ClauseContainer myContainer) {
     indexedList[0] = "";
     //String UpperWord="";
     String myRegEx = "";
+    //
+    String Uni_NonBreakspace="[\\u0000-\\u00FF]"; //non breaking \\u00A0
+    String soft_break="\\x0D";
+    String all_breaks="\\x0D\\x0A";
+    String Uni_single_qt = "\\u2018\\u2019";
+    String Uni_dashes = "\\u2010\\u2011\\u2012\\u2013\\u2014\\u2015"; //u2010 is hyphen
+    String Uni_dbl_qt = "\\u201c\\u201d\\u201e\\u201f\\\""; //not using \\x22 for now
+    //This LooseRegEx does not include the : ; or . as it assumes they are the end of definition delimiter
+    String LooseRegEx="[\\w\\d\\s\\(\\)\\:\\-\\;,\\/\\’'\\<\\>\\[\\]"+all_breaks+Uni_dbl_qt+Uni_single_qt+Uni_dashes+Uni_NonBreakspace+" ]*";
+    /*
     String LooseRegEx="([\\w\\d\\s\\(\\)\\:\\-\\;\\,\\.\\/\\’'\\<\\>\\[\\]\\u201c\\u201d\\u2013\\u2019\\x0d\\x0a\\\" ]*)";
+    */
+    //ignore part and divisional headings
+    String ignoreText = "(?=Schedule"+LooseRegEx+"\\x0A+)*(?=Part["+LooseRegEx+"].*\\x0A+)*(?=Division"+LooseRegEx+"\\x0A+)*";
+    
     String LowerWord="lorem ipsum";
     int indexWindow=0;
     Clause FirstClause=null;
@@ -547,8 +655,8 @@ public Boolean checkHeadingExtraction(ClauseContainer myContainer) {
         int clauseMatches = clauseCaptcha.groupCount();
           while (clauseCaptcha.find())
           {
-            System.out.println("Pattern: "+myRegEx+" # Group + " + clauseCaptcha.group(1));
-            UpperClause.setClausetext(clauseCaptcha.group(1));
+            System.out.println("Pattern: "+myRegEx+" # Group + " + clauseCaptcha.group(0));
+            UpperClause.setClausetext(clauseCaptcha.group(0));
           }
           indexWindow++;  
         } 
@@ -560,8 +668,79 @@ public Boolean checkHeadingExtraction(ClauseContainer myContainer) {
         int clauseMatches = clauseCaptcha.groupCount();
           while (clauseCaptcha.find())
           {
-            System.out.println("Pattern: "+myRegEx+" # Group + " + clauseCaptcha.group(1));
-            LowerClause.setClausetext(clauseCaptcha.group(1));
+            System.out.println("Pattern: "+myRegEx+" # Group + " + clauseCaptcha.group(0));
+            LowerClause.setClausetext(clauseCaptcha.group(0));
+          } 
+        } 
+      return myContainer;
+    }
+
+    /* Method to populate clause text from Clause Headings */
+    
+    public ClauseContainer ClauseTextExtract(ClauseContainer myContainer, String mydata) {
+    System.out.println("Clause text extract");
+    ArrayList<Clause> myCList = myContainer.getClauseArray();
+    Iterator<Clause> myiterator = myCList.iterator();
+    System.out.println("Array Size: "+myCList.size()); //conveniently, ArrayList is in Collections with a size method
+    if (myiterator!=null) {
+    String[] indexedList = new String[150];
+    indexedList[0] = "";
+    //String UpperWord="";
+    String myRegEx = "";
+    //
+    String Uni_NonBreakspace="\\u00A0";
+    String soft_break="\\x0d";
+    String all_breaks="\\x0d\\x0a";
+    String Uni_single_qt = "\\u2018\\u2019";
+    String Uni_dashes = "\\u2010\\u2011\\u2012\\u2013\\u2014\\u2015"; //u2010 is hyphen
+    String Uni_dbl_qt = "\\u201c\\u201d\\u201e\\u201f\\\""; //not using \\x22 for now
+    //This LooseRegEx does not include the : ; or . as it assumes they are the end of definition delimiter
+    String LooseRegEx="[\\w\\d\\s\\(\\)\\:\\-\\;,\\/\\’'\\<\\>\\[\\]"+all_breaks+Uni_dbl_qt+Uni_single_qt+Uni_dashes+Uni_NonBreakspace+" ]*";
+    /*
+    String LooseRegEx="([\\w\\d\\s\\(\\)\\:\\-\\;\\,\\.\\/\\’'\\<\\>\\[\\]\\u201c\\u201d\\u2013\\u2019\\x0d\\x0a\\\" ]*)";
+    */String LowerWord="lorem ipsum";
+    int indexWindow=0;
+    Clause FirstClause=null;
+    Clause UpperClause=null;
+    Clause LowerClause=null;
+    if (myiterator.hasNext()) {
+      System.out.println("First has next");
+      FirstClause=myiterator.next();
+      UpperClause = FirstClause;
+      LowerClause = FirstClause;
+    }
+    while (myiterator.hasNext()) {
+        //System.out.println("Inner has next");
+        if (indexWindow>0) {
+         UpperClause = LowerClause;
+        }
+        LowerClause = myiterator.next();
+        String UpperWord = UpperClause.getHeading();
+        LowerWord = LowerClause.getHeading();
+        //u2010-u201F is a good range for UTF8
+        myRegEx="(?="+UpperWord+")"+LooseRegEx+"(?="+LowerWord+")";
+        System.out.println("Now matching: "+myRegEx+" on "+UpperWord);
+        Pattern pcl = Pattern.compile(myRegEx);
+          //System.out.println(pcl.pattern());
+        Matcher clauseCaptcha = pcl.matcher(mydata);
+        int clauseMatches = clauseCaptcha.groupCount();
+          while (clauseCaptcha.find())
+          {
+            System.out.println("Pattern: "+myRegEx+" # Group + " + clauseCaptcha.group(0));
+            UpperClause.setClausetext(clauseCaptcha.group(0));
+          }
+          indexWindow++;  
+        } 
+        //pickup the clause text for last match to end of data String
+        myRegEx="(?="+LowerWord+")"+LooseRegEx;
+        System.out.println("Now matching: "+myRegEx+" on "+LowerWord);
+        Pattern pcl = Pattern.compile(myRegEx);
+        Matcher clauseCaptcha = pcl.matcher(mydata);
+        int clauseMatches = clauseCaptcha.groupCount();
+          while (clauseCaptcha.find())
+          {
+            System.out.println("Pattern: "+myRegEx+" # Group + " + clauseCaptcha.group(0));
+            LowerClause.setClausetext(clauseCaptcha.group(0));
           } 
         } 
       return myContainer;

@@ -143,11 +143,21 @@ private ClauseContainer extractDefinitionsFromSampleString(String mydata) {
 private ClauseContainer extractClausesFromSampleText(String mydata) {
     WordTool myTool = new WordTool();
     //TO DO: add options for different clause extractions
-    ClauseContainer clauseCarton = myTool.ClauseCapHeadingExtract(mydata);
+    ClauseContainer clauseCarton = myTool.ClauseImport(mydata);
     //ClauseContainer clauseCarton = myTool.ClauseInlineHeadingExtract(mydata);
     return clauseCarton;
 } 
 
+//extractStatuteSectionsFromSampleText(textArea1.getText());
+//return a ClauseContainer object with statute sections after using text document as input
+
+private ClauseContainer extractStatuteSectionsFromSampleText(String mydata) {
+    WordTool myTool = new WordTool();
+    //TO DO: add options for different clause extractions
+    ClauseContainer clauseCarton = myTool.StatuteSectionImport(mydata);
+    //ClauseContainer clauseCarton = myTool.ClauseInlineHeadingExtract(mydata);
+    return clauseCarton;
+} 
 
 //used by event handler
 
@@ -173,7 +183,7 @@ public void pressMe() {
 insert text strings into TextArea arguments
 make this public so that the inner class can find it  */
 
-public void setupInputStage(Stage textStage, String myTitle) {
+public void setupImportStage(Stage textStage, String myTitle) {
 
         //This is the stage to be used but is not the JavaFX application default
         textStage.setTitle(myTitle);
@@ -233,8 +243,14 @@ public void setupInputStage(Stage textStage, String myTitle) {
         btnClauses.setText("Extract Clause Icons");
         btnClauses.setOnAction(makeClauseIcons);
 
+        //Button for Importing Statutory Sectoins 
+        Button btnImportStatute = new Button();
+        btnImportStatute.setTooltip(new Tooltip ("Press to extract Statute Cl. from top Text Area"));
+        btnImportStatute.setText("Extract Statute Sectns");
+        btnImportStatute.setOnAction(importStatuteClauses);
+
         //Set horizontal box to hold buttons and place horizontal boxes inside vertical box
-        hbox3 = new HBox(0,btn,btnDefs,btnDefIcons, btnClauses);
+        hbox3 = new HBox(0,btn,btnDefs,btnDefIcons, btnClauses, btnImportStatute);
         VBox vbox2 = new VBox(0,hbox1);
         vbox2.setPrefWidth(totalwidth);
         vbox2.getChildren().add(hbox3);
@@ -345,9 +361,30 @@ Adds a generic event handler for future use.
 
  public Group setupBlocksWindow(Stage myStage, String myTitle) {
         
+        /*OLD
         Group myGroup_root = new Group();
         //add group layout object as root node for Scene at time of creation
         defScene = new Scene (myGroup_root,650,600); //default width x height (px)
+        //optional event handler
+        defScene.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
+         @Override
+         public void handle(MouseEvent mouseEvent) {
+         System.out.println("Mouse click detected! " + mouseEvent.getSource());
+         mySpriteManager.setStageFocus("blocks");
+             }
+        });
+
+        myStage.setScene(defScene); //this selects the stage as current scene
+        myStage.setTitle(myTitle);
+        myStageManager.setPosition(ParentStage,myStage, "icons");
+        myStage.show();
+        return myGroup_root;
+        */
+        Group myGroup_root = new Group();
+        ScrollPane outerScroll = new ScrollPane();
+        outerScroll.setContent(myGroup_root);
+        //add group layout object as root node for Scene at time of creation
+        defScene = new Scene (outerScroll,650,600); //default width x height (px)
         //optional event handler
         defScene.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
          @Override
@@ -644,7 +681,7 @@ public Boolean isLegalRoleWord (String myWord) {
 
         //*Stage that I will use for main text input display and editing
         Stage myStage = new Stage();
-        this.setupInputStage(myStage,"Text Importer");
+        this.setupImportStage(myStage,"Text Importer");
         //set some default text in main text window
         //this.myTextFile="popstarlease.txt";
         this.myTextFile="electricity.txt";
@@ -720,6 +757,11 @@ public Boolean isLegalRoleWord (String myWord) {
                     mySpriteManager.setCurrentSprite(currentSprite);  //what if wrong window?
                     Clause internalClause = currentSprite.getClause();
                     String myOutput = internalClause.getClause();
+
+                    //
+                    if (inspectorWindow.isShowing()==false) {
+                        inspectorWindow.show();
+                    }
                     inspectorTextArea.setText(myOutput);
 
                     break;
@@ -923,6 +965,23 @@ public Boolean isLegalRoleWord (String myWord) {
         public void handle(ActionEvent event) {
         //TO DO: get source of data
         ClauseContainer myContainer = extractClausesFromSampleText(textArea1.getText());
+        System.out.println("Clause Icons Button was pressed!");
+        displaySpritesInNewStage(myContainer, "Imported Clauses");
+        }
+    };
+
+    /* 
+    Event handlers for each for importing statute clauses 
+    */
+
+
+    EventHandler<ActionEvent> importStatuteClauses = 
+    new EventHandler<ActionEvent>() {
+        @Override 
+
+        public void handle(ActionEvent event) {
+        //TO DO: get source of data
+        ClauseContainer myContainer = extractStatuteSectionsFromSampleText(textArea1.getText());
         System.out.println("Clause Icons Button was pressed!");
         displaySpritesInNewStage(myContainer, "Imported Clauses");
         }

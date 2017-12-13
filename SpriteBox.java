@@ -75,7 +75,7 @@ public class SpriteBox extends StackPane {
         myClause = new Clause(); //no details in clause yet; Null.
         Font boxfont=Font.font ("Verdana", 10);
         boxtext.setFont(boxfont);
-        boxtext.setWrappingWidth(120);
+        boxtext.setWrappingWidth(130);
         /*
         boxtext.setWrapText(true);
         boxtext.setMaxWidth(40);
@@ -195,6 +195,9 @@ public class SpriteBox extends StackPane {
     */
     public void setClause(Clause inputClause){
         this.myClause = inputClause;
+        if (inputClause.getLabel().length()>=50) {
+            myClause.setClauselabel(inputClause.getLabel().substring(0,47)+"...");
+        }
         this.updateAppearance();
         }
 
