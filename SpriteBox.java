@@ -52,67 +52,38 @@ public class SpriteBox extends StackPane {
 
     //basic default constructor
     public SpriteBox() {
-        myBox = new ColBox();   //no specific colour?  default is blue?
-        myClause = new Clause(); //no details in clause yet; not preloaded values
-        //defaultColour="blue";
-        this.setCursor(Cursor.HAND); 
-        Font boxfont=Font.font ("Verdana", 10);
-        boxtext.setFont(boxfont);
-        //boxtext.setFont(new Font(10));
-        /* set specific font and size
-        double fontsize=10;
-        Font boxfont = new Font ("Arial", fontsize);
-        boxtext.setFont(boxfont);
-        */
-        //boxtext.setTextAlignment(TextAlignment.CENTER);
-        this.getChildren().addAll(myBox,boxtext);
+        this.setup();
     }
 
     //default constructor with initial Clause included
     public SpriteBox(Clause inputClause) {
-        myBox = new ColBox();   //default box is blue
-        this.setCursor(Cursor.HAND); 
-        Font boxfont=Font.font ("Verdana", 10);
-        boxtext.setFont(boxfont);
+        this.setup();
         this.setClause(inputClause);
-        this.getChildren().addAll(myBox,boxtext);
     }
 
     //default constructor with label
     public SpriteBox(String startLabel) {
-    	myBox = new ColBox();
-        myClause = new Clause();
-        defaultColour="blue";
-        this.setCursor(Cursor.HAND); 
-        //set GUI text to passed string
+    	this.setup();
         this.boxtext = new Text (startLabel);//myBox.getLabel();
-        //just set size and use default font
-        Font boxfont=Font.font ("Verdana", 10);
-        boxtext.setFont(boxfont);
-        //boxtext.setFont(new Font(10));
-        /* set specific font and size
-        double fontsize=10;
-        Font boxfont = new Font ("Arial", fontsize);
-        boxtext.setFont(boxfont);
-        */
-        //boxtext.setTextAlignment(TextAlignment.CENTER);
-        this.getChildren().addAll(myBox,boxtext);
+        
      }  
     // constructor with colour
     public SpriteBox(String startLabel, String mycolour) {
-        //myBox = new ColBox(myText,mycolour);
-        myClause = new Clause();
-        myBox = new ColBox(mycolour);
-        defaultColour=mycolour;
-        this.setCursor(Cursor.HAND); 
+        this.setup();
+        this.myBox = new ColBox(mycolour);
         this.boxtext = new Text (startLabel);//myBox.getLabel();
-        double fontsize=12;
-        Font boxfont = new Font ("Arial", fontsize);
-        boxtext.setFont(boxfont);
-        //boxtext.setTextAlignment(TextAlignment.CENTER);
-        this.getChildren().addAll(myBox,boxtext);
      }
     
+    /* General setup */
+
+    public void setup() {
+        myBox = new ColBox();   //Uses defaults.
+        myClause = new Clause(); //no details in clause yet; Null.
+        Font boxfont=Font.font ("Verdana", 10);
+        boxtext.setFont(boxfont);
+        this.setCursor(Cursor.HAND);
+        this.getChildren().addAll(myBox,boxtext); 
+    }
 
      /* SUPERFICIAL SPRITE APPEARANCE */
 
