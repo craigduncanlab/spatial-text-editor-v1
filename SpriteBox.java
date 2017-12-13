@@ -16,33 +16,27 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.Cursor;
 
 /* This class started Nov 2017 
-Purpose is to create the principal object to visualise concepts within a GUI (therefore extends StackPane) but also as a container for content/data that can be controller through the object itself.
 
-In many ways it acts as a Controller, and the Graphics Window/Scene is a Controller environment.
+Purpose is to create the principal object for GUI windows.
+It holds data structures (Clauses) and those internal properties (e.g. category field of Clause) can determine appearance of SpriteBox.
+Its instance 'objects' include a Rectangle (extended: ColBox), Text and Colour objects (for GUI appearance).  These are Shapes/Text objects that JavaFX recognises as Nodes.
 
-In the GUI, the position of instances of this class that are Java FX Nodes (Rectangle/Box and Label) can be sync'ed by changing the position of this object.
-Event handlers will move the StackPane inclusive of box and text.
+Within JavaFX this object is also a "Node"/Layout Object called "StackPane".
+The adjustment of the position of this object will adjust position of all visible Nodes contained within it.
+to visualise concepts within a GUI (therefore extends StackPane) but also as a container for content/data that can be controller through the object itself.
 
-TO DO: 
-Graphic window will allow new scene in which opening a SpriteBox reveals contents like clauses, defs, data, text.
-in a similar graphic viewer.
-Consider if 'contents' should be a more complex object, rather than text string.
-Should the data structure be an array of say Clause (obj), DefsObjs (Array).  Each DefsObj has 'Item'?
-Perhaps clauses shouldn't wrap Defs because Defs often have direct relationship to Items/Data.
+TO DO: distinguish private/public methods and write javadocs info
 
 */
 
 public class SpriteBox extends StackPane {         
-    //instance variables are the graphic box and its text, and location.
-    //Not shared with class unless 'static' applied.
-    //StackPane boxPane = new StackPane(); 
-    //These are the data objects held internally:
+    //instance variables are contained Nodes/Objects.
+    //Not class variables as they are not 'static'
     ColBox myBox;
     Clause myClause;
     String Category=""; //will be Clause, Definition etc
-    //These are the superficial sprite values - can sync with internal objects vice versa
-    Text boxtext = new Text ("empty box");//default value for every SpriteBox
-    String contents;  //This may not be needed - this is additional text to the Clause object etc
+    Text boxtext = new Text ("empty box");//Default label text for every SpriteBox
+    String contents;  // Text for the SpriteBox outside of Clause objects.  Currently unused.
     double Xpos = 0;
     double Ypos = 0;
     Boolean isAlert=false;
