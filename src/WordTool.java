@@ -184,7 +184,9 @@ private String readFile(String fname) {
         sc = new Scanner(myFile); 
        }
        catch (Exception e) {
-                   e.printStackTrace();
+                   e.printStackTrace();  // remove this for production
+                   output="Could not find your text file : "+fname;
+                   return output;
                   } 
        while (sc.hasNextLine()) {
        String S = sc.nextLine();
