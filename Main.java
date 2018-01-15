@@ -1,4 +1,7 @@
-/** This application creates a GUI as a legal doc environment
+/** 
+
+This application creates a GUI as a legal doc staging, editing & visualisation environment
+
 JavaFX implementation of GUI started 17.11.2017 by Craig Duncan
 */
  
@@ -412,6 +415,7 @@ Child objects can be added to root node later.
 The Scene placed on the stage is a standard size window (wd x ht) in a fixed position (no need to pass arguments about size yet)
 
 Adds a generic event handler for future use.
+
  */
 
  public Group setupBlocksWindow(Stage myStage, String myTitle) {

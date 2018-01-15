@@ -15,7 +15,9 @@ public AppStart() {
 	
 }
 
-/*main method .  If I can pass data to Application, then Application should be able to read those parameters
+/*
+
+main method .  If I can pass data to Application, then Application should be able to read those parameters
 */
 
 public static void main(String args[]) {

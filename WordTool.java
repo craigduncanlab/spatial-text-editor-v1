@@ -199,6 +199,9 @@ Checks for a post-text definition i.e. "A" means B.
 catch unicode hyphen and line returns and quotes after 'means' 
 TO DO: Capture this in-text definition pattern as an alternative:
 [this|the|a] ... ("definition")
+
+TO DO 15.1.18 : utilise my classes from regex search API for data mining
+
     */
 
   public ClauseContainer doDefTextSearch(String mydata) {
