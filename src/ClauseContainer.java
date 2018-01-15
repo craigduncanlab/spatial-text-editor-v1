@@ -55,6 +55,8 @@ public void doPrintIteration() {
 	}
 }
 
+
+
 /* 
 This method returns both labels and text.  It uses the instance container. 
 TO DO: store Clauses that aren't definitions on first pass, then print them in second run
@@ -92,6 +94,12 @@ public String getClauseAndText() {
 
 public ArrayList<Clause> getClauseArray() {
 	return this.myClauses;
+}
+
+/* method to return number of clauses in this Container */
+
+public int getNumClauses() {
+	return this.myClauses.size();
 }
 
 }
