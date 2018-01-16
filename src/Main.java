@@ -465,6 +465,7 @@ Adds a generic event handler for future use.
 
 public Pane setupEditorPanel(Stage myStage, String myTitle) {
 
+        System.out.println("Making editor Panel");
         myStage.setTitle(myTitle);
         //TO DO: Instance variable
         //Group editorPanel_root = new Group(); 
@@ -614,9 +615,9 @@ public Group setupToolbarPanel(Stage myStage, String myTitle) {
 
         //Save Inspector
         Button btnSaveInspector = myControlsManager.newStdButton();
-        btnDoEdit.setText("SaveInsp");
-        btnDoEdit.setTooltip(new Tooltip ("Press to Save Inspector Content"));
-        btnDoEdit.setOnAction(SaveInsp);
+        btnSaveInspector.setText("SaveInsp");
+        btnSaveInspector.setTooltip(new Tooltip ("Press to Save Inspector Content"));
+        btnSaveInspector.setOnAction(SaveInsp);
 
 
         //TO DO:  Buttons for 'Copy to Library' {Definition Library}{Clause Library}
