@@ -29,7 +29,7 @@ public void addClause(Clause newClause) {
 */
 
 public void doPrintIteration() {
-	//Do first iteration to print out only Definitions
+	//Do first iteration to print out only Definitions in sequence
 	Iterator<Clause> myDefiterator = this.myClauses.iterator();
 	while (myDefiterator.hasNext()) {
 		Clause myclause = myDefiterator.next();
@@ -38,7 +38,8 @@ public void doPrintIteration() {
 			String mylabel = myclause.getLabel();
 			String myheading = myclause.getHeading();
 			String mytext = myclause.getClause();
-			System.out.println(mylabel+"(label) "+myheading+"("+category+")"+" : "+mytext);
+			//System.out.println(mylabel+"(label) "+myheading+"("+category+")"+" : "+mytext);
+			System.out.println("\\\""+myheading+"\\\""+" means "+mytext+"\n");
 		}
 	}
 	//everthing else

@@ -48,7 +48,7 @@ import javafx.event.EventHandler;
  //ArrayList etc
  import java.util.*;
 
- //package for WordTool and related classes
+ //package for file IO and related classes
  import inteld.datamine.*;
 
 
@@ -470,7 +470,7 @@ public Pane setupEditorPanel(Stage myStage, String myTitle) {
         //Group editorPanel_root = new Group(); 
         Pane editorPanel_root = new Pane();
 
-        Scene editorScene = new Scene (editorPanel_root,300,600, Color.GREY); //default width x height (px)
+        Scene editorScene = new Scene (editorPanel_root,300,700, Color.GREY); //default width x height (px)
         //optional event handler
         editorScene.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
          @Override
@@ -493,7 +493,7 @@ public Pane setupEditorPanel(Stage myStage, String myTitle) {
         //
         VBox vboxEdit = new VBox(0,labelTag,labelEdit,headingTag,headingEdit,contentsTag,textEdit,categoryTag,categoryEdit);
         vboxEdit.setMinWidth(300);  //150
-        vboxEdit.setPrefHeight(500); //250
+        vboxEdit.setPrefHeight(600); //250
         //vboxEdit.setVgrow(textEdit, Priority.ALWAYS);
         //
         SpriteBox focusSprite = mySpriteManager.getCurrentSprite();
@@ -612,13 +612,19 @@ public Group setupToolbarPanel(Stage myStage, String myTitle) {
         btnDoEdit.setTooltip(new Tooltip ("Press to Edit Selection (Red Block)"));
         btnDoEdit.setOnAction(DoEditStage);
 
+        //Save Inspector
+        Button btnSaveInspector = myControlsManager.newStdButton();
+        btnDoEdit.setText("SaveInsp");
+        btnDoEdit.setTooltip(new Tooltip ("Press to Save Inspector Content"));
+        btnDoEdit.setOnAction(SaveInsp);
+
 
         //TO DO:  Buttons for 'Copy to Library' {Definition Library}{Clause Library}
         //Button for "Load a clause library from disk"  etc
         
         //Set horizontal box to hold buttons
         //HBox hboxButtons = new HBox(0,btnMoveClause,btnCopyClause);
-        VBox vbox1 = new VBox(0,btnNewDef,btnNewClause,btnClausePrint,btnMoveClause,btnDoEdit);
+        VBox vbox1 = new VBox(0,btnNewDef,btnNewClause,btnClausePrint,btnMoveClause,btnDoEdit,btnSaveInspector);
         
         //VBox vbox1 = new VBox(0,btnMoveClause,btnCopyClause,btnDoEdit);
         //
@@ -917,6 +923,22 @@ public Boolean isLegalRoleWord (String myWord) {
         editorStage = new Stage();
 
         editGroup_root = Main.this.setupEditorPanel(editorStage, "Editor");
+        }    
+    };
+     
+    /* Event handler to save contents of inspector & overwrite file
+    currently uses default filename 'inspectorcontents.txt'
+    */
+
+    EventHandler<ActionEvent> SaveInsp = 
+    new EventHandler<ActionEvent>() {
+
+        @Override 
+        public void handle(ActionEvent event) {
+        System.out.println("Save Button was pressed!");
+        EDOfileApp myfileApp = new EDOfileApp("inspectorcontents.txt");
+        String savecontents = inspectorTextArea.getText();
+        myfileApp.replaceText(savecontents);
         }    
     };
      

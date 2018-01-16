@@ -222,7 +222,7 @@ TO DO 15.1.18 : utilise my classes from regex search API for data mining
     //OLD:patternString[0]="\\x0A(([\\w\\’' ]*)*[\\w\\’'\\(\\)]+) ((?<!and )includes|means(?! inquiry)"+LooseRegEx+")(?=([\\;\\.:]))";
    */
 
-  public String makeRegexPatterns(String patterncode) {
+  public String makeDefsRegexPatterns(String patterncode) {
     
     String Uni_NonBreakspace="\\u00A0";
     String soft_break="\\x0d";
@@ -254,23 +254,24 @@ TO DO 15.1.18 : utilise my classes from regex search API for data mining
     case "quoted" :
     // ----quoted definitions pattern (e.g. contracts) ---   MAYBE COMBINE ALTERNATES
     System.out.println("Yes, found quoted");
-    //TO DO: exclude brackets from match.  
+    //exclude brackets from match.  
     prefix="?:"+dblqtbracket+")("+wordfill+")("+"?:"+dblqtbracket;
     noncapture=meansstring; //don't capture means
     text=generalWildCardtext;
-    tail="\\.";
+    tail="[\\.\\u000A]";
     break;
     //
 
     case "lines" :
-    prefix="\\x0A(?:"+wordfill+meansstring+")"; 
+    prefix="\\x0A"+wordfill;
+    noncapture=meansstring; 
     text=generalWildCardtext;
     tail="\\.";
     break;
 
     case "contracts" :
     // ----quoted definitions pattern (e.g. contracts) ---   original pattern 
-    prefix="\\\"(([\\w\\’' ]*)*[\\w\\’']+)\\\" means[: ]";
+    prefix="\\\"([\\w\\’' ]*)*[\\w\\’']+)\\\" means[: ]";
     text=generalWildCardtext;
     tail="\\.";
     break;
@@ -294,28 +295,13 @@ TO DO 15.1.18 : utilise my classes from regex search API for data mining
 
   public ClauseContainer doDefTextSearch(String mydata) {
     ClauseContainer myResults = new ClauseContainer(); 
-    String myPattern = makeRegexPatterns("quoted");
+    String myPattern = makeDefsRegexPatterns("quoted");
     myResults = getDefsMatches(mydata, myPattern); 
     if (myResults.getNumClauses()<4) {
       System.out.println ("def text search had less than 4 matches");
     }
     return myResults;
   }
-    /*
-    int numPatterns=patternList.length;
-    for (int sIndex=0;sIndex<numPatterns;sIndex++) {
-      String myPattern=patternList[sIndex];
-      //stop as soon as we get at least 4 clauses inside
-      myResults = getDefsMatches(mydata, myPattern);  
-        if (myResults.getNumClauses()>=4) {
-              System.out.println("Four matches and exit"+sIndex);
-              this.updateClauseFreq(myResults, mydata);
-              return myResults;
-        }
-    }
-    return myResults;
-    }
-     */
 
     /* 
 
