@@ -58,6 +58,11 @@ JavaFX applications have no general constructor and must override the 'start' me
 Note that JavaFX applications have a completely new command line interface:
 https://docs.oracle.com/javase/8/javafx/api/javafx/application/Application.Parameters.html
 
+usage:
+From powerdock folder:
+javac -d classes ./src/*.java
+java -cp :classes Main
+
 */
 public class Main extends Application {
     //setup instance variables here.  Static if shared across class (i.e. static=same memory location used)
@@ -483,26 +488,34 @@ public Pane setupEditorPanel(Stage myStage, String myTitle) {
         //TextArea and contents
         Text labelTag = new Text("Label:");
         labelEdit = new TextArea();
-        Text headingTag = new Text("heading:");
+        Text headingTag = new Text("Clause heading:");
         headingEdit = new TextArea();
-        Text contentsTag = new Text("Contents:");
+        Text contentsTag = new Text("Clause text:");
         textEdit = new TextArea();
         textEdit.setMinHeight(300);
         textEdit.setWrapText(true);
         Text categoryTag = new Text("Category:");
         categoryEdit = new TextArea();
         //
-        VBox vboxEdit = new VBox(0,labelTag,labelEdit,headingTag,headingEdit,contentsTag,textEdit,categoryTag,categoryEdit);
+        //VBox vboxEdit = new VBox(0,labelTag,labelEdit,headingTag,headingEdit,contentsTag,textEdit,categoryTag,categoryEdit);
+        /* do not edit label separately for now*/
+        VBox vboxEdit = new VBox(0,headingTag,headingEdit,contentsTag,textEdit,categoryTag,categoryEdit);
         vboxEdit.setMinWidth(300);  //150
         vboxEdit.setPrefHeight(600); //250
         //vboxEdit.setVgrow(textEdit, Priority.ALWAYS);
         //
         SpriteBox focusSprite = mySpriteManager.getCurrentSprite();
         editClause = focusSprite.getClause();
-        labelEdit.setText(editClause.getLabel());
+        //labelEdit.setText(editClause.getLabel());
+        //For now: Make label same as definition/clause heading
+        labelEdit.setText(editClause.getHeading());
         headingEdit.setText(editClause.getHeading());
         textEdit.setText(editClause.getClause());
         categoryEdit.setText(editClause.getCategory());
+        if (editClause.getCategory().equals("definition")) {
+            headingTag.setText("Defined term:");
+            contentsTag.setText("means:");
+        }
         //
         myStage.setScene(editorScene); //this selects the stage as current scene
         //Layout
@@ -544,7 +557,7 @@ public Group setupToolbarPanel(Stage myStage, String myTitle) {
         myStage.setTitle(myTitle);
         //TO DO: Instance variable
         Group toolbar_root = new Group(); //for root
-        Scene toolbarScene = new Scene (toolbar_root,150,150, Color.GREY); //default width x height (px)
+        Scene toolbarScene = new Scene (toolbar_root,150,200, Color.GREY); //default width x height (px)
         //optional event handler
         toolbarScene.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
          @Override
@@ -585,7 +598,7 @@ public Group setupToolbarPanel(Stage myStage, String myTitle) {
         //Button for summary print list of clauses
         Button btnClausePrint = myControlsManager.newStdButton();
         btnClausePrint.setTooltip(new Tooltip ("Press to list all clauses in inspector/console"));
-        btnClausePrint.setText("List Stage");
+        btnClausePrint.setText("Stage to Output");
         btnClausePrint.setOnAction(printClauseList);
 
         /*//Button for export/document clauses TO DO: some config or separate panel.
@@ -597,7 +610,7 @@ public Group setupToolbarPanel(Stage myStage, String myTitle) {
 
         //Button for moving clauses
         Button btnMoveClause = myControlsManager.newStdButton();
-        btnMoveClause.setText("Place on Stage");
+        btnMoveClause.setText("Send to Stage");
         btnMoveClause.setTooltip(new Tooltip ("Press to move clause to Clause WIP Window"));
         btnMoveClause.setOnAction(MoveClausetoWIP);
 
@@ -614,10 +627,10 @@ public Group setupToolbarPanel(Stage myStage, String myTitle) {
         btnDoEdit.setOnAction(DoEditStage);
 
         //Save Inspector
-        Button btnSaveInspector = myControlsManager.newStdButton();
-        btnSaveInspector.setText("SaveInsp");
-        btnSaveInspector.setTooltip(new Tooltip ("Press to Save Inspector Content"));
-        btnSaveInspector.setOnAction(SaveInsp);
+        Button btnSaveOutputView = myControlsManager.newStdButton();
+        btnSaveOutputView.setText("Save Output");
+        btnSaveOutputView.setTooltip(new Tooltip ("Press to Save Output Content"));
+        btnSaveOutputView.setOnAction(SaveOutputVw);
 
 
         //TO DO:  Buttons for 'Copy to Library' {Definition Library}{Clause Library}
@@ -625,7 +638,7 @@ public Group setupToolbarPanel(Stage myStage, String myTitle) {
         
         //Set horizontal box to hold buttons
         //HBox hboxButtons = new HBox(0,btnMoveClause,btnCopyClause);
-        VBox vbox1 = new VBox(0,btnNewDef,btnNewClause,btnClausePrint,btnMoveClause,btnDoEdit,btnSaveInspector);
+        VBox vbox1 = new VBox(0,btnNewDef,btnNewClause,btnClausePrint,btnMoveClause,btnDoEdit,btnSaveOutputView);
         
         //VBox vbox1 = new VBox(0,btnMoveClause,btnCopyClause,btnDoEdit);
         //
@@ -638,7 +651,7 @@ public Group setupToolbarPanel(Stage myStage, String myTitle) {
 }
 
 
-/** Setup independent text inspector window 
+/** Setup independent text inspector window (output preview)
 @parameter Requires a Stage object and a title as arguments
 @Returns a Scrollpane representing the root node
 
@@ -764,7 +777,7 @@ public Boolean isLegalRoleWord (String myWord) {
         inspectorWindow = new Stage();
         double width = 600; 
         double height = 500; 
-        inspectorGroup_root = Main.this.setupScrollTextWindow(inspectorWindow, "inspector", "Inspector Window");
+        inspectorGroup_root = Main.this.setupScrollTextWindow(inspectorWindow, "inspector", "Output Window");
         inspectorGroup_root.setPrefHeight(height);  
         inspectorGroup_root.setPrefWidth(width);
         inspectorGroup_root.setContent(inspectorTextArea); 
@@ -824,11 +837,16 @@ public Boolean isLegalRoleWord (String myWord) {
                     Clause internalClause = currentSprite.getClause();
                     String myOutput = internalClause.getClause();
 
-                    //
+                    /* previously - double click was output window 
                     if (inspectorWindow.isShowing()==false) {
                         inspectorWindow.show();
                     }
                     inspectorTextArea.setText(myOutput);
+                    */
+
+                    // show editor window instead, for current Sprite
+                    editorStage = new Stage();
+                    editGroup_root = Main.this.setupEditorPanel(editorStage, "Editor");
 
                     break;
                 case 3:
@@ -884,9 +902,12 @@ public Boolean isLegalRoleWord (String myWord) {
             SpriteBox currentSprite = mySpriteManager.getCurrentSprite(); //not based on the button
             //lose focus
             currentSprite.endAlert();
-            //add sprite to Stage for clause WIP.  This will clean up object elsewhere...
+            if (currentSprite.isOnStage()==false) {
+            /* add clause to the list of clauses in the clause array */
             ParentWIPClauseContainer.addClause(currentSprite.getClause()); 
+            //add sprite to Stage for clause WIP. This will clean up object on Stage elsewhere...
             placeOnMainStage(currentSprite);
+            }
         }
     };
 
@@ -931,13 +952,13 @@ public Boolean isLegalRoleWord (String myWord) {
     currently uses default filename 'inspectorcontents.txt'
     */
 
-    EventHandler<ActionEvent> SaveInsp = 
+    EventHandler<ActionEvent> SaveOutputVw = 
     new EventHandler<ActionEvent>() {
 
         @Override 
         public void handle(ActionEvent event) {
         System.out.println("Save Button was pressed!");
-        EDOfileApp myfileApp = new EDOfileApp("inspectorcontents.txt");
+        EDOfileApp myfileApp = new EDOfileApp("output(PDock).txt");
         String savecontents = inspectorTextArea.getText();
         myfileApp.replaceText(savecontents);
         }    
@@ -956,9 +977,9 @@ public Boolean isLegalRoleWord (String myWord) {
         @Override 
         public void handle(ActionEvent event) {
             SpriteBox b;
-            String label = "New Definition"; //TO DO: Sprite Manager to increment #
-            String heading = "Default Definition Heading";
-            String text = "means...[default text inside definition]";
+            String label = "New Definition"; //TO DO: Sprite Manager to increment # unused.
+            String heading = "replace with Defined Term";
+            String text = "replace with definition text";
             String category = "definition";
             Clause myClause = new Clause(label,heading,text,category); 
             //common
@@ -983,9 +1004,9 @@ public Boolean isLegalRoleWord (String myWord) {
         @Override 
         public void handle(ActionEvent event) {
             SpriteBox b;
-            String label = "New Clause";
-            String text = "Default text inside Clause";
-            String heading = "Default Clause Heading";
+            String label = "New Clause"; //unused
+            String text = "replace with clause text";
+            String heading = "replace with clause heading";
             String category = "clause";
             Clause myClause = new Clause(label,heading,text,category); 
             //b = new SpriteBox(label, "blue"); //default clause colour is blue
@@ -1009,6 +1030,7 @@ public Boolean isLegalRoleWord (String myWord) {
              ParentWIPClauseContainer.doPrintIteration();
              String output=ParentWIPClauseContainer.getClauseAndText();
              inspectorTextArea.setText(output);
+
              /* TO DO: Have a separate "Output/Preview" Window to show clause output.  
              //Maybe HTMLview?
              i.e. this will be an 'output console', but within the application.
@@ -1185,7 +1207,9 @@ public Boolean isLegalRoleWord (String myWord) {
             //make a new stage with scrollpane
             
             //editClause = focusSprite.getClause();
-            editClause.setClauselabel(labelEdit.getText());
+            //editClause.setClauselabel(labelEdit.getText());
+            //For now: set label as for heading
+            editClause.setClauselabel(headingEdit.getText());
             editClause.setHeading(headingEdit.getText());
             editClause.setClausetext(textEdit.getText());
             editClause.setCategory(categoryEdit.getText());

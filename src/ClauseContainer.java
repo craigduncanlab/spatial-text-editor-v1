@@ -65,7 +65,7 @@ TO DO: store Clauses that aren't definitions on first pass, then print them in s
 */
 
 public String getClauseAndText() {
-	String output="";
+	String output="Definitions\n";
 	//Do first iteration to print out only Definitions
 	Iterator<Clause> myDefiterator = this.myClauses.iterator();
 	while (myDefiterator.hasNext()) {
@@ -75,9 +75,11 @@ public String getClauseAndText() {
 			String mylabel = myclause.getLabel();
 			String myheading = myclause.getHeading();
 			String mytext = myclause.getClause();
-			output=output+myheading+" ("+category+")"+":\n----------\n"+mytext+"\n\n";
+			//output=output+myheading+" ("+category+")"+":\n----------\n"+mytext+"\n\n";
+			output=output+"\""+myheading+"\""+" means "+mytext+"\n";
 		}
 	}
+	output=output+"\nOperative Provisions\n\n";
 	//everthing else
 	Iterator<Clause> myiterator = this.myClauses.iterator();
 	while (myiterator.hasNext()) {
@@ -87,7 +89,8 @@ public String getClauseAndText() {
 			String mylabel = myclause.getLabel();
 			String myheading = myclause.getHeading();
 			String mytext = myclause.getClause();
-			output=output+myheading+" ("+ocategory+")"+":\n----------\n"+mytext+"\n\n";
+			//output=output+myheading+" ("+ocategory+")"+":\n----------\n"+mytext+"\n\n";
+			output=output+myheading+"\n"+mytext+"\n";
 		}
 	}
 	return output;

@@ -59,6 +59,7 @@ public void placeOnMainStage(SpriteBox mySprite) {
         //
         this.setCurrentSprite(mySprite); 
         this.currentSprite.doAlert();
+        this.currentSprite.setOnStage(true);
     }
 
 public void setStageFocus(String myFocus) {

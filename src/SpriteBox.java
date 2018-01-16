@@ -40,6 +40,7 @@ public class SpriteBox extends StackPane {
     double Xpos = 0;
     double Ypos = 0;
     Boolean isAlert=false;
+    Boolean OnStage=false;
     String defaultColour="";
     String alertColour="red";
 
@@ -129,6 +130,18 @@ public class SpriteBox extends StackPane {
 
     public String getColour() {
         return myBox.getColour();
+    }
+
+    /* Status at any time */
+
+    public Boolean isOnStage() {
+        return this.OnStage;
+    }
+
+    /* This is set to true when Sprite/Clause is on Main Stage */ 
+
+    public void setOnStage(Boolean myBool) {
+        this.OnStage = myBool;
     }
 
     public Boolean isAlert() {
