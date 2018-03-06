@@ -45,12 +45,8 @@ import javafx.scene.Cursor;
 // event handlers
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
- //ArrayList etc
- import java.util.*;
-
- //package for file IO and related classes
- import inteld.datamine.*;
-
+//ArrayList etc
+import java.util.*;
 
 /*
 This 'extends Application' will be the standard extension to collect classes for JavaFX applications.
@@ -62,6 +58,10 @@ usage:
 From powerdock folder:
 javac -d classes ./src/*.java
 java -cp :classes Main
+
+From classes folder:
+javac -d ../classes ../src/*.java
+java Main
 
 */
 public class Main extends Application {
@@ -239,6 +239,11 @@ public void setupImportStage(Stage textStage, String myTitle) {
         //myControlsManager.newStdButton();
         btn.setText("Update Word Counts");
         btn.setOnAction(updateWordCounts);
+
+        Button btnOpenInput = new Button();
+        //myControlsManager.newStdButton();
+        btnOpenInput.setText("Import");
+        btnOpenInput.setOnAction(OpenInputFile);
         
         //Button for definitions with Action Event handler
         Button btnDefs = new Button();
@@ -265,7 +270,7 @@ public void setupImportStage(Stage textStage, String myTitle) {
         btnImportStatute.setOnAction(importStatuteClauses);
 
         //Set horizontal box to hold buttons and place horizontal boxes inside vertical box
-        hbox3 = new HBox(0,btn,btnDefs,btnDefIcons, btnClauses, btnImportStatute);
+        hbox3 = new HBox(0,btnOpenInput,btn,btnDefs,btnDefIcons, btnClauses, btnImportStatute);
         VBox vbox2 = new VBox(0,hbox1);
         vbox2.setPrefWidth(totalwidth);
         vbox2.getChildren().add(hbox3);
@@ -1129,6 +1134,15 @@ public Boolean isLegalRoleWord (String myWord) {
         adHoc.show();
         }    
      
+        //OpenInputFile    
+        EventHandler<ActionEvent> OpenInputFile = 
+        new EventHandler<ActionEvent>() {
+        @Override 
+        public void handle(ActionEvent event) {
+            System.out.println("Import button was pressed!");
+            }
+        };
+
         //update word counts
         EventHandler<ActionEvent> updateWordCounts = 
         new EventHandler<ActionEvent>() {
