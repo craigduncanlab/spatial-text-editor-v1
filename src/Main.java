@@ -94,9 +94,11 @@ public class Main extends Application {
     ControlsManager myControlsManager = new ControlsManager();
     //Main Stage (window) that owns all other Stages
     Stage ParentStage;
-    Group ParentWIPGroup;
-    BoxContainer WorkspaceBoxes; //This is going to be the serializable top-level container
-    ClauseContainer ParentWIPClauseContainer;
+    Group WorkspaceGroup;
+    BoxContainer WorkspaceBoxes; //A serializable top-level container (optional)
+    //Main Collections for Clauses
+    ClauseContainer WorkspaceClauseContainer = null; //workspace
+    ClauseContainer LibraryClauseContainer = null; //library import/save
     //importStage
     Stage importStage;
 
@@ -120,6 +122,9 @@ public class Main extends Application {
     //Group editGroup_root;
     Stage editorStage;
     Pane editGroup_root;
+    //Library Window (as needed)
+    Stage LibraryStage;
+    Group LibraryGroup;
 
 /*The main method uses the launch method of the Application class.
 https://docs.oracle.com/javase/8/javafx/api/javafx/application/Application.html
@@ -300,28 +305,37 @@ At this stage, the root node is a Group (sizes according to children, unlike Pan
 
 */
 
-public Group setupClauseWIPstage(Stage myStage, String myTitle) {
+public Group setupWorkspaceStage(Stage myStage, String myTitle) {
 
         myStage.setTitle(myTitle);
         
         
         Group myGroup_root = new Group(); //for root
-        ParentWIPClauseContainer = new ClauseContainer();
+        WorkspaceClauseContainer = new ClauseContainer();
+        LibraryClauseContainer = new ClauseContainer(); //for library window/stage
         WorkspaceBoxes = new BoxContainer(); //for load/save
-        ParentWIPGroup = new Group(); //for child node
+        WorkspaceGroup = new Group(); //for child node
 
 
         MenuBar menuBar = new MenuBar();
-        //Make a vertical menu and add some MenuItems to it
+        //Items for horizontal menu, vertical MenuItems for each
        
         Menu menuWorkspace = new Menu("Workspace");
+        Menu menuLibrary = new Menu("Library");
         MenuItem SaveWork = new MenuItem("Save");
         MenuItem LoadWork = new MenuItem("Load");
+        MenuItem SaveLibrary = new MenuItem("Save");
+        MenuItem LoadLibrary = new MenuItem("Load");
+        MenuItem NewLibrary = new MenuItem("New");
         MenuItem PrintBoxes = new MenuItem("PrintBoxes");
         menuWorkspace.getItems().addAll(
             SaveWork,
             LoadWork,
             PrintBoxes);
+        menuLibrary.getItems().addAll(
+            SaveLibrary,
+            LoadLibrary,
+            NewLibrary);
         //
         Menu menuViews = new Menu("Views");
         MenuItem menuImporter = new MenuItem("Importer");
@@ -338,13 +352,13 @@ public Group setupClauseWIPstage(Stage myStage, String myTitle) {
         SaveWork.setOnAction(new EventHandler<ActionEvent>() {
         public void handle(ActionEvent t) {
                 //TO DO: ADD SERIALISATION OR FUNCTION CALL
-                String BoxFilename="boxes.ser";
+                String BoxFilename="workboxes.ser";
                 FileOutputStream fos = null;
                 ObjectOutputStream out = null;
                 //ArrayList <SpriteBox> myBoxList = new ArrayList<SpriteBox>();
                 //ArrayList <SpriteBox> myBoxList = WorkspaceBoxes.getBoxArray();
                 //ArrayList<String> myBoxList =  new ArrayList<String>(Arrays.asList("Hot","Potato","Test"));
-                ArrayList<Clause> myBoxList =  ParentWIPClauseContainer.getClauseArray();
+                ArrayList<Clause> myBoxList =  WorkspaceClauseContainer.getClauseArray();
                 try {
                     fos = new FileOutputStream(BoxFilename);
                     out = new ObjectOutputStream(fos);
@@ -358,11 +372,14 @@ public Group setupClauseWIPstage(Stage myStage, String myTitle) {
             }
         });
 
-        //TO : Just insert function name here and function detail elsewhere
+        /* Method to load up saved workspace clauses.  At the moment, this loads up in a new window.
+        So it allows the workspace to be created fresh, but the loaded window is not saved. */
+
+        //TO DO : Just insert function name here and function detail elsewhere
         LoadWork.setOnAction(new EventHandler<ActionEvent>() {
         public void handle(ActionEvent t) {
                 //TO DO: ADD SERIALISATION OR FUNCTION CALL
-                String BoxFilename="boxes.ser";
+                String BoxFilename="workboxes.ser";
                 FileInputStream fis = null;
                 ObjectInputStream in = null;
                 ArrayList <Clause> myBoxListIn = null;
@@ -383,7 +400,7 @@ public Group setupClauseWIPstage(Stage myStage, String myTitle) {
                 System.out.println(myBoxListIn.toString());
                 ClauseContainer inputContainer = new ClauseContainer();
                 inputContainer.setClauseArray(myBoxListIn);
-                displaySpritesInNewStage(inputContainer, "Loaded Clauses");
+                displaySpritesInNewStage(inputContainer, "Loaded Workspace Clauses");
             }
         });
 
@@ -395,6 +412,73 @@ public Group setupClauseWIPstage(Stage myStage, String myTitle) {
                 //TO DO: ADD SERIALISATION OR FUNCTION CALL
             }
         });    
+
+        //Library load and save functions
+        SaveLibrary.setOnAction(new EventHandler<ActionEvent>() {
+        public void handle(ActionEvent t) {
+                //TO DO: ADD SERIALISATION OR FUNCTION CALL
+                String BoxFilename="library.ser";
+                FileOutputStream fos = null;
+                ObjectOutputStream out = null;
+                ArrayList<Clause> myLibraryList =  LibraryClauseContainer.getClauseArray();
+                try {
+                    fos = new FileOutputStream(BoxFilename);
+                    out = new ObjectOutputStream(fos);
+                    out.writeObject(myLibraryList); //the top-level object to be saved
+                    out.close();
+                }
+                catch(IOException ex) {
+                    ex.printStackTrace();
+                }
+
+            }
+        });    
+
+        LoadLibrary.setOnAction(new EventHandler<ActionEvent>() {
+        public void handle(ActionEvent t) {
+                //TO DO: ADD SERIALISATION OR FUNCTION CALL
+                String BoxFilename="library.ser";
+                FileInputStream fis = null;
+                ObjectInputStream in = null;
+                ArrayList <Clause> myLibraryIn = null;
+                try {
+                    fis = new FileInputStream(BoxFilename);
+                    in = new ObjectInputStream(fis);
+                    myLibraryIn = (ArrayList<Clause>)in.readObject();
+                    in.close();
+                }
+                catch(IOException ex) {
+                    ex.printStackTrace();
+                }
+                catch(ClassNotFoundException ex)
+                {
+                     ex.printStackTrace();
+                }
+                System.out.println("Success!");
+                System.out.println(myLibraryIn.toString());
+                //ClauseContainer inputContainer = new ClauseContainer();
+                //inputContainer.setClauseArray(myLibaryIn);
+                LibraryClauseContainer.setClauseArray(myLibraryIn);
+                mySpriteManager.resetLibXY();
+                LibraryGroup = displaySpritesInNewStage(LibraryClauseContainer, "Loaded Library Clauses");
+            }
+        }); 
+
+        //Load up an empty library window
+        //TO DO: Save under different name
+
+        NewLibrary.setOnAction(new EventHandler<ActionEvent>() {
+        public void handle(ActionEvent t) {
+                //TO DO: ADD SERIALISATION OR FUNCTION CALL
+                System.out.println ("Called New Library function");
+                ClauseContainer inputContainer = new ClauseContainer();
+                Clause myClause = new Clause("Label","Heading","Text","clause");
+                inputContainer.addClause(myClause);
+                LibraryClauseContainer.setClauseArray(inputContainer.getClauseArray());
+                mySpriteManager.resetLibXY();
+                LibraryGroup = displaySpritesInNewStage(LibraryClauseContainer, "New Library");
+            }
+        }); 
 
         menuInspector.setOnAction(new EventHandler<ActionEvent>() {
         public void handle(ActionEvent t) {
@@ -423,14 +507,14 @@ public Group setupClauseWIPstage(Stage myStage, String myTitle) {
         //To add Menus you simply use 'getMenus' on the MenuBar and do not add to Scene.
         //menuBar.getMenus().addAll(menuViews);
         //menuBar.getMenus().add(menuViews);  
-        menuBar.getMenus().addAll(menuViews, menuWorkspace);     
+        menuBar.getMenus().addAll(menuViews, menuWorkspace, menuLibrary);     
 
 
         //add group layout object as root node for Scene at time of creation
         //defScene = new Scene (myGroup_root,650,300); //default width x height (px)
         defScene = new Scene (myGroup_root,myStageManager.getBigX(),myStageManager.getBigY(), Color.BEIGE);
         //scene.getRoot()).getChildren().addAll(menuBar);
-        ParentWIPGroup.getChildren().addAll(menuBar);
+        WorkspaceGroup.getChildren().addAll(menuBar);
 
         //optional event handler
         defScene.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
@@ -483,16 +567,16 @@ public Group setupClauseWIPstage(Stage myStage, String myTitle) {
 
         //Set horizontal box to hold buttons
         HBox hboxButtons = new HBox(0,btnNewDef,btnNewClause,btnDeleteClause,btnClausePrint);
-        VBox vbox1 = new VBox(0,ParentWIPGroup,hboxButtons);
+        VBox vbox1 = new VBox(0,WorkspaceGroup,hboxButtons);
         */
         //
-        VBox vbox1 = new VBox(0,ParentWIPGroup);
+        VBox vbox1 = new VBox(0,WorkspaceGroup);
         myGroup_root.getChildren().add(vbox1); //add the vbox to the root node to hold everything
         int totalwidth=650;
         vbox1.setPrefWidth(totalwidth); //this is in different units to textarea
        
         //return the child node, not the root in this case?
-        return ParentWIPGroup;
+        return WorkspaceGroup;
         
     }
 
@@ -696,11 +780,18 @@ public Group setupToolbarPanel(Stage myStage, String myTitle) {
         //btnDeleteClause.setOnAction(extractDefinitions);
         */
 
-        //Button for moving clauses
-        Button btnMoveClause = myControlsManager.newStdButton();
-        btnMoveClause.setText("Send to Stage");
-        btnMoveClause.setTooltip(new Tooltip ("Press to move clause to Clause WIP Window"));
-        btnMoveClause.setOnAction(MoveClausetoWIP);
+        //Button for moving clauses to Workspace
+        Button btnMoveClauseWS = myControlsManager.newStdButton();
+        btnMoveClauseWS.setText("Send to Workspace");
+        btnMoveClauseWS.setTooltip(new Tooltip ("Press to move clause to Clause WIP Window"));
+        btnMoveClauseWS.setOnAction(MoveClausetoWS);
+
+        //Button for moving clauses to Library
+        //To DO: only visible if Library has been loaded
+        Button btnCopyClauseLib = myControlsManager.newStdButton();
+        btnCopyClauseLib.setText("Copy to Library");
+        btnCopyClauseLib.setTooltip(new Tooltip ("Press to copy clause to Libary Window"));
+        btnCopyClauseLib.setOnAction(CopyClausetoLib);
 
         /* //Button for copying clauses
         Button btnCopyClause = new Button();
@@ -725,10 +816,10 @@ public Group setupToolbarPanel(Stage myStage, String myTitle) {
         //Button for "Load a clause library from disk"  etc
         
         //Set horizontal box to hold buttons
-        //HBox hboxButtons = new HBox(0,btnMoveClause,btnCopyClause);
-        VBox vbox1 = new VBox(0,btnNewDef,btnNewClause,btnClausePrint,btnMoveClause,btnDoEdit,btnSaveOutputView);
+        //HBox hboxButtons = new HBox(0,btnMoveClauseWS,btnCopyClause);
+        VBox vbox1 = new VBox(0,btnNewDef,btnNewClause,btnClausePrint,btnMoveClauseWS,btnCopyClauseLib,btnDoEdit,btnSaveOutputView);
         
-        //VBox vbox1 = new VBox(0,btnMoveClause,btnCopyClause,btnDoEdit);
+        //VBox vbox1 = new VBox(0,btnMoveClauseWS,btnCopyClause,btnDoEdit);
         //
         toolbar_root.getChildren().add(vbox1); //add the vbox to the root node to hold everything
         int totalwidth=190;
@@ -821,14 +912,27 @@ public Boolean isLegalRoleWord (String myWord) {
     return false;
 }
 
-/* Method to pass over request to place sprite to SpriteManager 
-    Adds the instance variable Group for benefit of the SpriteManager
-    */
+/* Method to handle all consequences of adding spritebox to workspace
+1. Add to workspace group (implicitly removes from existing group)
+2. update state in sprite manager
+3. add to collections (if needed)
+*/
 
     public void placeOnMainStage(SpriteBox thisSprite) {
-        ParentWIPGroup.getChildren().add(thisSprite); 
+        WorkspaceGroup.getChildren().add(thisSprite); 
         mySpriteManager.placeOnMainStage(thisSprite);
         WorkspaceBoxes.addBox(thisSprite);
+    }
+
+/* Method to handle all consequences of adding spritebox to Library
+1. Add to library group
+2. update state in sprite manager (i.e. position)
+3. add to collections (if needed)
+*/
+    public void placeInLibraryStage(SpriteBox thisSprite) {
+        LibraryGroup.getChildren().add(thisSprite); 
+        mySpriteManager.placeInLibrary(thisSprite);
+        //WorkspaceBoxes.addBox(thisSprite);
     }
 
 /* ---- JAVAFX APPLICATION STARTS HERE --- */
@@ -845,7 +949,7 @@ public Boolean isLegalRoleWord (String myWord) {
        
         //setup clauses sandbox as first Stage (preserves order for display)
         ParentStage = new Stage();
-        Group clausePlayBox = Main.this.setupClauseWIPstage(ParentStage, "Main Stage");
+        Group clausePlayBox = Main.this.setupWorkspaceStage(ParentStage, "Main Workspace");
 
         //*Stage that I will use for main text input display and editing
         importStage = new Stage();
@@ -982,7 +1086,7 @@ public Boolean isLegalRoleWord (String myWord) {
 
      */
 
-    EventHandler<ActionEvent> MoveClausetoWIP = 
+    EventHandler<ActionEvent> MoveClausetoWS = 
         new EventHandler<ActionEvent>() {
  
         @Override
@@ -993,9 +1097,29 @@ public Boolean isLegalRoleWord (String myWord) {
             currentSprite.endAlert();
             if (currentSprite.isOnStage()==false) {
             /* add clause to the list of clauses in the clause array */
-            ParentWIPClauseContainer.addClause(currentSprite.getClause()); 
+            WorkspaceClauseContainer.addClause(currentSprite.getClause()); 
             //add sprite to Stage for clause WIP. This will clean up object on Stage elsewhere...
             placeOnMainStage(currentSprite);
+            }
+        }
+    };
+
+    EventHandler<ActionEvent> CopyClausetoLib = 
+        new EventHandler<ActionEvent>() {
+ 
+        @Override
+        public void handle(ActionEvent t) {
+            //This sets the initial reference 
+            SpriteBox currentSprite = mySpriteManager.getCurrentSprite(); //not based on the button
+            //lose focus
+            currentSprite.endAlert();
+            if (currentSprite.isInLibrary()==false) {
+            /* add clause to the list of clauses in the Library clause array */
+            LibraryClauseContainer.addClause(currentSprite.getClause()); 
+            //TO DO: Remove...WorkspaceClauseContainer.addClause(currentSprite.getClause()); 
+            //add sprite to Stage for clause WIP. This will clean up object on Stage elsewhere...
+            //placeOnMainStage(currentSprite);
+            placeInLibraryStage(currentSprite);
             }
         }
     };
@@ -1012,7 +1136,7 @@ public Boolean isLegalRoleWord (String myWord) {
             //lose focus
             currentSprite.endAlert();
             /* add clause to the list of clauses in the clause array */
-            ParentWIPClauseContainer.addClause(currentSprite.getClause()); 
+            WorkspaceClauseContainer.addClause(currentSprite.getClause()); 
             placeOnMainStage(currentSprite); 
         }
     };
@@ -1074,7 +1198,7 @@ public Boolean isLegalRoleWord (String myWord) {
             //common
             b = new SpriteBox(); //leave default settings to the 'setClause' method in SpriteBox
             b.setClause(myClause);
-            ParentWIPClauseContainer.addClause(b.getClause()); //add clause from sprite to clauses container
+            WorkspaceClauseContainer.addClause(b.getClause()); //add clause from sprite to clauses container
             b.setOnMousePressed(PressBoxEventHandler); 
             b.setOnMouseDragged(DragBoxEventHandler);
             placeOnMainStage(b); 
@@ -1102,7 +1226,7 @@ public Boolean isLegalRoleWord (String myWord) {
             //everthing after here is common to new clauses and definitions
             b = new SpriteBox(myClause); //leave default settings to the 'setClause' method in SpriteBox
             //b.setClause(myClause);
-            ParentWIPClauseContainer.addClause(myClause); //add clause in Sprite to Clauses container
+            WorkspaceClauseContainer.addClause(myClause); //add clause in Sprite to Clauses container
             //event handler
             b.setOnMousePressed(PressBoxEventHandler); 
             b.setOnMouseDragged(DragBoxEventHandler);
@@ -1116,8 +1240,8 @@ public Boolean isLegalRoleWord (String myWord) {
         @Override 
         public void handle(ActionEvent event) {
              //inspectorTextArea.setText("This is where list of clauses will appear");
-             ParentWIPClauseContainer.doPrintIteration();
-             String output=ParentWIPClauseContainer.getClauseAndText();
+             WorkspaceClauseContainer.doPrintIteration();
+             String output=WorkspaceClauseContainer.getClauseAndText();
              inspectorTextArea.setText(output);
 
              /* TO DO: Have a separate "Output/Preview" Window to show clause output.  
@@ -1180,12 +1304,18 @@ public Boolean isLegalRoleWord (String myWord) {
         }
     };
 
-    public void displaySpritesInNewStage(ClauseContainer inputContainer, String myTitle) {
+    //Create adHoc Stage but return root (Group) so that it can be stored if significant e.g. Library
+
+    public Group displaySpritesInNewStage(ClauseContainer inputContainer, String myTitle) {
         ClauseContainer myContainer = inputContainer;
         Stage adHoc = new Stage();
-        defGroup_root = Main.this.setupBlocksWindow(adHoc, myTitle);
+        defGroup_root = Main.this.setupBlocksWindow(adHoc, myTitle); //Object class Group
         
         adHoc.setY(600);
+
+        //event handlers
+        //adHoc. set an event Handler to tell Stage Manager it has focus, so it can work with 
+        //'copy all these to Stage'
 
         //process
         ArrayList<Clause> myDList = myContainer.getClauseArray();
@@ -1216,6 +1346,7 @@ public Boolean isLegalRoleWord (String myWord) {
             }
         }
         adHoc.show();
+        return defGroup_root;
         }    
      
         //OpenInputFile    

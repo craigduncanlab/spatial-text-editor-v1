@@ -36,6 +36,8 @@ e.g. Clauses, Definitions, Facts
 The basic concept is that the boxes and their contents will be saved.  Other functions can be run on the contents of the boxes (e.g. export)
 If the location of each Spritebox can be saved (e.g. the parent window), this may assist with retrieval.
 
+14.3.18 Add Library status
+Query if stage and library status should also be in Clause instances
 
 */
 
@@ -51,6 +53,7 @@ public class SpriteBox extends StackPane implements java.io.Serializable {
     double Ypos = 0;
     Boolean isAlert=false;
     Boolean OnStage=false;
+    Boolean InLibrary=false;
     String defaultColour="";
     String alertColour="red";
 
@@ -142,16 +145,29 @@ public class SpriteBox extends StackPane implements java.io.Serializable {
         return myBox.getColour();
     }
 
-    /* Status at any time */
+    /* Status in workspace at any time */
 
     public Boolean isOnStage() {
         return this.OnStage;
+    }
+
+    /* Status in library at any time */
+    //To do: make this generic windows?
+
+    public Boolean isInLibrary() {
+        return this.InLibrary;
     }
 
     /* This is set to true when Sprite/Clause is on Main Stage */ 
 
     public void setOnStage(Boolean myBool) {
         this.OnStage = myBool;
+    }
+
+    /* This is set to true when Sprite/Clause is in Library Window */ 
+
+    public void setInLibrary(Boolean myBool) {
+        this.InLibrary = myBool;
     }
 
     public Boolean isAlert() {
