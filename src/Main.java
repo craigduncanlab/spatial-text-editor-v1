@@ -47,6 +47,12 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 //ArrayList etc
 import java.util.*;
+//For serialization IO (saving BoxContainer as flat data file)
+import java.io.ObjectOutputStream;
+import java.io.FileOutputStream;
+import java.io.ObjectInputStream;
+import java.io.FileInputStream;
+import java.io.IOException;
 
 /*
 This 'extends Application' will be the standard extension to collect classes for JavaFX applications.
@@ -89,6 +95,7 @@ public class Main extends Application {
     //Main Stage (window) that owns all other Stages
     Stage ParentStage;
     Group ParentWIPGroup;
+    BoxContainer WorkspaceBoxes; //This is going to be the serializable top-level container
     ClauseContainer ParentWIPClauseContainer;
     //importStage
     Stage importStage;
@@ -300,6 +307,7 @@ public Group setupClauseWIPstage(Stage myStage, String myTitle) {
         
         Group myGroup_root = new Group(); //for root
         ParentWIPClauseContainer = new ClauseContainer();
+        WorkspaceBoxes = new BoxContainer(); //for load/save
         ParentWIPGroup = new Group(); //for child node
 
 
@@ -309,9 +317,11 @@ public Group setupClauseWIPstage(Stage myStage, String myTitle) {
         Menu menuWorkspace = new Menu("Workspace");
         MenuItem SaveWork = new MenuItem("Save");
         MenuItem LoadWork = new MenuItem("Load");
+        MenuItem PrintBoxes = new MenuItem("PrintBoxes");
         menuWorkspace.getItems().addAll(
             SaveWork,
-            LoadWork);
+            LoadWork,
+            PrintBoxes);
         //
         Menu menuViews = new Menu("Views");
         MenuItem menuImporter = new MenuItem("Importer");
@@ -323,8 +333,65 @@ public Group setupClauseWIPstage(Stage myStage, String myTitle) {
             menuInspector);
 
         //TO : Just insert function name here and function detail elsewhere
+        /*TO DO: ADD OPTION TO TAKE FILENAME AS ARG WHEN INVOKING MAIN
+                i.e. you can specify your workspace name when starting it up */
         SaveWork.setOnAction(new EventHandler<ActionEvent>() {
         public void handle(ActionEvent t) {
+                //TO DO: ADD SERIALISATION OR FUNCTION CALL
+                String BoxFilename="boxes.ser";
+                FileOutputStream fos = null;
+                ObjectOutputStream out = null;
+                //ArrayList <SpriteBox> myBoxList = new ArrayList<SpriteBox>();
+                //ArrayList <SpriteBox> myBoxList = WorkspaceBoxes.getBoxArray();
+                //ArrayList<String> myBoxList =  new ArrayList<String>(Arrays.asList("Hot","Potato","Test"));
+                ArrayList<Clause> myBoxList =  ParentWIPClauseContainer.getClauseArray();
+                try {
+                    fos = new FileOutputStream(BoxFilename);
+                    out = new ObjectOutputStream(fos);
+                    out.writeObject(myBoxList); //the top-level object to be saved
+                    out.close();
+                }
+                catch(IOException ex) {
+                    ex.printStackTrace();
+                }
+
+            }
+        });
+
+        //TO : Just insert function name here and function detail elsewhere
+        LoadWork.setOnAction(new EventHandler<ActionEvent>() {
+        public void handle(ActionEvent t) {
+                //TO DO: ADD SERIALISATION OR FUNCTION CALL
+                String BoxFilename="boxes.ser";
+                FileInputStream fis = null;
+                ObjectInputStream in = null;
+                ArrayList <Clause> myBoxListIn = null;
+                try {
+                    fis = new FileInputStream(BoxFilename);
+                    in = new ObjectInputStream(fis);
+                    myBoxListIn = (ArrayList<Clause>)in.readObject();
+                    in.close();
+                }
+                catch(IOException ex) {
+                    ex.printStackTrace();
+                }
+                catch(ClassNotFoundException ex)
+                {
+                     ex.printStackTrace();
+                }
+                System.out.println("Success!");
+                System.out.println(myBoxListIn.toString());
+                ClauseContainer inputContainer = new ClauseContainer();
+                inputContainer.setClauseArray(myBoxListIn);
+                displaySpritesInNewStage(inputContainer, "Loaded Clauses");
+            }
+        });
+
+        //TO : Just insert function name here and function detail elsewhere
+        PrintBoxes.setOnAction(new EventHandler<ActionEvent>() {
+        public void handle(ActionEvent t) {
+                //call the 'print function' on the BoxContainer object (for now)
+                WorkspaceBoxes.ContentsDump();
                 //TO DO: ADD SERIALISATION OR FUNCTION CALL
             }
         });    
@@ -761,6 +828,7 @@ public Boolean isLegalRoleWord (String myWord) {
     public void placeOnMainStage(SpriteBox thisSprite) {
         ParentWIPGroup.getChildren().add(thisSprite); 
         mySpriteManager.placeOnMainStage(thisSprite);
+        WorkspaceBoxes.addBox(thisSprite);
     }
 
 /* ---- JAVAFX APPLICATION STARTS HERE --- */
@@ -943,7 +1011,7 @@ public Boolean isLegalRoleWord (String myWord) {
             SpriteBox currentSprite = mySpriteManager.getCurrentSprite(); //not based on the button
             //lose focus
             currentSprite.endAlert();
-            
+            /* add clause to the list of clauses in the clause array */
             ParentWIPClauseContainer.addClause(currentSprite.getClause()); 
             placeOnMainStage(currentSprite); 
         }

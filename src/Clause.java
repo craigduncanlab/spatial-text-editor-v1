@@ -7,7 +7,7 @@ Implements serializable for save functions.
 Order of encapsulation is BoxContainer-->SpriteBox-->Clause
 */
 
-public class Clause implements implements java.io.Serializable {
+public class Clause implements java.io.Serializable {
 //setup declare instance variables. shared in class if preceded by static.	
 String label=""; //will hold the GUI box term (initially same as def'n)
 String heading="";

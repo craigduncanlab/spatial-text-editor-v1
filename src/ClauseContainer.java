@@ -96,6 +96,11 @@ public String getClauseAndText() {
 	return output;
 }
 
+/*Method to set ClauseContainer's array in one step*/
+public void setClauseArray(ArrayList<Clause> myArray) {
+	this.myClauses = myArray;
+}
+
 public ArrayList<Clause> getClauseArray() {
 	return this.myClauses;
 }
