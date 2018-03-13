@@ -2,9 +2,12 @@
 //import utilities needed for Arrays lists etc
 import java.util.*;
 
-//This is a class for a single definition object, not a collection.
+/*This is a class for a single definition object, not a collection.
+Implements serializable for save functions.
+Order of encapsulation is BoxContainer-->SpriteBox-->Clause
+*/
 
-public class Clause {
+public class Clause implements implements java.io.Serializable {
 //setup declare instance variables. shared in class if preceded by static.	
 String label=""; //will hold the GUI box term (initially same as def'n)
 String heading="";

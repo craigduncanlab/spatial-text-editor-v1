@@ -305,6 +305,14 @@ public Group setupClauseWIPstage(Stage myStage, String myTitle) {
 
         MenuBar menuBar = new MenuBar();
         //Make a vertical menu and add some MenuItems to it
+       
+        Menu menuWorkspace = new Menu("Workspace");
+        MenuItem SaveWork = new MenuItem("Save");
+        MenuItem LoadWork = new MenuItem("Load");
+        menuWorkspace.getItems().addAll(
+            SaveWork,
+            LoadWork);
+        //
         Menu menuViews = new Menu("Views");
         MenuItem menuImporter = new MenuItem("Importer");
         MenuItem menuEditor = new MenuItem("Editor");
@@ -313,6 +321,13 @@ public Group setupClauseWIPstage(Stage myStage, String myTitle) {
             menuImporter,
             menuEditor,
             menuInspector);
+
+        //TO : Just insert function name here and function detail elsewhere
+        SaveWork.setOnAction(new EventHandler<ActionEvent>() {
+        public void handle(ActionEvent t) {
+                //TO DO: ADD SERIALISATION OR FUNCTION CALL
+            }
+        });    
 
         menuInspector.setOnAction(new EventHandler<ActionEvent>() {
         public void handle(ActionEvent t) {
@@ -340,7 +355,8 @@ public Group setupClauseWIPstage(Stage myStage, String myTitle) {
 
         //To add Menus you simply use 'getMenus' on the MenuBar and do not add to Scene.
         //menuBar.getMenus().addAll(menuViews);
-        menuBar.getMenus().add(menuViews);    
+        //menuBar.getMenus().add(menuViews);  
+        menuBar.getMenus().addAll(menuViews, menuWorkspace);     
 
 
         //add group layout object as root node for Scene at time of creation

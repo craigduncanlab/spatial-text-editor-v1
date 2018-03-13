@@ -14,6 +14,8 @@ import javafx.scene.layout.StackPane;
 //Events
 import javafx.scene.input.MouseEvent;
 import javafx.scene.Cursor;
+//Serializable
+import java.io.Serializable;
 
 /* This class started Nov 2017 
 
@@ -27,9 +29,17 @@ to visualise concepts within a GUI (therefore extends StackPane) but also as a c
 
 TO DO: distinguish private/public methods and write javadocs info
 
+13.3.18 Consider making Spritebox capable of holding some basic object types:
+e.g. Clauses, Definitions, Facts
+
+13.3.18 modifications to implement serializable class, to assist with saving IDE layout & content
+The basic concept is that the boxes and their contents will be saved.  Other functions can be run on the contents of the boxes (e.g. export)
+If the location of each Spritebox can be saved (e.g. the parent window), this may assist with retrieval.
+
+
 */
 
-public class SpriteBox extends StackPane {         
+public class SpriteBox extends StackPane implements java.io.Serializable {         
     //instance variables are contained Nodes/Objects.
     //Not class variables as they are not 'static'
     ColBox myBox;
