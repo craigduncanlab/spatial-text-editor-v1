@@ -113,6 +113,10 @@ public class Main extends Application {
     //Extracted Definitions window (text)
     Stage defsTextStage;
     ScrollPane defsTextStage_root;
+    //Toolbar
+    Stage toolbarStage = null;
+    Group toolbarGroup = null;
+    Scene toolbarScene = null;   
     //Clause editor
     TextArea labelEdit;
     TextArea headingEdit;
@@ -341,10 +345,12 @@ public Group setupWorkspaceStage(Stage myStage, String myTitle) {
         MenuItem menuImporter = new MenuItem("Importer");
         MenuItem menuEditor = new MenuItem("Editor");
         MenuItem menuInspector = new MenuItem("Inspector");
+        MenuItem viewToolbar = new MenuItem("Toolbar");
         menuViews.getItems().addAll(
             menuImporter,
             menuEditor,
-            menuInspector);
+            menuInspector,
+            viewToolbar);
 
         //TO : Just insert function name here and function detail elsewhere
         /*TO DO: ADD OPTION TO TAKE FILENAME AS ARG WHEN INVOKING MAIN
@@ -480,26 +486,59 @@ public Group setupWorkspaceStage(Stage myStage, String myTitle) {
             }
         }); 
 
+        //Toggle visibility of output window
         menuInspector.setOnAction(new EventHandler<ActionEvent>() {
         public void handle(ActionEvent t) {
                 if (inspectorWindow.isShowing()==false) {
                     inspectorWindow.show();
+                    return;
+                }
+                if (inspectorWindow.isShowing()==true) {
+                    inspectorWindow.hide();
+                    return;
                 }
             }
         });
 
+        //toggle visibility of editor
         menuEditor.setOnAction(new EventHandler<ActionEvent>() {
         public void handle(ActionEvent t) {
                 if (editorStage.isShowing()==false) {
                     editorStage.show();
+                    return;
+                }
+                if (editorStage.isShowing()==true) {
+                    editorStage.hide();
+                    return;
                 }
             }
         });
 
+         //toggle visibility of importer
         menuImporter.setOnAction(new EventHandler<ActionEvent>() {
         public void handle(ActionEvent t) {
                 if (importStage.isShowing()==false) {
                     importStage.show();
+                    return;
+                }
+                if (importStage.isShowing()==true) {
+                    importStage.hide();
+                    return;
+                }
+
+            }
+        });
+
+         //toggle visibility of toolbar
+        viewToolbar.setOnAction(new EventHandler<ActionEvent>() {
+        public void handle(ActionEvent t) {
+                if (toolbarStage.isShowing()==false) {
+                    toolbarStage.show();
+                    return;
+                }
+                if (toolbarStage.isShowing()==true) {
+                    toolbarStage.hide();
+                    return;
                 }
             }
         });
@@ -727,9 +766,9 @@ public Pane setupEditorPanel(Stage myStage, String myTitle) {
 public Group setupToolbarPanel(Stage myStage, String myTitle) {
 
         myStage.setTitle(myTitle);
-        //TO DO: Instance variable
+        //Instance variable
         Group toolbar_root = new Group(); //for root
-        Scene toolbarScene = new Scene (toolbar_root,150,200, Color.GREY); //default width x height (px)
+        toolbarScene = new Scene (toolbar_root,150,200, Color.GREY); //default width x height (px)
         //optional event handler
         toolbarScene.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
          @Override
@@ -959,11 +998,12 @@ public Boolean isLegalRoleWord (String myWord) {
         this.myTextFile="electricity.txt";
         this.setArea1Text(this.myTextFile);
         this.setArea2Text(this.myTextFile);
-        importStage.show();
+        // use this line if you want it by default: importStage.show();
+        importStage.hide();
 
         //setup main toolbar
-        Stage toolbarStage = new Stage();
-        Group toolbarGroup = Main.this.setupToolbarPanel(toolbarStage, "Toolbar");
+        toolbarStage = new Stage();
+        toolbarGroup = Main.this.setupToolbarPanel(toolbarStage, "Toolbar");
 
         /* Setup default Stage with Scrollpane to display Text as Inspector
         */
