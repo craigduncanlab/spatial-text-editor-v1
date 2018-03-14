@@ -25,6 +25,16 @@ public void addClause(Clause newClause) {
 	this.myClauses.add(newClause);
 }
 
+/* TO DO: remove clause 
+Java ArrayList remove
+"Removes the first occurrence of the specified element from this list, if it is present."
+*/
+
+public void removeClause(Clause oldClause) {
+	this.myClauses.remove(oldClause);
+}
+
+
 /* This method makes use of the fact that an ArrayList is part of Java's collections, and as such, we can call a method that creates an iterator object, and use it.
 */
 
