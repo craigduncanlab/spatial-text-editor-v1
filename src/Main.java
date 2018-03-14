@@ -998,10 +998,9 @@ public Boolean isLegalRoleWord (String myWord) {
     }
 
 /* Method to copy SpriteBox including event handlers needed
-It takes just the clause from the Sprite and builds rest from scratch */
+It takes just the clause from the existing Sprite and builds rest from scratch */
     public SpriteBox makeCopySprite (SpriteBox mySprite) {
         Clause copyClause = mySprite.getClause();
-        LibraryClauseContainer.addClause(copyClause);  
         System.out.println(copyClause.toString());
         SpriteBox copySprite = new SpriteBox(copyClause);
         copySprite.setOnMousePressed(PressBoxEventHandler); 
@@ -1228,8 +1227,10 @@ It takes just the clause from the Sprite and builds rest from scratch */
             //don't lose focus - just do a copy 
             //currentSprite.endAlert();
             if (currentSprite.isInLibrary()==false) {
-            /* add clause to the list of clauses in the Library clause array */
+            //copy Spritebox and clause contents
             SpriteBox copySprite = makeCopySprite(currentSprite);
+            /* add clause to the list of clauses in the Library clause array */
+            LibraryClauseContainer.addClause(copySprite.getClause());  
             //add sprite to Library Stage. This will clean up object on Workspace...
             System.out.println(copySprite.toString());
             placeInLibraryStage(copySprite);
