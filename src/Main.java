@@ -104,11 +104,11 @@ public class Main extends Application {
     //importStage
     Stage importStage;
 
-    //Inspector window (no edits)
-    Stage inspectorWindow;
-    Scene inspectorScene;
-    ScrollPane inspectorGroup_root;
-    TextArea inspectorTextArea = new TextArea();
+    //textmaker window (no edits)
+    Stage textmakerWindow;
+    Scene textmakerScene;
+    ScrollPane textmakerGroup_root;
+    TextArea textmakerTextArea = new TextArea();
     //Display SpriteBoxes window(s)
     Scene defScene;  //<----used multiple times in different methods.  TO DO:  localise Scene variables.
     Group defGroup_root; //<---used for display Sprites in new stage
@@ -281,7 +281,7 @@ public void setupImportStage(Stage textStage, String myTitle) {
         btnClauses.setText("Extract Clause Icons");
         btnClauses.setOnAction(makeClauseIcons);
 
-        //Button for Importing Statutory Sectoins 
+        //Button for Importing Statutory Sections 
         Button btnImportStatute = new Button();
         btnImportStatute.setTooltip(new Tooltip ("Press to extract Statute Cl. from top Text Area"));
         btnImportStatute.setText("Extract Statute Sectns");
@@ -328,30 +328,39 @@ public Group setupWorkspaceStage(Stage myStage, String myTitle) {
        
         Menu menuWorkspace = new Menu("Workspace");
         Menu menuLibrary = new Menu("Library");
+        Menu menuOutput = new Menu("Output");
+        Menu menuImport = new Menu("Importer");
         MenuItem SaveWork = new MenuItem("Save");
         MenuItem LoadWork = new MenuItem("Load");
+        MenuItem OutputWork = new MenuItem("Output as Text");
         MenuItem SaveLibrary = new MenuItem("Save");
         MenuItem LoadLibrary = new MenuItem("Load");
         MenuItem NewLibrary = new MenuItem("New");
         MenuItem PrintBoxes = new MenuItem("PrintBoxes");
+        MenuItem SaveOutput = new MenuItem("Save");
         menuWorkspace.getItems().addAll(
             SaveWork,
             LoadWork,
+            OutputWork,
             PrintBoxes);
         menuLibrary.getItems().addAll(
             SaveLibrary,
             LoadLibrary,
             NewLibrary);
+        menuOutput.getItems().addAll(
+            SaveOutput);
+        menuImport.getItems().addAll(
+            SaveOutput);
         //
         Menu menuViews = new Menu("Views");
-        MenuItem menuImporter = new MenuItem("Importer");
-        MenuItem menuEditor = new MenuItem("Editor");
-        MenuItem menuInspector = new MenuItem("Inspector");
-        MenuItem viewToolbar = new MenuItem("Toolbar");
+        MenuItem viewImporter = new MenuItem("Importer");
+        MenuItem viewEditor = new MenuItem("Editor");
+        MenuItem viewtextmaker = new MenuItem("Textmaker");
+        MenuItem viewToolbar = new MenuItem("Clause Toolbar");
         menuViews.getItems().addAll(
-            menuImporter,
-            menuEditor,
-            menuInspector,
+            viewImporter,
+            viewEditor,
+            viewtextmaker,
             viewToolbar);
 
         //TO : Just insert function name here and function detail elsewhere
@@ -411,6 +420,25 @@ public Group setupWorkspaceStage(Stage myStage, String myTitle) {
                 displaySpritesInNewStage(inputContainer, "Loaded Workspace Clauses");
             }
         });
+
+        //EXPORT WORKSPACE TO OUTPUT
+        OutputWork.setOnAction(new EventHandler<ActionEvent>() {
+        public void handle(ActionEvent t) {
+                
+            WorkspaceClauseContainer.doPrintIteration();
+            String output=WorkspaceClauseContainer.getClauseAndText();
+            textmakerTextArea.setText(output);
+
+            }
+        });
+
+        
+        /*//Button for export/document clauses TO DO: some config or separate panel.
+        Button btnExportClause = new Button();
+        btnExportClause.setTooltip(new Tooltip ("Press to output clauses as RTF"));
+        btnExportClause.setText("RTF Export");
+        //btnDeleteClause.setOnAction(extractDefinitions);
+        */
 
         //TO : Just insert function name here and function detail elsewhere
         PrintBoxes.setOnAction(new EventHandler<ActionEvent>() {
@@ -489,21 +517,21 @@ public Group setupWorkspaceStage(Stage myStage, String myTitle) {
         }); 
 
         //Toggle visibility of output window
-        menuInspector.setOnAction(new EventHandler<ActionEvent>() {
+        viewtextmaker.setOnAction(new EventHandler<ActionEvent>() {
         public void handle(ActionEvent t) {
-                if (inspectorWindow.isShowing()==false) {
-                    inspectorWindow.show();
+                if (textmakerWindow.isShowing()==false) {
+                    textmakerWindow.show();
                     return;
                 }
-                if (inspectorWindow.isShowing()==true) {
-                    inspectorWindow.hide();
+                if (textmakerWindow.isShowing()==true) {
+                    textmakerWindow.hide();
                     return;
                 }
             }
         });
 
         //toggle visibility of editor
-        menuEditor.setOnAction(new EventHandler<ActionEvent>() {
+        viewEditor.setOnAction(new EventHandler<ActionEvent>() {
         public void handle(ActionEvent t) {
                 if (editorStage.isShowing()==false) {
                     editorStage.show();
@@ -517,7 +545,7 @@ public Group setupWorkspaceStage(Stage myStage, String myTitle) {
         });
 
          //toggle visibility of importer
-        menuImporter.setOnAction(new EventHandler<ActionEvent>() {
+        viewImporter.setOnAction(new EventHandler<ActionEvent>() {
         public void handle(ActionEvent t) {
                 if (importStage.isShowing()==false) {
                     importStage.show();
@@ -548,7 +576,18 @@ public Group setupWorkspaceStage(Stage myStage, String myTitle) {
         //To add Menus you simply use 'getMenus' on the MenuBar and do not add to Scene.
         //menuBar.getMenus().addAll(menuViews);
         //menuBar.getMenus().add(menuViews);  
-        menuBar.getMenus().addAll(menuViews, menuWorkspace, menuLibrary);     
+
+        SaveOutput.setOnAction(new EventHandler<ActionEvent>() {
+        public void handle(ActionEvent t) {
+                
+            System.out.println("Save Output selected!");
+            EDOfileApp myfileApp = new EDOfileApp("output(PDock).txt");
+            String savecontents = textmakerTextArea.getText();
+            myfileApp.replaceText(savecontents);
+            }
+        });
+
+        menuBar.getMenus().addAll(menuViews, menuWorkspace, menuLibrary, menuOutput);     
 
 
         //add group layout object as root node for Scene at time of creation
@@ -596,7 +635,7 @@ public Group setupWorkspaceStage(Stage myStage, String myTitle) {
 
         //Button for summary print list of clauses
         Button btnClausePrint = new Button();
-        btnClausePrint.setTooltip(new Tooltip ("Press to list all clauses in inspector/console"));
+        btnClausePrint.setTooltip(new Tooltip ("Press to list all clauses in textmaker/console"));
         btnClausePrint.setText("Print List");
         btnClausePrint.setOnAction(printClauseList);
 
@@ -775,7 +814,7 @@ public Group setupToolbarPanel(Stage myStage, String myTitle) {
         toolbarScene.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
          @Override
          public void handle(MouseEvent mouseEvent) {
-         System.out.println("Extracted Clause Window: Mouse click detected! " + mouseEvent.getSource());
+         System.out.println("Clause Toolbar: Mouse click detected! " + mouseEvent.getSource());
          mySpriteManager.setStageFocus("Toolbar");
              }
         });
@@ -789,14 +828,14 @@ public Group setupToolbarPanel(Stage myStage, String myTitle) {
         //Button for new clauses
         //Button btnNewClause = new Button();
         Button btnNewClause = myControlsManager.newStdButton();
-        btnNewClause.setText("Add New Clause");
+        btnNewClause.setText("New Clause");
         btnNewClause.setTooltip(new Tooltip ("Press to add a new clause"));
         btnNewClause.setOnAction(addNewClauseBox);
 
         //Button for new definitions addNewDefBox
         //Button btnNewDef = new Button();
         Button btnNewDef = myControlsManager.newStdButton();
-        btnNewDef.setText("Add New Def");
+        btnNewDef.setText("New Def");
         btnNewDef.setTooltip(new Tooltip ("Press to add a new definition"));
         btnNewDef.setOnAction(addNewDefBox);
         
@@ -808,57 +847,42 @@ public Group setupToolbarPanel(Stage myStage, String myTitle) {
         //btnDeleteClause.setOnAction(extractDefinitions);
         */
 
-        //Button for summary print list of clauses
-        Button btnClausePrint = myControlsManager.newStdButton();
-        btnClausePrint.setTooltip(new Tooltip ("Press to list all clauses in inspector/console"));
-        btnClausePrint.setText("Stage to Output");
-        btnClausePrint.setOnAction(printClauseList);
-
-        /*//Button for export/document clauses TO DO: some config or separate panel.
-        Button btnExportClause = new Button();
-        btnExportClause.setTooltip(new Tooltip ("Press to output clauses as RTF"));
-        btnExportClause.setText("RTF Export");
-        //btnDeleteClause.setOnAction(extractDefinitions);
-        */
-
         //Button for moving clauses to Workspace
         Button btnMoveClauseWS = myControlsManager.newStdButton();
-        btnMoveClauseWS.setText("Send to Workspace");
+        btnMoveClauseWS.setText("Move to Workspace");
         btnMoveClauseWS.setTooltip(new Tooltip ("Press to move clause to Workspace Window"));
         btnMoveClauseWS.setOnAction(MoveClausetoWS);
 
         //Button for moving clauses to Library
         //To DO: only visible if Library has been loaded
+        Button btnMoveClauseLib = myControlsManager.newStdButton();
+        btnMoveClauseLib.setText("Move to Library");
+        btnMoveClauseLib.setTooltip(new Tooltip ("Press to move clause to Library Window"));
+        btnMoveClauseLib.setOnAction(MoveClausetoLib);
+
+        //Button for copying clause to library (leaves copy in workspace)
         Button btnCopyClauseLib = myControlsManager.newStdButton();
         btnCopyClauseLib.setText("Copy to Library");
-        btnCopyClauseLib.setTooltip(new Tooltip ("Press to copy clause to Libary Window"));
+        btnCopyClauseLib.setTooltip(new Tooltip ("Press to copy clause to Library Window"));
         btnCopyClauseLib.setOnAction(CopyClausetoLib);
 
-        /* //Button for copying clauses
-        Button btnCopyClause = new Button();
-        btnCopyClause.setText("Copy to WIP");
-        btnCopyClause.setTooltip(new Tooltip ("[TBA] Press to copy clause to Clause WIP Window"));
-        //btnCopyClause.setOnAction(CopyClausetoWorkspace);
-        */
+        //Button for copying clauses to workspace
+        Button btnCopyClauseWS = new Button();
+        btnCopyClauseWS.setText("Copy to Workspace");
+        btnCopyClauseWS.setTooltip(new Tooltip ("Press to copy clause to Workspace"));
+        btnCopyClauseWS.setOnAction(CopyClausetoWorkspace);
 
         Button btnDoEdit = myControlsManager.newStdButton();
         btnDoEdit.setText("Edit");
         btnDoEdit.setTooltip(new Tooltip ("Press to Edit Selection (Red Block)"));
         btnDoEdit.setOnAction(DoEditStage);
 
-        //Save Inspector
-        Button btnSaveOutputView = myControlsManager.newStdButton();
-        btnSaveOutputView.setText("Save Output");
-        btnSaveOutputView.setTooltip(new Tooltip ("Press to Save Output Content"));
-        btnSaveOutputView.setOnAction(SaveOutputVw);
-
-
         //TO DO:  Buttons for 'Copy to Library' {Definition Library}{Clause Library}
         //Button for "Load a clause library from disk"  etc
         
         //Set horizontal box to hold buttons
         //HBox hboxButtons = new HBox(0,btnMoveClauseWS,btnCopyClause);
-        VBox vbox1 = new VBox(0,btnNewDef,btnNewClause,btnClausePrint,btnMoveClauseWS,btnCopyClauseLib,btnDoEdit,btnSaveOutputView);
+        VBox vbox1 = new VBox(0,btnNewDef,btnNewClause,btnMoveClauseWS,btnCopyClauseWS,btnCopyClauseLib,btnMoveClauseLib,btnDoEdit);
         
         //VBox vbox1 = new VBox(0,btnMoveClauseWS,btnCopyClause,btnDoEdit);
         //
@@ -871,7 +895,7 @@ public Group setupToolbarPanel(Stage myStage, String myTitle) {
 }
 
 
-/** Setup independent text inspector window (output preview)
+/** Setup independent text textmaker window (output preview)
 @parameter Requires a Stage object and a title as arguments
 @Returns a Scrollpane representing the root node
 
@@ -889,9 +913,9 @@ public ScrollPane setupScrollTextWindow(Stage myStage, String StageType, String 
         int setWidth=500;
         int setHeight=500;
          
-        //inspector panel settings
-        if (StageType.equals("inspector")) {
-            setWidth=250;
+        //textmaker panel settings
+        if (StageType.equals("textmaker")) {
+            setWidth=500;
             setHeight=250; 
         }
 
@@ -971,9 +995,21 @@ public Boolean isLegalRoleWord (String myWord) {
 3. add to collections (if needed)
 */
     public void placeInLibraryStage(SpriteBox thisSprite) {
+        System.out.println("Sprite received for placing in Library:"+thisSprite.toString());
         LibraryGroup.getChildren().add(thisSprite); 
         mySpriteManager.placeInLibrary(thisSprite);
         //WorkspaceBoxes.addBox(thisSprite);
+    }
+
+/* Method to copy SpriteBox including event handlers needed
+It takes just the clause from the existing Sprite and builds rest from scratch */
+    public SpriteBox makeCopySprite (SpriteBox mySprite) {
+        Clause copyClause = mySprite.getClause();
+        System.out.println(copyClause.toString());
+        SpriteBox copySprite = new SpriteBox(copyClause);
+        copySprite.setOnMousePressed(PressBoxEventHandler); 
+        copySprite.setOnMouseDragged(DragBoxEventHandler);
+        return copySprite;
     }
 
 /* ---- JAVAFX APPLICATION STARTS HERE --- */
@@ -1007,22 +1043,22 @@ public Boolean isLegalRoleWord (String myWord) {
         toolbarStage = new Stage();
         toolbarGroup = Main.this.setupToolbarPanel(toolbarStage, "Toolbar");
 
-        /* Setup default Stage with Scrollpane to display Text as Inspector
+        /* Setup default Stage with Scrollpane to display Text as textmaker
         */
-        inspectorWindow = new Stage();
+        textmakerWindow = new Stage();
         double width = 600; 
         double height = 500; 
-        inspectorGroup_root = Main.this.setupScrollTextWindow(inspectorWindow, "inspector", "Output Window");
-        inspectorGroup_root.setPrefHeight(height);  
-        inspectorGroup_root.setPrefWidth(width);
-        inspectorGroup_root.setContent(inspectorTextArea); 
+        textmakerGroup_root = Main.this.setupScrollTextWindow(textmakerWindow, "textmaker", "Output Window");
+        textmakerGroup_root.setPrefHeight(height);  
+        textmakerGroup_root.setPrefWidth(width);
+        textmakerGroup_root.setContent(textmakerTextArea); 
         /* OLD //Outer class method class to obtain text from analysis area
         String gotcha = Main.this.textArea1.getText();
         String newDefs = Main.this.getMatched(gotcha);
         */
         //set the default scrollpane content to a designated text area and size scrollpane
-        inspectorTextArea.setWrapText(true);
-        inspectorTextArea.setText("Some future contents");
+        textmakerTextArea.setWrapText(true);
+        textmakerTextArea.setText("Some future contents");
 
         //TO DO: Setup another 'Stage' for file input, creation of toolbars etc.
     }
@@ -1083,10 +1119,10 @@ public Boolean isLegalRoleWord (String myWord) {
                     String myOutput = internalClause.getClause();
 
                     /* previously - double click was output window 
-                    if (inspectorWindow.isShowing()==false) {
-                        inspectorWindow.show();
+                    if (textmakerWindow.isShowing()==false) {
+                        textmakerWindow.show();
                     }
-                    inspectorTextArea.setText(myOutput);
+                    textmakerTextArea.setText(myOutput);
                     */
 
                     // show editor window instead, for current Sprite
@@ -1162,7 +1198,7 @@ public Boolean isLegalRoleWord (String myWord) {
         }
     };
 
-    EventHandler<ActionEvent> CopyClausetoLib = 
+    EventHandler<ActionEvent> MoveClausetoLib = 
         new EventHandler<ActionEvent>() {
  
         @Override
@@ -1174,28 +1210,57 @@ public Boolean isLegalRoleWord (String myWord) {
             if (currentSprite.isInLibrary()==false) {
             /* add clause to the list of clauses in the Library clause array */
             LibraryClauseContainer.addClause(currentSprite.getClause()); 
-            //TO DO: Remove...WorkspaceClauseContainer.addClause(currentSprite.getClause()); 
-            //add sprite to Stage for clause WIP. This will clean up object on Stage elsewhere...
-            //placeOnMainStage(currentSprite);
+            //remove from clause container clause list (so it is not saved)
+            WorkspaceClauseContainer.removeClause(currentSprite.getClause()); 
+            //add sprite to Library Stage. This will clean up object on Workspace...
             placeInLibraryStage(currentSprite);
             }
         }
     };
 
-    /* TO DO: Turn this into a copy not a move */
-
-    EventHandler<ActionEvent> CopyClausetoWorkspace = 
+    EventHandler<ActionEvent> CopyClausetoLib = 
         new EventHandler<ActionEvent>() {
  
         @Override
         public void handle(ActionEvent t) {
             //This sets the initial reference 
             SpriteBox currentSprite = mySpriteManager.getCurrentSprite(); //not based on the button
-            //lose focus
-            currentSprite.endAlert();
-            /* add clause to the list of clauses in the clause array */
-            WorkspaceClauseContainer.addClause(currentSprite.getClause()); 
-            placeOnMainStage(currentSprite); 
+            if (currentSprite==null) {
+                System.out.println("Current sprite not detected");
+            }
+            //don't lose focus - just do a copy 
+            //currentSprite.endAlert();
+            if (currentSprite.isInLibrary()==false) {
+            //copy Spritebox and clause contents
+            SpriteBox copySprite = makeCopySprite(currentSprite);
+            /* add clause to the list of clauses in the Library clause array */
+            LibraryClauseContainer.addClause(copySprite.getClause());  
+            //add sprite to Library Stage. This will clean up object on Workspace...
+            System.out.println(copySprite.toString());
+            placeInLibraryStage(copySprite);
+            }
+        }
+    };
+
+    /* This is a copy not a move */
+
+    EventHandler<ActionEvent> CopyClausetoWorkspace = 
+        new EventHandler<ActionEvent>() {
+ 
+        @Override
+        public void handle(ActionEvent t) {
+            
+            //This sets the initial reference 
+            SpriteBox currentSprite = mySpriteManager.getCurrentSprite(); //not based on the button
+            if (currentSprite.isOnStage()==false) {
+                //lose focus
+                currentSprite.endAlert();
+                //copy sprite
+                SpriteBox copySprite = makeCopySprite(currentSprite);
+                /* add clause to the list of clauses in the clause array */
+                WorkspaceClauseContainer.addClause(copySprite.getClause()); 
+                placeOnMainStage(copySprite); 
+            }
         }
     };
 
@@ -1219,8 +1284,8 @@ public Boolean isLegalRoleWord (String myWord) {
         }    
     };
      
-    /* Event handler to save contents of inspector & overwrite file
-    currently uses default filename 'inspectorcontents.txt'
+    /* Event handler to save contents of textmaker & overwrite file
+    currently uses default filename 'textmakercontents.txt'
     */
 
     EventHandler<ActionEvent> SaveOutputVw = 
@@ -1230,13 +1295,11 @@ public Boolean isLegalRoleWord (String myWord) {
         public void handle(ActionEvent event) {
         System.out.println("Save Button was pressed!");
         EDOfileApp myfileApp = new EDOfileApp("output(PDock).txt");
-        String savecontents = inspectorTextArea.getText();
+        String savecontents = textmakerTextArea.getText();
         myfileApp.replaceText(savecontents);
         }    
     };
      
-
-
     /* Event handler for adding a new definition box to WIP staging area
     TO DO: Prevent user from attempting to add same object to same stage twice.
     i.e. if focus is on clause WIP stage, then either copy, or disallow.
@@ -1297,10 +1360,10 @@ public Boolean isLegalRoleWord (String myWord) {
         new EventHandler<ActionEvent>() {
         @Override 
         public void handle(ActionEvent event) {
-             //inspectorTextArea.setText("This is where list of clauses will appear");
+             //textmakerTextArea.setText("This is where list of clauses will appear");
              WorkspaceClauseContainer.doPrintIteration();
              String output=WorkspaceClauseContainer.getClauseAndText();
-             inspectorTextArea.setText(output);
+             textmakerTextArea.setText(output);
 
              /* TO DO: Have a separate "Output/Preview" Window to show clause output.  
              //Maybe HTMLview?
