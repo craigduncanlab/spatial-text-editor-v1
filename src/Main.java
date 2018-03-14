@@ -338,6 +338,7 @@ public Group setupWorkspaceStage(Stage myStage, String myTitle) {
         MenuItem NewLibrary = new MenuItem("New");
         MenuItem PrintBoxes = new MenuItem("PrintBoxes");
         MenuItem SaveOutput = new MenuItem("Save");
+        MenuItem FileOpen = new MenuItem("FileOpen");
         menuWorkspace.getItems().addAll(
             SaveWork,
             LoadWork,
@@ -350,7 +351,7 @@ public Group setupWorkspaceStage(Stage myStage, String myTitle) {
         menuOutput.getItems().addAll(
             SaveOutput);
         menuImport.getItems().addAll(
-            SaveOutput);
+            FileOpen);
         //
         Menu menuViews = new Menu("Views");
         MenuItem viewImporter = new MenuItem("Importer");
@@ -809,7 +810,7 @@ public Group setupToolbarPanel(Stage myStage, String myTitle) {
         myStage.setTitle(myTitle);
         //Instance variable
         Group toolbar_root = new Group(); //for root
-        toolbarScene = new Scene (toolbar_root,150,200, Color.GREY); //default width x height (px)
+        toolbarScene = new Scene (toolbar_root,150,250, Color.GREY); //default width x height (px)
         //optional event handler
         toolbarScene.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
          @Override
@@ -839,13 +840,12 @@ public Group setupToolbarPanel(Stage myStage, String myTitle) {
         btnNewDef.setTooltip(new Tooltip ("Press to add a new definition"));
         btnNewDef.setOnAction(addNewDefBox);
         
-        /*
+        
         //Button for removing clauses
-        Button btnDeleteClause = new Button();
+        Button btnDeleteClause = myControlsManager.newStdButton();
         btnDeleteClause.setTooltip(new Tooltip ("Press to remove selected clause"));
-        btnDeleteClause.setText("Remove Clause");
-        //btnDeleteClause.setOnAction(extractDefinitions);
-        */
+        btnDeleteClause.setText("Delete");
+        btnDeleteClause.setOnAction(deleteCurrentSprite);
 
         //Button for moving clauses to Workspace
         Button btnMoveClauseWS = myControlsManager.newStdButton();
@@ -867,7 +867,7 @@ public Group setupToolbarPanel(Stage myStage, String myTitle) {
         btnCopyClauseLib.setOnAction(CopyClausetoLib);
 
         //Button for copying clauses to workspace
-        Button btnCopyClauseWS = new Button();
+        Button btnCopyClauseWS = myControlsManager.newStdButton();
         btnCopyClauseWS.setText("Copy to Workspace");
         btnCopyClauseWS.setTooltip(new Tooltip ("Press to copy clause to Workspace"));
         btnCopyClauseWS.setOnAction(CopyClausetoWorkspace);
@@ -882,7 +882,7 @@ public Group setupToolbarPanel(Stage myStage, String myTitle) {
         
         //Set horizontal box to hold buttons
         //HBox hboxButtons = new HBox(0,btnMoveClauseWS,btnCopyClause);
-        VBox vbox1 = new VBox(0,btnNewDef,btnNewClause,btnMoveClauseWS,btnCopyClauseWS,btnCopyClauseLib,btnMoveClauseLib,btnDoEdit);
+        VBox vbox1 = new VBox(0,btnNewDef,btnNewClause,btnMoveClauseWS,btnCopyClauseWS,btnCopyClauseLib,btnMoveClauseLib,btnDeleteClause,btnDoEdit);
         
         //VBox vbox1 = new VBox(0,btnMoveClauseWS,btnCopyClause,btnDoEdit);
         //
@@ -1011,6 +1011,27 @@ It takes just the clause from the existing Sprite and builds rest from scratch *
         copySprite.setOnMouseDragged(DragBoxEventHandler);
         return copySprite;
     }
+
+/* Method to remove current SpriteBox and contained clause from system 
+TO DO: Cater for other windows e.g. new loaded workspace window...
+*/
+public void deleteSprite (SpriteBox mySprite) {
+    if (mySprite.isInLibrary()==true) {
+        LibraryClauseContainer.removeClause(mySprite.getClause());
+        LibraryGroup.getChildren().remove(mySprite); 
+        //do this to refresh - or just Library window?
+        //ParentStage.show();
+        LibraryStage.show();
+        return;
+    }
+    if (mySprite.isOnStage()==true) {
+        WorkspaceClauseContainer.removeClause(mySprite.getClause());
+        WorkspaceGroup.getChildren().remove(mySprite); 
+        //do this to refresh
+        ParentStage.show();
+        return;
+    }
+}
 
 /* ---- JAVAFX APPLICATION STARTS HERE --- */
   
@@ -1168,6 +1189,24 @@ It takes just the clause from the existing Sprite and builds rest from scratch *
     };
 
     //BUTTON EVENT HANDLERS
+
+    //
+
+    EventHandler<ActionEvent> deleteCurrentSprite = 
+        new EventHandler<ActionEvent>() {
+ 
+        @Override
+        public void handle(ActionEvent t) {
+            //This sets the initial reference - should be updated based on previous selections 
+            SpriteBox currentSprite = mySpriteManager.getCurrentSprite(); //not based on the button
+            //lose focus
+            currentSprite.endAlert();
+            /* For now, use single delete function, alternatively use different
+            functions depending on where SpriteBox is located 
+            */
+            deleteSprite(currentSprite);
+            }
+        };
 
     // Method to move selected sprite to Clause WIP (will not duplicate)
     /*

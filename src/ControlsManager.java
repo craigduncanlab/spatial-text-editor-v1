@@ -13,7 +13,7 @@ public class ControlsManager {
 
 //Stackbox boxWithFocus = null;
 double width = 120;
-double minwidth = 120;
+double minwidth = 150;
 
 
 //constructor

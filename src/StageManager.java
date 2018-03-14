@@ -96,8 +96,8 @@ public void setPosition(Stage Parent, Stage myStage, String myCategory) {
 
             case "toolbar":
                 myStage.initOwner(Parent);
-                myStage.setX(210);
-                myStage.setY(500);
+                myStage.setX(1000); //1440 is about 71%
+                myStage.setY(50); //900 is abot 0.05%
                 myStage.toFront();
                 break;
 
