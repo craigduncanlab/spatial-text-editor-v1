@@ -71,6 +71,10 @@ From classes folder:
 javac -d ../classes ../src/*.java
 java Main
 
+14.3.18
+Currently showing workspace, library, output, importer.  To add: Collections, Projects
+Aniticipated: One powerdock environment for each workdivision, with Projects down.
+
 */
 public class Main extends Application {
     //setup instance variables here.  Static if shared across class (i.e. static=same memory location used)
@@ -252,6 +256,7 @@ public void setupImportStage(Stage textStage, String myTitle) {
         //Set horizontal boxes with spacing and child nodes *i.e. a row 
         HBox hbox2 = new HBox(0,this.textArea3,this.textArea4);
 
+        //TO DO: remove buttons and add to Importer Menu
         //Button for Word Counts with Action Event handler
         Button btn = new Button();
         //myControlsManager.newStdButton();
@@ -339,6 +344,12 @@ public Group setupWorkspaceStage(Stage myStage, String myTitle) {
         MenuItem PrintBoxes = new MenuItem("PrintBoxes");
         MenuItem SaveOutput = new MenuItem("Save");
         MenuItem FileOpen = new MenuItem("FileOpen");
+        MenuItem WordCount = new MenuItem("WordCount");
+        MenuItem InputFile = new MenuItem("InputFile");
+        MenuItem GetDefText = new MenuItem("GetDefText");
+        MenuItem GetDefs = new MenuItem("GetDefs");
+        MenuItem GetClauses = new MenuItem("GetClauses");
+        MenuItem GetSections = new MenuItem("GetSections");
         menuWorkspace.getItems().addAll(
             SaveWork,
             LoadWork,
@@ -351,7 +362,7 @@ public Group setupWorkspaceStage(Stage myStage, String myTitle) {
         menuOutput.getItems().addAll(
             SaveOutput);
         menuImport.getItems().addAll(
-            FileOpen);
+            FileOpen,InputFile,GetDefText,GetDefs,GetClauses,GetSections);
         //
         Menu menuViews = new Menu("Views");
         MenuItem viewImporter = new MenuItem("Importer");
@@ -587,6 +598,16 @@ public Group setupWorkspaceStage(Stage myStage, String myTitle) {
             myfileApp.replaceText(savecontents);
             }
         });
+
+        /*procedures for importer menu
+          updateWordCounts
+          OpenInputFile
+          extractDefinitions
+          makeDefIcons
+          makeClauseIcons
+          importStatuteClauses
+          */
+
 
         menuBar.getMenus().addAll(menuViews, menuWorkspace, menuLibrary, menuOutput);     
 
