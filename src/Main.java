@@ -861,12 +861,11 @@ public Group setupToolbarPanel(Stage myStage, String myTitle) {
         btnCopyClauseLib.setTooltip(new Tooltip ("Press to copy clause to Library Window"));
         btnCopyClauseLib.setOnAction(CopyClausetoLib);
 
-        /* //Button for copying clauses
-        Button btnCopyClause = new Button();
-        btnCopyClause.setText("Copy to WIP");
-        btnCopyClause.setTooltip(new Tooltip ("[TBA] Press to copy clause to Clause WIP Window"));
-        //btnCopyClause.setOnAction(CopyClausetoWorkspace);
-        */
+        //Button for copying clauses to workspace
+        Button btnCopyClauseWS = new Button();
+        btnCopyClauseWS.setText("Copy to Workspace");
+        btnCopyClauseWS.setTooltip(new Tooltip ("Press to copy clause to Workspace"));
+        btnCopyClauseWS.setOnAction(CopyClausetoWorkspace);
 
         Button btnDoEdit = myControlsManager.newStdButton();
         btnDoEdit.setText("Edit");
@@ -878,7 +877,7 @@ public Group setupToolbarPanel(Stage myStage, String myTitle) {
         
         //Set horizontal box to hold buttons
         //HBox hboxButtons = new HBox(0,btnMoveClauseWS,btnCopyClause);
-        VBox vbox1 = new VBox(0,btnNewDef,btnNewClause,btnMoveClauseWS,btnCopyClauseLib,btnMoveClauseLib,btnDoEdit);
+        VBox vbox1 = new VBox(0,btnNewDef,btnNewClause,btnMoveClauseWS,btnCopyClauseWS,btnCopyClauseLib,btnMoveClauseLib,btnDoEdit);
         
         //VBox vbox1 = new VBox(0,btnMoveClauseWS,btnCopyClause,btnDoEdit);
         //
@@ -1238,20 +1237,25 @@ It takes just the clause from the existing Sprite and builds rest from scratch *
         }
     };
 
-    /* TO DO: Turn this into a copy not a move */
+    /* This is a copy not a move */
 
     EventHandler<ActionEvent> CopyClausetoWorkspace = 
         new EventHandler<ActionEvent>() {
  
         @Override
         public void handle(ActionEvent t) {
+            
             //This sets the initial reference 
             SpriteBox currentSprite = mySpriteManager.getCurrentSprite(); //not based on the button
-            //lose focus
-            currentSprite.endAlert();
-            /* add clause to the list of clauses in the clause array */
-            WorkspaceClauseContainer.addClause(currentSprite.getClause()); 
-            placeOnMainStage(currentSprite); 
+            if (currentSprite.isOnStage()==false) {
+                //lose focus
+                currentSprite.endAlert();
+                //copy sprite
+                SpriteBox copySprite = makeCopySprite(currentSprite);
+                /* add clause to the list of clauses in the clause array */
+                WorkspaceClauseContainer.addClause(copySprite.getClause()); 
+                placeOnMainStage(copySprite); 
+            }
         }
     };
 
