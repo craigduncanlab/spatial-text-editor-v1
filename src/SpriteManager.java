@@ -24,6 +24,13 @@ public void setCurrentSprite(SpriteBox mySprite) {
 	this.currentSprite=mySprite;
 }
 
+/* Set target sprite.  The Target Sprite differs from 'current sprite' in that it is set 
+here, in the Sprite Manager and isn't necessarily the 'current sprite' triggered by a mouse event.
+Target sprite is the last tagged sprite e.g. the last sprite that had its red alert triggered?
+e.g. current sprite could be a box that is merely dragged, but not 'selected'.
+No need for this distintion?  Just change focus when touched?
+*/
+
 public void setTargetSprite(SpriteBox mySprite) {
     this.targetSprite=mySprite;
 }

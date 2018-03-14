@@ -81,7 +81,7 @@ public void setPosition(Stage Parent, Stage myStage, String myCategory) {
 
     switch(myCategory){
 
-            case "WIP":
+            case "workspace":
                 myStage.setX(0);
                 myStage.setY(0);
                 myStage.toBack();

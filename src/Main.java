@@ -559,15 +559,15 @@ public Group setupWorkspaceStage(Stage myStage, String myTitle) {
         defScene.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
          @Override
          public void handle(MouseEvent mouseEvent) {
-         System.out.println("Clause WIP Mouse click detected! " + mouseEvent.getSource());
-         mySpriteManager.setStageFocus("ClauseWIP");
+         System.out.println("Workspace Stage Mouse click detected! " + mouseEvent.getSource());
+         mySpriteManager.setStageFocus("workspace");
              }
         });
 
                //
         myStage.setScene(defScene); //this selects the stage as current scene
         //Position
-        myStageManager.setPosition(ParentStage,myStage,"WIP");
+        myStageManager.setPosition(ParentStage,myStage,"workspace");
         myStage.show();
         
 
@@ -781,7 +781,7 @@ public Group setupToolbarPanel(Stage myStage, String myTitle) {
         //
         myStage.setScene(toolbarScene); //this selects the stage as current scene
         //Layout
-        myStageManager.setPosition(ParentStage,myStage,"WIP Toolbar");
+        myStageManager.setPosition(ParentStage,myStage,"toolbar");
         myStage.show();
         
         //Button for new clauses
@@ -822,7 +822,7 @@ public Group setupToolbarPanel(Stage myStage, String myTitle) {
         //Button for moving clauses to Workspace
         Button btnMoveClauseWS = myControlsManager.newStdButton();
         btnMoveClauseWS.setText("Send to Workspace");
-        btnMoveClauseWS.setTooltip(new Tooltip ("Press to move clause to Clause WIP Window"));
+        btnMoveClauseWS.setTooltip(new Tooltip ("Press to move clause to Workspace Window"));
         btnMoveClauseWS.setOnAction(MoveClausetoWS);
 
         //Button for moving clauses to Library
@@ -836,7 +836,7 @@ public Group setupToolbarPanel(Stage myStage, String myTitle) {
         Button btnCopyClause = new Button();
         btnCopyClause.setText("Copy to WIP");
         btnCopyClause.setTooltip(new Tooltip ("[TBA] Press to copy clause to Clause WIP Window"));
-        //btnCopyClause.setOnAction(CopyClausetoWIP);
+        //btnCopyClause.setOnAction(CopyClausetoWorkspace);
         */
 
         Button btnDoEdit = myControlsManager.newStdButton();
@@ -1043,26 +1043,36 @@ public Boolean isLegalRoleWord (String myWord) {
             orgTranslateX = ((SpriteBox)(t.getSource())).getTranslateX();
             orgTranslateY = ((SpriteBox)(t.getSource())).getTranslateY();
             System.out.println("getx: "+ orgSceneX+ " gety: "+orgSceneY);
-            //change colour if double click
-
+            
+            SpriteBox hadFocus=null;
+            SpriteBox currentSprite = null;
             switch(t.getClickCount()){
+                //single click
                 case 1:
                     System.out.println("One click");
-                    //change colour or something
+                    //end alert status for current sprite
+                    hadFocus = mySpriteManager.getCurrentSprite();
+                    if (hadFocus!=null) {
+                        hadFocus.endAlert();
+                    }
+                    currentSprite = ((SpriteBox)(t.getSource()));
+                    //change current sprite and set alert colour
+                    mySpriteManager.setCurrentSprite(currentSprite);
+                    currentSprite.doAlert();
                     break;
                 case 2:
                     System.out.println("Two clicks");
                     
                     //unfocus current Sprite - only works for the Sandbox? or record in any window?  
-                    SpriteBox hadFocus = mySpriteManager.getCurrentSprite();
+                    hadFocus = mySpriteManager.getCurrentSprite();
                     if (hadFocus!=null) {
                         hadFocus.endAlert();
                     }
-                    SpriteBox currentSprite = ((SpriteBox)(t.getSource()));
+                    //change colour if double click
+                    currentSprite = ((SpriteBox)(t.getSource()));
                     currentSprite.doAlert();
-                    //change target in WIP stage
-                    
-                    if (mySpriteManager.getStageFocus().equals("ClauseWIP")) {
+                    //change target only if in Workspace stage 
+                    if (mySpriteManager.getStageFocus().equals("workspace")) {
                         mySpriteManager.setTargetSprite(currentSprite);
                     }
                     
@@ -1108,6 +1118,12 @@ public Boolean isLegalRoleWord (String myWord) {
             currentSprite.setTranslateX(newTranslateX);
             currentSprite.setTranslateY(newTranslateY);
             System.out.println("The handler for drag box is acting");
+            //end alert status for current sprite
+            mySpriteManager.getCurrentSprite().endAlert();
+            //change the active sprite to the current touched sprite.
+            mySpriteManager.setCurrentSprite(currentSprite);
+            currentSprite.doAlert();
+            //single click event by itself will not change alert status - need to do it here.
             t.consume();//check
 
         }
@@ -1166,7 +1182,7 @@ public Boolean isLegalRoleWord (String myWord) {
 
     /* TO DO: Turn this into a copy not a move */
 
-    EventHandler<ActionEvent> CopyClausetoWIP = 
+    EventHandler<ActionEvent> CopyClausetoWorkspace = 
         new EventHandler<ActionEvent>() {
  
         @Override
