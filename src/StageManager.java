@@ -55,7 +55,7 @@ public StageManager() {
 
     */
 
-    /*inspector panel 
+    /*textmaker panel 
     //Layout
         Rectangle2D ScreenBounds = Screen.getPrimary().getVisualBounds();
         //inspector
@@ -101,7 +101,7 @@ public void setPosition(Stage Parent, Stage myStage, String myCategory) {
                 myStage.toFront();
                 break;
 
-            case "inspector":  
+            case "textmaker":  
                 myStage.initOwner(Parent);
                 myStage.setX(150);
                 myStage.setY(550);
