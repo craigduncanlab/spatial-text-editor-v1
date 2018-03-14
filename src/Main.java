@@ -53,6 +53,8 @@ import java.io.FileOutputStream;
 import java.io.ObjectInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
+//File chooser
+import javafx.stage.FileChooser;
 
 /*
 This 'extends Application' will be the standard extension to collect classes for JavaFX applications.
@@ -92,7 +94,7 @@ public class Main extends Application {
     SpriteManager mySpriteManager;
     StageManager myStageManager = new StageManager();
     ControlsManager myControlsManager = new ControlsManager();
-    //Main Stage (window) that owns all other Stages
+    //Main Stage (Workspace window) that owns all other Stages
     Stage ParentStage;
     Group WorkspaceGroup;
     BoxContainer WorkspaceBoxes; //A serializable top-level container (optional)
