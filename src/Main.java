@@ -327,6 +327,7 @@ public Group setupWorkspaceStage(Stage myStage, String myTitle) {
         Menu menuWorkspace = new Menu("Workspace");
         Menu menuLibrary = new Menu("Library");
         Menu menuOutput = new Menu("Output");
+        Menu menuImport = new Menu("Importer");
         MenuItem SaveWork = new MenuItem("Save");
         MenuItem LoadWork = new MenuItem("Load");
         MenuItem OutputWork = new MenuItem("Output as Text");
@@ -346,16 +347,18 @@ public Group setupWorkspaceStage(Stage myStage, String myTitle) {
             NewLibrary);
         menuOutput.getItems().addAll(
             SaveOutput);
+        menuImport.getItems().addAll(
+            SaveOutput);
         //
         Menu menuViews = new Menu("Views");
-        MenuItem menuImporter = new MenuItem("Importer");
-        MenuItem menuEditor = new MenuItem("Editor");
-        MenuItem menutextmaker = new MenuItem("Textmaker");
+        MenuItem viewImporter = new MenuItem("Importer");
+        MenuItem viewEditor = new MenuItem("Editor");
+        MenuItem viewtextmaker = new MenuItem("Textmaker");
         MenuItem viewToolbar = new MenuItem("Clause Toolbar");
         menuViews.getItems().addAll(
-            menuImporter,
-            menuEditor,
-            menutextmaker,
+            viewImporter,
+            viewEditor,
+            viewtextmaker,
             viewToolbar);
 
         //TO : Just insert function name here and function detail elsewhere
@@ -512,7 +515,7 @@ public Group setupWorkspaceStage(Stage myStage, String myTitle) {
         }); 
 
         //Toggle visibility of output window
-        menutextmaker.setOnAction(new EventHandler<ActionEvent>() {
+        viewtextmaker.setOnAction(new EventHandler<ActionEvent>() {
         public void handle(ActionEvent t) {
                 if (textmakerWindow.isShowing()==false) {
                     textmakerWindow.show();
@@ -526,7 +529,7 @@ public Group setupWorkspaceStage(Stage myStage, String myTitle) {
         });
 
         //toggle visibility of editor
-        menuEditor.setOnAction(new EventHandler<ActionEvent>() {
+        viewEditor.setOnAction(new EventHandler<ActionEvent>() {
         public void handle(ActionEvent t) {
                 if (editorStage.isShowing()==false) {
                     editorStage.show();
@@ -540,7 +543,7 @@ public Group setupWorkspaceStage(Stage myStage, String myTitle) {
         });
 
          //toggle visibility of importer
-        menuImporter.setOnAction(new EventHandler<ActionEvent>() {
+        viewImporter.setOnAction(new EventHandler<ActionEvent>() {
         public void handle(ActionEvent t) {
                 if (importStage.isShowing()==false) {
                     importStage.show();
