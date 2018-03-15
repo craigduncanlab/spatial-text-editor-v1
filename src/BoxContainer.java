@@ -33,6 +33,10 @@ public void addBox(SpriteBox newBox) {
 }
 
 //To do: remove an object from list, if it is in the list.
+
+public void removeBox(SpriteBox myBox) {
+	this.myBoxes.remove(myBox);
+}
 /* Java 8 onwards has remove method.  Iterates internally to find the relevant object */
 
 /* This method makes use of the fact that an ArrayList is part of Java's collections, and as such, we can call a method that creates an iterator object, and use it.

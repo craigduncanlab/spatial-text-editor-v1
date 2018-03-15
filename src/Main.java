@@ -290,11 +290,19 @@ public Group setupWorkspaceStage(Stage myStage, String myTitle) {
 
         MenuBar menuBar = new MenuBar();
         //Items for horizontal menu, vertical MenuItems for each
-       
+        Menu menuObject = new Menu("Object");
         Menu menuWorkspace = new Menu("Workspace");
         Menu menuLibrary = new Menu("Library");
         Menu menuOutput = new Menu("Output");
         Menu menuImport = new Menu("Importer");
+        Menu menuViews = new Menu("Views");
+        MenuItem NewDef = new MenuItem("Def");
+        MenuItem NewClause = new MenuItem("Clause");
+        MenuItem NewEvent = new MenuItem("Event");
+        MenuItem viewImporter = new MenuItem("Importer");
+        MenuItem viewEditor = new MenuItem("Editor");
+        MenuItem viewtextmaker = new MenuItem("Textmaker");
+        MenuItem viewToolbar = new MenuItem("Clause Toolbar");
         MenuItem SaveWork = new MenuItem("Save");
         MenuItem LoadWork = new MenuItem("Load");
         MenuItem OutputWork = new MenuItem("Output as Text");
@@ -310,7 +318,13 @@ public Group setupWorkspaceStage(Stage myStage, String myTitle) {
         MenuItem GetDefs = new MenuItem("GetDefs");
         MenuItem GetClauses = new MenuItem("GetClauses");
         MenuItem GetSections = new MenuItem("GetSections");
-        menuWorkspace.getItems().addAll(
+         menuObject.getItems().addAll(NewDef,NewClause);
+         menuViews.getItems().addAll(
+            viewImporter,
+            viewEditor,
+            viewtextmaker,
+            viewToolbar);
+         menuWorkspace.getItems().addAll(
             SaveWork,
             LoadWork,
             OutputWork,
@@ -323,18 +337,7 @@ public Group setupWorkspaceStage(Stage myStage, String myTitle) {
             SaveOutput);
         menuImport.getItems().addAll(
             WordCount,GetDefText,GetDefs,GetClauses,GetSections);
-        //
-        Menu menuViews = new Menu("Views");
-        MenuItem viewImporter = new MenuItem("Importer");
-        MenuItem viewEditor = new MenuItem("Editor");
-        MenuItem viewtextmaker = new MenuItem("Textmaker");
-        MenuItem viewToolbar = new MenuItem("Clause Toolbar");
-        menuViews.getItems().addAll(
-            viewImporter,
-            viewEditor,
-            viewtextmaker,
-            viewToolbar);
-
+        
         //TO : Just insert function name here and function detail elsewhere
         /*TO DO: ADD OPTION TO TAKE FILENAME AS ARG WHEN INVOKING MAIN
                 i.e. you can specify your workspace name when starting it up */
@@ -559,16 +562,17 @@ public Group setupWorkspaceStage(Stage myStage, String myTitle) {
             }
         });
 
-        /*procedures for importer menu*/
+        /*procedues for Object menu*/
+        NewClause.setOnAction(addNewClauseBox);
+        NewDef.setOnAction(addNewDefBox);
+        /*procedures for Import menu  TO DO: File Open*/
         WordCount.setOnAction(updateWordCounts); //argument is an EventHandler with ActionEvent object
-        //FileOpen
-        //InputFile.setOnAction();
         GetDefText.setOnAction(extractDefinitions);
         GetDefs.setOnAction(makeDefIcons);
         GetClauses.setOnAction(makeClauseIcons);
         GetSections.setOnAction(importStatuteClauses);
 
-        menuBar.getMenus().addAll(menuViews, menuWorkspace, menuLibrary, menuOutput, menuImport);     
+        menuBar.getMenus().addAll(menuViews, menuObject,menuWorkspace, menuLibrary, menuOutput, menuImport);     
 
 
         //add group layout object as root node for Scene at time of creation
@@ -939,7 +943,6 @@ public Boolean isLegalRoleWord (String myWord) {
         System.out.println("Sprite received for placing in Library:"+thisSprite.toString());
         LibraryGroup.getChildren().add(thisSprite); 
         mySpriteManager.placeInLibrary(thisSprite);
-        //WorkspaceBoxes.addBox(thisSprite);
     }
 
 /* Method to copy SpriteBox including event handlers needed
@@ -1194,6 +1197,7 @@ public void deleteSprite (SpriteBox mySprite) {
             WorkspaceClauseContainer.removeClause(currentSprite.getClause()); 
             //add sprite to Library Stage. This will clean up object on Workspace...
             placeInLibraryStage(currentSprite);
+            WorkspaceBoxes.removeBox(currentSprite); //cleanup stage refs.  TO DO: use sprite manager
             }
         }
     };
