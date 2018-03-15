@@ -204,6 +204,9 @@ public class SpriteBox extends StackPane implements java.io.Serializable {
             case "legalrole":
                 this.SetColour("orange");
                 break;
+            case "event":
+                this.SetColour("lightblue");
+                break;
             default:
                 this.SetColour("blue");
                 break;

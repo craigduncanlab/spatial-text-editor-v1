@@ -55,6 +55,10 @@ public class ColBox extends Rectangle{
             myColour = Color.BLUE;
             this.boxcolour = mycol;
         }
+        if (mycol.equals("lightblue")) {
+            myColour = Color.LIGHTBLUE;
+            this.boxcolour = mycol;
+        }
         if (mycol.equals("green")) {
             myColour = Color.GREEN;
             this.boxcolour = mycol;

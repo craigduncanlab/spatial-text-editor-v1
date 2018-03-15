@@ -7,6 +7,7 @@ Implements serializable for save functions.
 Order of encapsulation is BoxContainer-->SpriteBox-->Clause
 */
 
+//TO DO: Rename this class as 'Contents' or 'DataObject' etc.  Equivalent to a scene?
 public class Clause implements java.io.Serializable {
 //setup declare instance variables. shared in class if preceded by static.	
 String label=""; //will hold the GUI box term (initially same as def'n)
@@ -20,6 +21,13 @@ int IndexValue=0; //index for positioning in documents
 int frequency = 0;  //frequency of use in text
 //TO DO: financial terms.  These may need to be extensions of Clause?
 //TO DO: terms, time periods
+//new categories
+String eventDesc = "";
+String eventDate = "";
+//Event related data TO DO: include a SimpleDateFormat data type
+ArrayList<String> Participants = new ArrayList<String>();
+ArrayList<String> Witnesses = new ArrayList<String>();
+ArrayList<String> Items = new ArrayList<String>();
 
 //empty constructor no arguments
 public Clause() {
@@ -34,7 +42,8 @@ public Clause (String myLabel, String myHeading, String myText, String myCategor
 	this.Category=myCategory;
 }
 
-//Category
+//Category types include definition, clause, event
+
 public void setCategory(String mytext) {
 	this.Category=mytext;
 }
@@ -89,6 +98,24 @@ public int getFreq() {
 
 public void incFreq() {
 	this.frequency++;
+}
+
+public void setEventDate(String mytext) {
+	this.eventDate=mytext;
+}
+
+public String getEventDate() {
+	return this.eventDate;
+}
+
+//Main clause text for this clause object
+
+public void setEventDesc(String mytext) {
+	this.eventDesc=mytext;
+}
+
+public String getEventDesc() {
+	return this.eventDesc;
 }
 
 }

@@ -56,6 +56,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 //File chooser
 import javafx.stage.FileChooser;
+//key events
+import javafx.scene.input.KeyEvent;
 
 /*
 This 'extends Application' will be the standard extension to collect classes for JavaFX applications.
@@ -126,7 +128,9 @@ public class Main extends Application {
     TextArea headingEdit;
     TextArea textEdit;
     TextArea categoryEdit;
+    TextArea dateEdit;
     Clause editClause;
+    Event editEvent;
     //Group editGroup_root;
     Stage editorStage;
     Pane editGroup_root;
@@ -318,7 +322,7 @@ public Group setupWorkspaceStage(Stage myStage, String myTitle) {
         MenuItem GetDefs = new MenuItem("GetDefs");
         MenuItem GetClauses = new MenuItem("GetClauses");
         MenuItem GetSections = new MenuItem("GetSections");
-         menuObject.getItems().addAll(NewDef,NewClause);
+         menuObject.getItems().addAll(NewDef,NewClause,NewEvent);
          menuViews.getItems().addAll(
             viewImporter,
             viewEditor,
@@ -565,6 +569,7 @@ public Group setupWorkspaceStage(Stage myStage, String myTitle) {
         /*procedues for Object menu*/
         NewClause.setOnAction(addNewClauseBox);
         NewDef.setOnAction(addNewDefBox);
+        NewEvent.setOnAction(addNewEventBox);
         /*procedures for Import menu  TO DO: File Open*/
         WordCount.setOnAction(updateWordCounts); //argument is an EventHandler with ActionEvent object
         GetDefText.setOnAction(extractDefinitions);
@@ -686,33 +691,74 @@ public Pane setupEditorPanel(Stage myStage, String myTitle) {
         //TextArea and contents
         Text labelTag = new Text("Label:");
         labelEdit = new TextArea();
+        labelEdit.setPrefRowCount(2);
         Text headingTag = new Text("Clause heading:");
         headingEdit = new TextArea();
+        headingEdit.setPrefRowCount(2);
         Text contentsTag = new Text("Clause text:");
         textEdit = new TextArea();
-        textEdit.setMinHeight(300);
+        textEdit.setPrefRowCount(5);
         textEdit.setWrapText(true);
         Text categoryTag = new Text("Category:");
         categoryEdit = new TextArea();
-        //
-        //VBox vboxEdit = new VBox(0,labelTag,labelEdit,headingTag,headingEdit,contentsTag,textEdit,categoryTag,categoryEdit);
-        /* do not edit label separately for now*/
-        VBox vboxEdit = new VBox(0,headingTag,headingEdit,contentsTag,textEdit,categoryTag,categoryEdit);
-        vboxEdit.setMinWidth(300);  //150
-        vboxEdit.setPrefHeight(600); //250
-        //vboxEdit.setVgrow(textEdit, Priority.ALWAYS);
+        categoryEdit.setPrefRowCount(1);
+        Text dateTag = new Text("Date:");
+        dateEdit = new TextArea();
+        dateEdit.setPrefRowCount(1);
         //
         SpriteBox focusSprite = mySpriteManager.getCurrentSprite();
         editClause = focusSprite.getClause();
+        VBox vboxEdit;
+        if (editClause.getCategory().equals("event")) {
+        vboxEdit = new VBox(0,headingTag,headingEdit,dateTag,dateEdit,contentsTag,textEdit,categoryTag,categoryEdit);
+        }
+        else {
+        //VBox vboxEdit = new VBox(0,labelTag,labelEdit,headingTag,headingEdit,contentsTag,textEdit,categoryTag,categoryEdit);
+        /* do not edit label separately for now*/
+        vboxEdit = new VBox(0,headingTag,headingEdit,contentsTag,textEdit,categoryTag,categoryEdit);
+        //vboxEdit.setVgrow(textEdit, Priority.ALWAYS);
+        }
+
+        //try this:
+        labelEdit.addEventHandler(KeyEvent.KEY_RELEASED, new EventHandler<KeyEvent>() {
+            @Override
+            public void handle(KeyEvent event) {
+                 // your algorithm to change height
+                 labelEdit.setPrefHeight(labelEdit.getPrefHeight()+10); 
+            }
+        });
+        //vboxEdit.setVgrow(textEdit,"Priority.ALWAYS");
+        /*vboxEdit.setMinWidth(300);  //150
+        vboxEdit.setPrefHeight(600); //250
+        */
+        
         //labelEdit.setText(editClause.getLabel());
         //For now: Make label same as definition/clause heading
-        labelEdit.setText(editClause.getHeading());
-        headingEdit.setText(editClause.getHeading());
-        textEdit.setText(editClause.getClause());
-        categoryEdit.setText(editClause.getCategory());
+        //Appearance for specific types of Clauses
         if (editClause.getCategory().equals("definition")) {
             headingTag.setText("Defined term:");
             contentsTag.setText("means:");
+            labelEdit.setText(editClause.getHeading());
+            headingEdit.setText(editClause.getHeading());
+            textEdit.setText(editClause.getClause());
+            categoryEdit.setText(editClause.getCategory());
+        }
+        if (editClause.getCategory().equals("clause")) {
+            labelEdit.setText(editClause.getHeading());
+            headingEdit.setText(editClause.getHeading());
+            textEdit.setText(editClause.getClause());
+            categoryEdit.setText(editClause.getCategory());
+        }
+        if (editClause.getCategory().equals("event")) {
+            dateTag.setText("Date:");
+            headingTag.setText("Event:");
+            contentsTag.setText("Description:");
+            labelEdit.setText(editClause.getHeading());
+            headingEdit.setText(editClause.getHeading());
+            textEdit.setText(editClause.getEventDesc());
+            categoryEdit.setText(editClause.getCategory());
+            dateEdit.setText(editClause.getEventDate());
+            //TO DO: add participants/witness edit
         }
         //
         myStage.setScene(editorScene); //this selects the stage as current scene
@@ -740,8 +786,9 @@ public Pane setupEditorPanel(Stage myStage, String myTitle) {
         vboxAll.setPrefWidth(200);
         //
         editorPanel_root.getChildren().add(vboxAll); //add the vbox to the root node to hold everything
-        int totalwidth=190;
+        /*int totalwidth=190;
         vboxAll.setPrefWidth(totalwidth); //this is in different units to textarea
+        */
        
         //return the child node, not the root in this case? e.g.vBoxEdit?
         return editorPanel_root;
@@ -1339,6 +1386,27 @@ public void deleteSprite (SpriteBox mySprite) {
             }
         };
 
+    EventHandler<ActionEvent> addNewEventBox = 
+    new EventHandler<ActionEvent>() {
+
+        @Override 
+        public void handle(ActionEvent event) {
+            SpriteBox b;
+            String label = "New Event"; //TO DO: Sprite Manager to increment # unused.
+            String text = "replace with event text";
+            String category = "definition";
+            //Event myEvent = new Event(label,heading,text,category); 
+            Event myEvent = new Event(label,text);
+            //common
+            b = new SpriteBox(); //leave default settings to the 'setClause' method in SpriteBox
+            b.setClause(myEvent);
+            WorkspaceClauseContainer.addClause(b.getClause()); //add clause from sprite to clauses container
+            b.setOnMousePressed(PressBoxEventHandler); 
+            b.setOnMouseDragged(DragBoxEventHandler);
+            placeOnMainStage(b); 
+            }
+        };
+
     //printClauseList
         EventHandler<ActionEvent> printClauseList = 
         new EventHandler<ActionEvent>() {
@@ -1543,14 +1611,26 @@ public void deleteSprite (SpriteBox mySprite) {
             //editClause = focusSprite.getClause();
             //editClause.setClauselabel(labelEdit.getText());
             //For now: set label as for heading
-            editClause.setClauselabel(headingEdit.getText());
-            editClause.setHeading(headingEdit.getText());
-            editClause.setClausetext(textEdit.getText());
-            editClause.setCategory(categoryEdit.getText());
-            //update the SpriteBox on the GUI
-            SpriteBox focusSprite = mySpriteManager.getCurrentSprite();
-            focusSprite.setClause(editClause);
-            System.out.println("Clause updated!");
+            if (editClause.getCategory().equals("event")) {
+                editClause.setClauselabel(headingEdit.getText());
+                editClause.setHeading(headingEdit.getText());
+                editClause.setClausetext(textEdit.getText()); //leave for now
+                editClause.setEventDesc(textEdit.getText()); //extension for Event
+                editClause.setCategory(categoryEdit.getText());
+                editClause.setEventDate(dateEdit.getText());
+                System.out.println("Event updated!");
+            }
+            else 
+                { 
+                    editClause.setClauselabel(headingEdit.getText());
+                    editClause.setHeading(headingEdit.getText());
+                    editClause.setClausetext(textEdit.getText());
+                    editClause.setCategory(categoryEdit.getText());
+                    System.out.println("Clause updated!");
+                }
+                //update the SpriteBox on the GUI
+                SpriteBox focusSprite = mySpriteManager.getCurrentSprite();
+                focusSprite.setClause(editClause);
             }
         };
 }
