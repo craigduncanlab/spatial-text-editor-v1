@@ -3,6 +3,7 @@
 This application creates a GUI as a legal doc staging, editing & visualisation environment
 
 JavaFX implementation of GUI started 17.11.2017 by Craig Duncan
+
 */
  
 
@@ -71,9 +72,6 @@ From classes folder:
 javac -d ../classes ../src/*.java
 java Main
 
-14.3.18
-Currently showing workspace, library, output, importer.  To add: Collections, Projects
-Aniticipated: One powerdock environment for each workdivision, with Projects down.
 
 */
 public class Main extends Application {
@@ -233,8 +231,8 @@ public void setupImportStage(Stage textStage, String myTitle) {
         double leftColWidth = 650;
         double leftColHeight = 400;
         double rightColWidth = 150;
-        double windowWidth = 800;
-        double windowHeight = leftColHeight+100;
+        double windowWidth = leftColWidth+rightColWidth;
+        double windowHeight = leftColHeight;
         /* Setup a horizontal box with two text areas, but put first in scrollpane to allow scrolling */
         this.textArea1.setWrapText(true);
         this.textArea2.setWrapText(true);
@@ -254,49 +252,11 @@ public void setupImportStage(Stage textStage, String myTitle) {
         this.textArea4.setPrefWidth(leftColWidth);
         
         //Set horizontal boxes with spacing and child nodes *i.e. a row 
-        HBox hbox2 = new HBox(0,this.textArea3,this.textArea4);
-
-        //TO DO: remove buttons and add to Importer Menu
-        //Button for Word Counts with Action Event handler
-        Button btn = new Button();
-        //myControlsManager.newStdButton();
-        btn.setText("Update Word Counts");
-        btn.setOnAction(updateWordCounts);
-
-        Button btnOpenInput = new Button();
-        //myControlsManager.newStdButton();
-        btnOpenInput.setText("Import");
-        btnOpenInput.setOnAction(OpenInputFile);
-        
-        //Button for definitions with Action Event handler
-        Button btnDefs = new Button();
-        btnDefs.setTooltip(new Tooltip ("Press to extract definitions from top text area"));
-        btnDefs.setText("Extract Definitions");
-        btnDefs.setOnAction(extractDefinitions);
-
-        //Button for definitions icons with Action Event handler
-        Button btnDefIcons = new Button();
-        btnDefIcons.setTooltip(new Tooltip ("Press to create definitions icons from top text area"));
-        btnDefIcons.setText("Extract Def Icons");
-        btnDefIcons.setOnAction(makeDefIcons);
-
-        //Button for Clause blocks with Action Event handler
-        Button btnClauses = new Button();
-        btnClauses.setTooltip(new Tooltip ("Press to extract Clauses from top Text Area"));
-        btnClauses.setText("Extract Clause Icons");
-        btnClauses.setOnAction(makeClauseIcons);
-
-        //Button for Importing Statutory Sections 
-        Button btnImportStatute = new Button();
-        btnImportStatute.setTooltip(new Tooltip ("Press to extract Statute Cl. from top Text Area"));
-        btnImportStatute.setText("Extract Statute Sectns");
-        btnImportStatute.setOnAction(importStatuteClauses);
-
-        //Set horizontal box to hold buttons and place horizontal boxes inside vertical box
-        hbox3 = new HBox(0,btnOpenInput,btn,btnDefs,btnDefIcons, btnClauses, btnImportStatute);
+        //HBox hbox2 = new HBox(0,this.textArea3,this.textArea4);
         VBox vbox2 = new VBox(0,hbox1);
         vbox2.setPrefWidth(totalwidth);
-        vbox2.getChildren().add(hbox3);
+        //vbox2.getChildren().add(hbox3);
+        
         
         // Lastly, attach vbox to root scrollpane and add to Scene
         scroll_rootNode = new ScrollPane();
@@ -362,7 +322,7 @@ public Group setupWorkspaceStage(Stage myStage, String myTitle) {
         menuOutput.getItems().addAll(
             SaveOutput);
         menuImport.getItems().addAll(
-            FileOpen,InputFile,GetDefText,GetDefs,GetClauses,GetSections);
+            WordCount,GetDefText,GetDefs,GetClauses,GetSections);
         //
         Menu menuViews = new Menu("Views");
         MenuItem viewImporter = new MenuItem("Importer");
@@ -599,17 +559,16 @@ public Group setupWorkspaceStage(Stage myStage, String myTitle) {
             }
         });
 
-        /*procedures for importer menu
-          updateWordCounts
-          OpenInputFile
-          extractDefinitions
-          makeDefIcons
-          makeClauseIcons
-          importStatuteClauses
-          */
+        /*procedures for importer menu*/
+        WordCount.setOnAction(updateWordCounts); //argument is an EventHandler with ActionEvent object
+        //FileOpen
+        //InputFile.setOnAction();
+        GetDefText.setOnAction(extractDefinitions);
+        GetDefs.setOnAction(makeDefIcons);
+        GetClauses.setOnAction(makeClauseIcons);
+        GetSections.setOnAction(importStatuteClauses);
 
-
-        menuBar.getMenus().addAll(menuViews, menuWorkspace, menuLibrary, menuOutput);     
+        menuBar.getMenus().addAll(menuViews, menuWorkspace, menuLibrary, menuOutput, menuImport);     
 
 
         //add group layout object as root node for Scene at time of creation
@@ -633,45 +592,6 @@ public Group setupWorkspaceStage(Stage myStage, String myTitle) {
         myStageManager.setPosition(ParentStage,myStage,"workspace");
         myStage.show();
         
-
-
-
-        /*
-        //Button for new clauses
-        Button btnNewClause = new Button();
-        btnNewClause.setText("Add New Clause");
-        btnNewClause.setTooltip(new Tooltip ("Press to add a new clause"));
-        btnNewClause.setOnAction(addNewClauseBox);
-
-        //Button for new definitions addNewDefBox
-        Button btnNewDef = new Button();
-        btnNewDef.setText("Add New Definition");
-        btnNewDef.setTooltip(new Tooltip ("Press to add a new definition"));
-        btnNewDef.setOnAction(addNewDefBox);
-        
-        //Button for removing clauses
-        Button btnDeleteClause = new Button();
-        btnDeleteClause.setTooltip(new Tooltip ("Press to remove selected clause"));
-        btnDeleteClause.setText("Remove Clause");
-        //btnDeleteClause.setOnAction(extractDefinitions);
-
-        //Button for summary print list of clauses
-        Button btnClausePrint = new Button();
-        btnClausePrint.setTooltip(new Tooltip ("Press to list all clauses in textmaker/console"));
-        btnClausePrint.setText("Print List");
-        btnClausePrint.setOnAction(printClauseList);
-
-        //Button for export/document clauses TO DO: some config or separate panel.
-        Button btnExportClause = new Button();
-        btnExportClause.setTooltip(new Tooltip ("Press to output clauses as RTF"));
-        btnExportClause.setText("RTF Export");
-        //btnDeleteClause.setOnAction(extractDefinitions);
-
-        //Set horizontal box to hold buttons
-        HBox hboxButtons = new HBox(0,btnNewDef,btnNewClause,btnDeleteClause,btnClausePrint);
-        VBox vbox1 = new VBox(0,WorkspaceGroup,hboxButtons);
-        */
-        //
         VBox vbox1 = new VBox(0,WorkspaceGroup);
         myGroup_root.getChildren().add(vbox1); //add the vbox to the root node to hold everything
         int totalwidth=650;
@@ -1455,7 +1375,6 @@ public void deleteSprite (SpriteBox mySprite) {
     Event handlers for each clause block added, so that they can handle mouse events inside the Window they've been added to 
     */
 
-
     EventHandler<ActionEvent> makeClauseIcons = 
     new EventHandler<ActionEvent>() {
         @Override 
@@ -1467,6 +1386,7 @@ public void deleteSprite (SpriteBox mySprite) {
         displaySpritesInNewStage(myContainer, "Imported Clauses");
         }
     };
+    
 
     /* 
     Event handlers for each for importing statute clauses 
@@ -1484,7 +1404,7 @@ public void deleteSprite (SpriteBox mySprite) {
         displaySpritesInNewStage(myContainer, "Imported Clauses");
         }
     };
-
+    
     //Create adHoc Stage but return root (Group) so that it can be stored if significant e.g. Library
 
     public Group displaySpritesInNewStage(ClauseContainer inputContainer, String myTitle) {
@@ -1530,7 +1450,8 @@ public void deleteSprite (SpriteBox mySprite) {
         return defGroup_root;
         }    
      
-        //OpenInputFile    
+        //OpenInputFile 
+          
         EventHandler<ActionEvent> OpenInputFile = 
         new EventHandler<ActionEvent>() {
         @Override 
@@ -1582,8 +1503,7 @@ public void deleteSprite (SpriteBox mySprite) {
                 }
             }
         };
-        //
-        //update word counts
+    
         EventHandler<ActionEvent> extractDefinitions = 
         new EventHandler<ActionEvent>() {
         @Override 
@@ -1607,9 +1527,9 @@ public void deleteSprite (SpriteBox mySprite) {
             System.out.println("Get Defs Button was pressed!");
             }
         };
-
+        
         /* Update Clause in Editor */
-        //update word counts
+        
         EventHandler<ActionEvent> UpdateEditor = 
         new EventHandler<ActionEvent>() {
         @Override 
@@ -1629,5 +1549,4 @@ public void deleteSprite (SpriteBox mySprite) {
             System.out.println("Clause updated!");
             }
         };
-        
 }
