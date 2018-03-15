@@ -718,49 +718,23 @@ public Pane setupEditorPanel(Stage myStage, String myTitle) {
         vboxEdit = new VBox(0,headingTag,headingEdit,contentsTag,textEdit,categoryTag,categoryEdit);
         //vboxEdit.setVgrow(textEdit, Priority.ALWAYS);
         }
-
-        //try this:
-        labelEdit.addEventHandler(KeyEvent.KEY_RELEASED, new EventHandler<KeyEvent>() {
-            @Override
-            public void handle(KeyEvent event) {
-                 // your algorithm to change height
-                 labelEdit.setPrefHeight(labelEdit.getPrefHeight()+10); 
-            }
-        });
-        //vboxEdit.setVgrow(textEdit,"Priority.ALWAYS");
-        /*vboxEdit.setMinWidth(300);  //150
-        vboxEdit.setPrefHeight(600); //250
-        */
-        
-        //labelEdit.setText(editClause.getLabel());
-        //For now: Make label same as definition/clause heading
         //Appearance for specific types of Clauses
         if (editClause.getCategory().equals("definition")) {
             headingTag.setText("Defined term:");
             contentsTag.setText("means:");
-            labelEdit.setText(editClause.getHeading());
-            headingEdit.setText(editClause.getHeading());
-            textEdit.setText(editClause.getClause());
-            categoryEdit.setText(editClause.getCategory());
-        }
-        if (editClause.getCategory().equals("clause")) {
-            labelEdit.setText(editClause.getHeading());
-            headingEdit.setText(editClause.getHeading());
-            textEdit.setText(editClause.getClause());
-            categoryEdit.setText(editClause.getCategory());
         }
         if (editClause.getCategory().equals("event")) {
-            dateTag.setText("Date:");
             headingTag.setText("Event:");
             contentsTag.setText("Description:");
-            labelEdit.setText(editClause.getHeading());
-            headingEdit.setText(editClause.getHeading());
-            textEdit.setText(editClause.getEventDesc());
-            categoryEdit.setText(editClause.getCategory());
+            dateTag.setText("Date:");
             dateEdit.setText(editClause.getEventDate());
             //TO DO: add participants/witness edit
         }
-        //
+        labelEdit.setText(editClause.getHeading());
+        headingEdit.setText(editClause.getHeading());
+        textEdit.setText(editClause.getEventDesc());
+        categoryEdit.setText(editClause.getCategory());
+
         myStage.setScene(editorScene); //this selects the stage as current scene
         //Layout
         myStageManager.setPosition(ParentStage,myStage,"editor");
@@ -995,13 +969,29 @@ public Boolean isLegalRoleWord (String myWord) {
 /* Method to copy SpriteBox including event handlers needed
 It takes just the clause from the existing Sprite and builds rest from scratch */
     public SpriteBox makeCopySprite (SpriteBox mySprite) {
-        Clause copyClause = mySprite.getClause();
+        Clause copyClause = mySprite.getClause(); //this copies the pointer, not contents
         System.out.println(copyClause.toString());
-        SpriteBox copySprite = new SpriteBox(copyClause);
+        //copy values for clause, not references
+        Clause freshClause = makeCopyClause(copyClause);
+        SpriteBox copySprite = new SpriteBox(freshClause);
         copySprite.setOnMousePressed(PressBoxEventHandler); 
         copySprite.setOnMouseDragged(DragBoxEventHandler);
         return copySprite;
     }
+
+/*Method  copy of Clause object but with a new reference 
+Option: put these getters and setters inside a Clause constructor */
+public Clause makeCopyClause(Clause myClause) {
+    Clause anotherClause = new Clause();
+    anotherClause.setClauselabel(myClause.getLabel());
+    anotherClause.setClausetext(myClause.getClause());
+    anotherClause.setHeading(myClause.getHeading());
+    anotherClause.setCategory(myClause.getCategory());
+    anotherClause.setEventDesc(myClause.getEventDesc());
+    anotherClause.setEventDate(myClause.getEventDate());
+    anotherClause.setFreq(myClause.getFreq());
+    return anotherClause;
+}
 
 /* Method to remove current SpriteBox and contained clause from system 
 TO DO: Cater for other windows e.g. new loaded workspace window...
@@ -1222,6 +1212,8 @@ public void deleteSprite (SpriteBox mySprite) {
             if (currentSprite.isOnStage()==false) {
             /* add clause to the list of clauses in the clause array */
             WorkspaceClauseContainer.addClause(currentSprite.getClause()); 
+            //assume it could only be in library for now - not stage specific?
+            LibraryClauseContainer.removeClause(currentSprite.getClause());
             //add sprite to Stage for clause WIP. This will clean up object on Stage elsewhere...
             placeOnMainStage(currentSprite);
             }
@@ -1240,7 +1232,7 @@ public void deleteSprite (SpriteBox mySprite) {
             if (currentSprite.isInLibrary()==false) {
             /* add clause to the list of clauses in the Library clause array */
             LibraryClauseContainer.addClause(currentSprite.getClause()); 
-            //remove from clause container clause list (so it is not saved)
+            //remove from Workspace clause list (so it is not saved)
             WorkspaceClauseContainer.removeClause(currentSprite.getClause()); 
             //add sprite to Library Stage. This will clean up object on Workspace...
             placeInLibraryStage(currentSprite);
@@ -1612,25 +1604,17 @@ public void deleteSprite (SpriteBox mySprite) {
             //editClause.setClauselabel(labelEdit.getText());
             //For now: set label as for heading
             if (editClause.getCategory().equals("event")) {
-                editClause.setClauselabel(headingEdit.getText());
-                editClause.setHeading(headingEdit.getText());
-                editClause.setClausetext(textEdit.getText()); //leave for now
-                editClause.setEventDesc(textEdit.getText()); //extension for Event
-                editClause.setCategory(categoryEdit.getText());
                 editClause.setEventDate(dateEdit.getText());
                 System.out.println("Event updated!");
             }
-            else 
-                { 
-                    editClause.setClauselabel(headingEdit.getText());
-                    editClause.setHeading(headingEdit.getText());
-                    editClause.setClausetext(textEdit.getText());
-                    editClause.setCategory(categoryEdit.getText());
-                    System.out.println("Clause updated!");
-                }
-                //update the SpriteBox on the GUI
-                SpriteBox focusSprite = mySpriteManager.getCurrentSprite();
-                focusSprite.setClause(editClause);
+            editClause.setClauselabel(headingEdit.getText());
+            editClause.setHeading(headingEdit.getText());
+            editClause.setClausetext(textEdit.getText());
+            editClause.setCategory(categoryEdit.getText());
+            System.out.println("Clause updated!");
+            //update the SpriteBox on the GUI
+            SpriteBox focusSprite = mySpriteManager.getCurrentSprite();
+            focusSprite.setClause(editClause);
             }
         };
 }
