@@ -696,13 +696,14 @@ public Pane setupEditorPanel(Stage myStage, String myTitle) {
         Text labelTag = new Text("Label:");
         labelEdit = new TextArea();
         labelEdit.setPrefRowCount(2);
+        labelEdit.setPrefColumnCount(40);
         Text headingTag = new Text("Clause heading:");
         headingEdit = new TextArea();
         headingEdit.setPrefRowCount(2);
         Text contentsTag = new Text("Clause text:");
         textEdit = new TextArea();
         textEdit.setPrefRowCount(5);
-        textEdit.setPrefColumnCount(20);
+        textEdit.setPrefColumnCount(40);
         textEdit.setWrapText(true);
         Text categoryTag = new Text("Category:");
         categoryEdit = new TextArea();

@@ -75,9 +75,24 @@ TO DO: store Clauses that aren't definitions on first pass, then print them in s
 */
 
 public String getClauseAndText() {
-	String output="Definitions\n";
+	
 	//Do first iteration to print out only Definitions
 	Iterator<Clause> myDefiterator = this.myClauses.iterator();
+	String output="";
+	output=output+"\nLegal Roles\n\n";
+	while (myDefiterator.hasNext()) {
+		Clause myclause = myDefiterator.next();
+		String category = myclause.getCategory();
+		if (category.equals("legalrole")) {
+			String mylabel = myclause.getLabel();
+			String myheading = myclause.getHeading();
+			String mytext = myclause.getClause();
+			//output=output+myheading+" ("+category+")"+":\n----------\n"+mytext+"\n\n";
+			output=output+"\""+myheading+"\""+" means "+mytext+"\n";
+		}
+	}
+	output=output+"\nDefinitions\n\n";
+	myDefiterator = this.myClauses.iterator();
 	while (myDefiterator.hasNext()) {
 		Clause myclause = myDefiterator.next();
 		String category = myclause.getCategory();
@@ -90,12 +105,39 @@ public String getClauseAndText() {
 		}
 	}
 	output=output+"\nOperative Provisions\n\n";
+	myDefiterator = this.myClauses.iterator();
+	while (myDefiterator.hasNext()) {
+		Clause myclause = myDefiterator.next();
+		String category = myclause.getCategory();
+		if (category.equals("clauses")) {
+			String mylabel = myclause.getLabel();
+			String myheading = myclause.getHeading();
+			String mytext = myclause.getClause();
+			//output=output+myheading+" ("+ocategory+")"+":\n----------\n"+mytext+"\n\n";
+			output=output+myheading+"\n"+mytext+"\n";
+		}
+	}
+	output=output+"\nEvents\n\n";
+	myDefiterator = this.myClauses.iterator();
+	while (myDefiterator.hasNext()) {
+		Clause myclause = myDefiterator.next();
+		String category = myclause.getCategory();
+		if (category.equals("event")) {
+			String mylabel = myclause.getLabel();
+			String myheading = myclause.getHeading();
+			String mytext = myclause.getClause();
+			//output=output+myheading+" ("+ocategory+")"+":\n----------\n"+mytext+"\n\n";
+			output=output+myheading+"\n"+mytext+"\n";
+		}
+	}
+	output=output+"\nOthers:\n\n";
 	//everthing else
-	Iterator<Clause> myiterator = this.myClauses.iterator();
-	while (myiterator.hasNext()) {
-		Clause myclause = myiterator.next();
-		String ocategory = myclause.getCategory();
-		if (!ocategory.equals("definition")) {
+	//Iterator<Clause> myiterator = this.myClauses.iterator();
+	myDefiterator = this.myClauses.iterator();
+	while (myDefiterator.hasNext()) {
+		Clause myclause = myDefiterator.next();
+		String category = myclause.getCategory();
+		if (!category.equals("definition")&&!category.equals("event")&&!category.equals("clause")&&!category.equals("legalrole")) {
 			String mylabel = myclause.getLabel();
 			String myheading = myclause.getHeading();
 			String mytext = myclause.getClause();
