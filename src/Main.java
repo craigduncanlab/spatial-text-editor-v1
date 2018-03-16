@@ -396,7 +396,11 @@ public Group setupWorkspaceStage(Stage myStage, String myTitle) {
                 System.out.println(myBoxListIn.toString());
                 ClauseContainer inputContainer = new ClauseContainer();
                 inputContainer.setClauseArray(myBoxListIn);
-                displaySpritesInNewStage(inputContainer, "Loaded Workspace Clauses");
+                //hold existing workspace
+                displaySpritesInNewStage(WorkspaceClauseContainer, "Previous Workspace");
+                //TO DO: clear workspace
+                //Load saved Workspace into Workspace.
+                displaySpritesOnWorkspace(inputContainer);
             }
         });
 
@@ -679,7 +683,7 @@ public Pane setupEditorPanel(Stage myStage, String myTitle) {
         //Group editorPanel_root = new Group(); 
         Pane editorPanel_root = new Pane();
 
-        Scene editorScene = new Scene (editorPanel_root,300,700, Color.GREY); //default width x height (px)
+        Scene editorScene = new Scene (editorPanel_root,400,400, Color.GREY); //default width x height (px)
         //optional event handler
         editorScene.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
          @Override
@@ -698,6 +702,7 @@ public Pane setupEditorPanel(Stage myStage, String myTitle) {
         Text contentsTag = new Text("Clause text:");
         textEdit = new TextArea();
         textEdit.setPrefRowCount(5);
+        textEdit.setPrefColumnCount(20);
         textEdit.setWrapText(true);
         Text categoryTag = new Text("Category:");
         categoryEdit = new TextArea();
@@ -732,7 +737,7 @@ public Pane setupEditorPanel(Stage myStage, String myTitle) {
         }
         labelEdit.setText(editClause.getHeading());
         headingEdit.setText(editClause.getHeading());
-        textEdit.setText(editClause.getEventDesc());
+        textEdit.setText(editClause.getClause());
         categoryEdit.setText(editClause.getCategory());
 
         myStage.setScene(editorScene); //this selects the stage as current scene
@@ -1469,6 +1474,47 @@ public void deleteSprite (SpriteBox mySprite) {
         }
     };
     
+    /* Add this Clause Container to main workspace */
+
+    //Create adHoc Stage but return root (Group) so that it can be stored if significant e.g. Library
+
+    public void displaySpritesOnWorkspace(ClauseContainer wsContainer) {
+        ClauseContainer myContainer = wsContainer;
+        //Use ParentStage and WorkspaceGroup (node) 
+        ArrayList<Clause> myDList = wsContainer.getClauseArray();
+        Iterator<Clause> myiterator = myDList.iterator();
+
+        int offX=50;
+        int offY=50;
+        while (myiterator.hasNext()) {
+            Clause mydefinition = myiterator.next();
+            if (isLegalRoleWord(mydefinition.getLabel())==true) {
+                mydefinition.setCategory("legalrole");
+            }
+            SpriteBox b = new SpriteBox(mydefinition);
+            //location
+            b.setTranslateX(offX);         
+            b.setTranslateY(offY);
+            //event handlers
+            b.setOnMousePressed(PressBoxEventHandler); 
+            b.setOnMouseDragged(DragBoxEventHandler);
+            
+            WorkspaceGroup.getChildren().add(b);
+            if (offX>440) {
+                offY=offY+65;
+                offX=0;
+            }
+            else {
+                offX = offX+160;
+            }
+        }
+        //update the Workspace 
+        WorkspaceClauseContainer=wsContainer;
+        ParentStage.show();
+        //return defGroup_root;
+        }
+
+
     //Create adHoc Stage but return root (Group) so that it can be stored if significant e.g. Library
 
     public Group displaySpritesInNewStage(ClauseContainer inputContainer, String myTitle) {

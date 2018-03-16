@@ -13,7 +13,7 @@ public class Clause implements java.io.Serializable {
 String label=""; //will hold the GUI box term (initially same as def'n)
 String heading="";
 String interpretation="";
-String clausetext=""; //will hold the definition text
+String clausetext=""; //will hold the definition or clause text
 ArrayList<String> Definitions = new ArrayList<String>(); //Currently: list of most freq definition words, not Def objects
 ArrayList<String> Keywords = new ArrayList<String>();
 String Category = "";
