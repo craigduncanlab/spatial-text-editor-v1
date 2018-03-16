@@ -124,10 +124,11 @@ public String getClauseAndText() {
 		String category = myclause.getCategory();
 		if (category.equals("event")) {
 			String mylabel = myclause.getLabel();
-			String myheading = myclause.getHeading();
+			String mydate = myclause.getEventDate();
+			String eventheading = myclause.getHeading();
 			String mytext = myclause.getClause();
 			//output=output+myheading+" ("+ocategory+")"+":\n----------\n"+mytext+"\n\n";
-			output=output+myheading+"\n"+mytext+"\n";
+			output=output+mydate+" - "+eventheading+"\n"+mytext+"\n";
 		}
 	}
 	output=output+"\nOthers:\n\n";
