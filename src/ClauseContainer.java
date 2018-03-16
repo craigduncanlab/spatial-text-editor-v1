@@ -109,7 +109,7 @@ public String getClauseAndText() {
 	while (myDefiterator.hasNext()) {
 		Clause myclause = myDefiterator.next();
 		String category = myclause.getCategory();
-		if (category.equals("clauses")) {
+		if (category.equals("clause")) {
 			String mylabel = myclause.getLabel();
 			String myheading = myclause.getHeading();
 			String mytext = myclause.getClause();
