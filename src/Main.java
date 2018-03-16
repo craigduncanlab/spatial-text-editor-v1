@@ -135,8 +135,9 @@ public class Main extends Application {
     Stage editorStage;
     Pane editGroup_root;
     //Library Window (as needed)
-    Stage LibraryStage;
+    Stage LibraryStage=null;
     Group LibraryGroup;
+    String LibFilename="library.ser";
 
 /*The main method uses the launch method of the Application class.
 https://docs.oracle.com/javase/8/javafx/api/javafx/application/Application.html
@@ -274,6 +275,36 @@ public void setupImportStage(Stage textStage, String myTitle) {
         
     }
 
+/*Method to setup single Library stage for Workspace
+modelled on setupBlocksStage method (with scroller) but initially hidden
+*/
+
+public Group setupLibraryStage(Stage myStage, String myTitle) {
+    //LibraryStage.setTitle ("Library");
+    //LibraryGroup = setupBlocksWindow(LibraryStage,"Library");
+    //Group tempGroup = Main.this.setupBlocksWindow(myStage, myTitle); //Object class Group
+    //myStageManager.setPosition(ParentStage,myStage,"library");
+    Group tempGroup = new Group();
+    ScrollPane outerScroll = new ScrollPane();
+    outerScroll.setContent(tempGroup);
+    //add group layout object as root node for Scene at time of creation
+    Scene tempScene = new Scene (outerScroll,650,400); //default width x height (px)
+        //optional event handler
+    tempScene.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
+         @Override
+         public void handle(MouseEvent mouseEvent) {
+         System.out.println("Mouse click detected! " + mouseEvent.getSource());
+         mySpriteManager.setStageFocus("library");
+             }
+        });
+    myStage.setScene(tempScene); //this selects the stage as current scene
+    myStage.setTitle(myTitle);
+    //set position before visibility
+    myStageManager.setPosition(ParentStage,myStage,"library");
+    myStage.hide(); //<---do this later otherwise it affects scene attachment
+    return tempGroup;
+}
+
 /* Setup method to create a space to add or remove clauses, and then process them into some kind of output
 
 At this stage, the root node is a Group (sizes according to children, unlike Pane).
@@ -307,6 +338,7 @@ public Group setupWorkspaceStage(Stage myStage, String myTitle) {
         MenuItem viewEditor = new MenuItem("Editor");
         MenuItem viewtextmaker = new MenuItem("Textmaker");
         MenuItem viewToolbar = new MenuItem("Clause Toolbar");
+        MenuItem viewLibrary = new MenuItem("Library");
         MenuItem SaveWork = new MenuItem("Save");
         MenuItem LoadWork = new MenuItem("Load");
         MenuItem OutputWork = new MenuItem("Output as Text");
@@ -324,6 +356,7 @@ public Group setupWorkspaceStage(Stage myStage, String myTitle) {
         MenuItem GetSections = new MenuItem("GetSections");
          menuObject.getItems().addAll(NewDef,NewClause,NewEvent);
          menuViews.getItems().addAll(
+            viewLibrary,
             viewImporter,
             viewEditor,
             viewtextmaker,
@@ -453,36 +486,9 @@ public Group setupWorkspaceStage(Stage myStage, String myTitle) {
             }
         });    
 
-        LoadLibrary.setOnAction(new EventHandler<ActionEvent>() {
-        public void handle(ActionEvent t) {
-                //TO DO: ADD SERIALISATION OR FUNCTION CALL
-                String BoxFilename="library.ser";
-                FileInputStream fis = null;
-                ObjectInputStream in = null;
-                ArrayList <Clause> myLibraryIn = null;
-                try {
-                    fis = new FileInputStream(BoxFilename);
-                    in = new ObjectInputStream(fis);
-                    myLibraryIn = (ArrayList<Clause>)in.readObject();
-                    in.close();
-                }
-                catch(IOException ex) {
-                    ex.printStackTrace();
-                }
-                catch(ClassNotFoundException ex)
-                {
-                     ex.printStackTrace();
-                }
-                System.out.println("Success!");
-                System.out.println(myLibraryIn.toString());
-                //ClauseContainer inputContainer = new ClauseContainer();
-                //inputContainer.setClauseArray(myLibaryIn);
-                LibraryClauseContainer.setClauseArray(myLibraryIn);
-                mySpriteManager.resetLibXY();
-                LibraryGroup = displaySpritesInNewStage(LibraryClauseContainer, "Loaded Library Clauses");
-            }
-        }); 
-
+        
+        LoadLibrary.setOnAction(LoadLibraryFile);
+        
         //Load up an empty library window
         //TO DO: Save under different name
 
@@ -498,6 +504,23 @@ public Group setupWorkspaceStage(Stage myStage, String myTitle) {
                 LibraryGroup = displaySpritesInNewStage(LibraryClauseContainer, "New Library");
             }
         }); 
+
+        //Toggle visibility of Library window
+        viewLibrary.setOnAction(new EventHandler<ActionEvent>() {
+        public void handle(ActionEvent t) {
+                if (LibraryStage==null) {
+                    System.out.println("Problem with Library Stage setup");
+                }
+                if (LibraryStage.isShowing()==false) {
+                    LibraryStage.show();
+                    return;
+                }
+                if (LibraryStage.isShowing()==true) {
+                    LibraryStage.hide();
+                    return;
+                }
+            }
+        });
 
         //Toggle visibility of output window
         viewtextmaker.setOnAction(new EventHandler<ActionEvent>() {
@@ -1036,6 +1059,10 @@ public void deleteSprite (SpriteBox mySprite) {
         ParentStage = new Stage();
         Group clausePlayBox = Main.this.setupWorkspaceStage(ParentStage, "Main Workspace");
 
+        //setup libary window
+        LibraryStage = new Stage();
+        LibraryGroup = Main.this.setupLibraryStage(LibraryStage, "Library");
+
         //*Stage that I will use for main text input display and editing
         importStage = new Stage();
         this.setupImportStage(importStage,"Text Importer");
@@ -1240,7 +1267,7 @@ public void deleteSprite (SpriteBox mySprite) {
             LibraryClauseContainer.addClause(currentSprite.getClause()); 
             //remove from Workspace clause list (so it is not saved)
             WorkspaceClauseContainer.removeClause(currentSprite.getClause()); 
-            //add sprite to Library Stage. This will clean up object on Workspace...
+            //add sprite to Library Stage. This will clean up same object on Workspace...
             placeInLibraryStage(currentSprite);
             WorkspaceBoxes.removeBox(currentSprite); //cleanup stage refs.  TO DO: use sprite manager
             }
@@ -1264,7 +1291,7 @@ public void deleteSprite (SpriteBox mySprite) {
             SpriteBox copySprite = makeCopySprite(currentSprite);
             /* add clause to the list of clauses in the Library clause array */
             LibraryClauseContainer.addClause(copySprite.getClause());  
-            //add sprite to Library Stage. This will clean up object on Workspace...
+            //add sprite to Library Stage. 
             System.out.println(copySprite.toString());
             placeInLibraryStage(copySprite);
             }
@@ -1515,8 +1542,49 @@ public void deleteSprite (SpriteBox mySprite) {
         //return defGroup_root;
         }
 
-
+    //Create Library Stage
     //Create adHoc Stage but return root (Group) so that it can be stored if significant e.g. Library
+
+    public void displaySpritesInLibraryStage(ClauseContainer inputContainer, String myTitle) {
+        ClauseContainer myContainer = inputContainer;
+        if (LibraryStage==null) {
+            System.out.println("Problem with Library Stage setup");
+        }
+        //process
+        ArrayList<Clause> myDList = myContainer.getClauseArray();
+        Iterator<Clause> myiterator = myDList.iterator();
+
+        int offX=0;
+        int offY=0;
+        while (myiterator.hasNext()) {
+            Clause mydefinition = myiterator.next();
+            if (isLegalRoleWord(mydefinition.getLabel())==true) {
+                mydefinition.setCategory("legalrole");
+            }
+            SpriteBox b = new SpriteBox(mydefinition);
+            //location
+            b.setTranslateX(offX);         
+            b.setTranslateY(offY);
+            //event handlers
+            b.setOnMousePressed(PressBoxEventHandler); 
+            b.setOnMouseDragged(DragBoxEventHandler);
+            //add to Library Group
+            LibraryGroup.getChildren().add(b);
+            if (offX>440) {
+                offY=offY+65;
+                offX=0;
+            }
+            else {
+                offX = offX+160;
+            }
+        }
+        LibraryStage.show();
+        //return Library;
+        } 
+
+    
+
+        //Create adHoc Stage but return root (Group) so that it can be stored if significant e.g. Library
 
     public Group displaySpritesInNewStage(ClauseContainer inputContainer, String myTitle) {
         ClauseContainer myContainer = inputContainer;
@@ -1561,8 +1629,47 @@ public void deleteSprite (SpriteBox mySprite) {
         return defGroup_root;
         }    
      
-        //OpenInputFile 
+        //Method to load up a library from serialized disk data
+        //Uses the Main instance variable for library name.
+
+        public void libraryLoader() {
+            FileInputStream fis = null;
+            ObjectInputStream in = null;
+            ArrayList <Clause> myLibraryIn = null;
+            try {
+                fis = new FileInputStream(this.LibFilename);
+                in = new ObjectInputStream(fis);
+                myLibraryIn = (ArrayList<Clause>)in.readObject();
+                in.close();
+            }
+            catch(IOException ex) {
+                ex.printStackTrace();
+            }
+            catch(ClassNotFoundException ex)
+            {
+                 ex.printStackTrace();
+            }
+            System.out.println("Success!");
+            System.out.println(myLibraryIn.toString());
+            //ClauseContainer inputContainer = new ClauseContainer();
+            //inputContainer.setClauseArray(myLibaryIn);
+            LibraryClauseContainer.setClauseArray(myLibraryIn);
+            mySpriteManager.resetLibXY();
+            displaySpritesInLibraryStage(LibraryClauseContainer, "Loaded Library Clauses");
+        }
+
+        //---- MORE EVENT HANDLERS ----
           
+        //handle library open request.   Keeps library name for project as state variable 
+        //To do: see if filename can be passed to this Object
+        EventHandler<ActionEvent> LoadLibraryFile = 
+        new EventHandler<ActionEvent>() {
+        @Override 
+        public void handle(ActionEvent t) {
+                libraryLoader();
+            }
+        }; 
+
         EventHandler<ActionEvent> OpenInputFile = 
         new EventHandler<ActionEvent>() {
         @Override 
