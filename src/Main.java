@@ -972,6 +972,27 @@ public Boolean isLegalRoleWord (String myWord) {
     return false;
 }
 
+/*Method to iterate through all sprites on Workspace */
+public void removeBoxesFromStage(Group targetGroup) {
+    //loop:
+    //.getChildren().remove(Spritebox??); 
+    //remove associated clauses
+    //should clauses keep record of parent SpriteBox ref?
+    ArrayList<Clause> myWSList = WorkSpaceClauseContainer.getClauseArray();
+        Iterator<Clause> myDeleteList = myWSList.iterator();
+        while (myiterator.hasNext()) {
+            //removeFromMainStage()
+            //Delete WS Spritebox from Stage
+        }
+
+
+/* Method to remove spritebox from workspace */
+public void removeFromMainStage(SpriteBox thisSprite) {
+        WorkspaceGroup.getChildren().remove(thisSprite); 
+        mySpriteManager.removeFromMainStage(thisSprite);
+    }
+
+
 /* Method to handle all consequences of adding spritebox to workspace
 1. Add to workspace group (implicitly removes from existing group)
 2. update state in sprite manager
@@ -1509,7 +1530,15 @@ public void deleteSprite (SpriteBox mySprite) {
     public void displaySpritesOnWorkspace(ClauseContainer wsContainer) {
         ClauseContainer myContainer = wsContainer;
         //Use ParentStage and WorkspaceGroup (node) 
-        ArrayList<Clause> myDList = wsContainer.getClauseArray();
+        //remove the old workspace
+        
+            //refresh
+        //update the Workspace 
+        WorkspaceClauseContainer=wsContainer;
+
+        ParentStage.show();
+        //use updated workspace for display
+        ArrayList<Clause> myDList = WorkSpaceClauseContainer.getClauseArray();
         Iterator<Clause> myiterator = myDList.iterator();
 
         int offX=50;
@@ -1536,9 +1565,7 @@ public void deleteSprite (SpriteBox mySprite) {
                 offX = offX+160;
             }
         }
-        //update the Workspace 
-        WorkspaceClauseContainer=wsContainer;
-        ParentStage.show();
+        
         //return defGroup_root;
         }
 

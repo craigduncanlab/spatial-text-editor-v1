@@ -75,6 +75,9 @@ public void setCurrentXY(double x, double y) {
 
 /* The order in which the Stages are created and set will determine initial z order for display
 Earliest z is toward back
+The workspace is, in effect, a large window placed at back.
+TO DO: Make the MenuBar etc attach to a group that is at back,
+then add WIP spritexboxes to a 'Document Group' that replaces Workspace with 'Document' menu
 */
 
 public void setPosition(Stage Parent, Stage myStage, String myCategory) {

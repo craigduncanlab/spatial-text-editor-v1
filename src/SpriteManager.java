@@ -59,6 +59,7 @@ public void resetLibXY() {
 
 /* 
     Method to vary position of latest Sprite added to Stage.
+    Sprite is added separately via adding child node to Workgroup
     TO DO: add to most recent Sprite
 */
 
