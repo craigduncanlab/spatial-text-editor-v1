@@ -7,6 +7,8 @@ import javafx.stage.Screen;
 //Screen positioning
 import javafx.geometry.Rectangle2D;
 import javafx.geometry.Insets;
+//import utilities needed for Arrays lists etc
+import java.util.*;
 
 /* Stages will always be on top of the parent window.  This is important for layout
 Make sure the smaller windows are owned by the larger window that is always visible
@@ -22,6 +24,10 @@ String StageFocus = "";
 Rectangle2D ScreenBounds = Screen.getPrimary().getVisualBounds();
 double myBigX = ScreenBounds.getWidth();
 double myBigY = ScreenBounds.getHeight();
+ArrayList<Stage> myStageList = new ArrayList<Stage>();
+//TO DO: Use 'Project' concept to save StageLists and containers
+//TO DO: Store current Stage selection.
+Stage currentStage=new Stage();
 
 //constructor
 public StageManager() {
@@ -66,6 +72,20 @@ public StageManager() {
 
         */
 
+//method to set current Stage selection
+//updated by listeners ?
+//nb another option is to update from clausecontainer change
+public void setCurrentStage(Stage myStage) {
+    this.currentStage = myStage; //points to currentStage rather than index
+}
+
+//method to get current Stage stored here.
+//Value in this object is updated by listeners
+
+public Stage getCurrentStage() {
+    return this.currentStage; //points to currentStage rather than index
+}
+
 //getters and setters
 public void setCurrentXY(double x, double y) {
 
@@ -73,7 +93,9 @@ public void setCurrentXY(double x, double y) {
     this.latestY=y;
 }
 
-/* The order in which the Stages are created and set will determine initial z order for display
+/* These are the main Stages that allow toggle views
+
+The order in which the Stages are created and set will determine initial z order for display
 Earliest z is toward back
 The workspace is, in effect, a large window placed at back.
 TO DO: Make the MenuBar etc attach to a group that is at back,
@@ -100,6 +122,13 @@ public void setPosition(Stage Parent, Stage myStage, String myCategory) {
             case "library":
                 myStage.initOwner(Parent);
                 myStage.setX(1000); //1440 is about 71%
+                myStage.setY(300); 
+                myStage.toFront();
+                break;
+
+            case "document":
+                myStage.initOwner(Parent);
+                myStage.setX(800); //1440 is about 71%
                 myStage.setY(300); 
                 myStage.toFront();
                 break;

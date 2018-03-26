@@ -15,12 +15,33 @@ public class ClauseContainer {
 //setup declare instance variables. shared in class if preceded by static.	
 ArrayList<Clause> myClauses = new ArrayList<Clause>();  
 int numClauses=0; //this will hold number of clauses
+String docname=""; //to hold the container name or filename
+//Stage ContainerStage = new Stage(); //to hold Stage associated with this container?
 
 //empty constructor no arguments
 public ClauseContainer() {
 
 }
 
+//FILE FUNCTIONS
+public void setDocName(String myString) {
+	this.docname=myString;
+}
+
+public String getDocName() {
+	return this.docname;
+}
+
+/* STAGE SYNC
+public void setStage(Stage myStage) {
+	this.ContainerStage=myStage;
+}
+
+public String getStage() {
+	return this.ContainerStage;
+}
+*/
+//CLAUSE OPS
 public void addClause(Clause newClause) {
 	this.myClauses.add(newClause);
 }

@@ -54,6 +54,8 @@ public class SpriteBox extends StackPane implements java.io.Serializable {
     Boolean isAlert=false;
     Boolean OnStage=false;
     Boolean InLibrary=false;
+    Boolean InDocument=false;
+    Boolean OtherStage=false;
     String defaultColour="";
     String alertColour="red";
 
@@ -158,6 +160,14 @@ public class SpriteBox extends StackPane implements java.io.Serializable {
         return this.InLibrary;
     }
 
+    public Boolean isInDocument() {
+        return this.InDocument;
+    }
+
+    public Boolean isInOtherStage() {
+        return this.OtherStage;
+    }
+
     /* This is set to true when Sprite/Clause is on Main Stage */ 
 
     public void setOnStage(Boolean myBool) {
@@ -168,6 +178,16 @@ public class SpriteBox extends StackPane implements java.io.Serializable {
 
     public void setInLibrary(Boolean myBool) {
         this.InLibrary = myBool;
+    }
+
+    /* This is set to true when Sprite/Clause is in Document Window */ 
+
+    public void setInDocument(Boolean myBool) {
+        this.InDocument = myBool;
+    }
+
+     public void setInOtherStage(Boolean myBool) {
+        this.OtherStage = myBool;
     }
 
     public Boolean isAlert() {

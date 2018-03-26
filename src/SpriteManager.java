@@ -10,6 +10,8 @@ double stageX = 0;
 double stageY = 0;
 double LibX = 0;
 double LibY = 0;
+double DocX = 0;
+double DocY = 0;
 String StageFocus = "";
 
 
@@ -57,6 +59,11 @@ public void resetLibXY() {
         this.LibY = 0;
 }
 
+public void resetDocXY() {
+        this.DocX = 0;
+        this.DocY = 0;
+}
+
 /* 
     Method to vary position of latest Sprite added to Stage.
     Sprite is added separately via adding child node to Workgroup
@@ -95,6 +102,23 @@ public void placeInLibrary(SpriteBox mySprite) {
         this.currentSprite.doAlert();
         //TO DO: if this is a move then this might be needed : this.currentSprite.setOnStage(false);
         this.currentSprite.setInLibrary(true);
+    }
+
+public void placeInDocument(SpriteBox mySprite) {
+        
+        if (this.currentSprite!=null) {  //might be no current sprite if not dbl clicked
+                this.currentSprite.endAlert();
+        }
+        //set position relative to Library Window
+        this.DocX=this.DocX+50;
+        this.DocY=this.DocY+50;
+        mySprite.setTranslateX(this.DocX);
+        mySprite.setTranslateY(this.DocY); 
+        //
+        this.setCurrentSprite(mySprite); 
+        this.currentSprite.doAlert();
+        //TO DO: if this is a move then this might be needed : this.currentSprite.setOnStage(false);
+        this.currentSprite.setInDocument(true);
     }
 
 public void setStageFocus(String myFocus) {
