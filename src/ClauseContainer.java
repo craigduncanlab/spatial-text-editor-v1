@@ -16,6 +16,7 @@ public class ClauseContainer implements java.io.Serializable {
 //mark this class this to allow for changes to variables in class (refactoring)
 private static final long serialVersionUID = -64702044414208496L;
 //setup declare instance variables. shared in class if preceded by static.	
+//TO DO: Make this generic i.e. will hold different objects, even if not subclasses?
 ArrayList<Clause> myClauses = new ArrayList<Clause>();  
 int numClauses=0; //this will hold number of clauses
 String docname=""; //to hold the container name or filename
@@ -148,9 +149,10 @@ public String getClauseAndText() {
 	while (myDefiterator.hasNext()) {
 		Clause myclause = myDefiterator.next();
 		String category = myclause.getCategory();
-		if (category.equals("event")) {
+		//if (category.equals("event")) {
+		if (myclause instanceof Event) {
 			String mylabel = myclause.getLabel();
-			String mydate = myclause.getEventDate();
+			String mydate = ((Event)myclause).getDate();
 			String eventheading = myclause.getHeading();
 			String mytext = myclause.getClause();
 			//output=output+myheading+" ("+ocategory+")"+":\n----------\n"+mytext+"\n\n";
@@ -175,9 +177,16 @@ public String getClauseAndText() {
 	return output;
 }
 
-/*Method to set ClauseContainer's array in one step*/
+/*Method to set ClauseContainer's array by copying each entry
+Should it be Object or clause ? */
+
 public void setClauseArray(ArrayList<Clause> myArray) {
-	this.myClauses = myArray;
+	this.myClauses = new ArrayList<Clause>(); 
+	Iterator<Clause> myIterator = myArray.iterator(); 
+	while (myIterator.hasNext()) {
+		Clause tempClause = myIterator.next();
+		this.myClauses.add(tempClause);
+	}
 }
 
 public ArrayList<Clause> getClauseArray() {

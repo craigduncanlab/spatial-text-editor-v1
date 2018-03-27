@@ -93,6 +93,11 @@ public void setCurrentXY(double x, double y) {
     this.latestY=y;
 }
 
+/*Method to set parents.  Call this before showing stage*/
+public void setStageParent(Stage Parent, Stage myStage) {
+    myStage.initOwner(Parent);
+}
+
 /* These are the main Stages that allow toggle views
 
 The order in which the Stages are created and set will determine initial z order for display
@@ -102,7 +107,7 @@ TO DO: Make the MenuBar etc attach to a group that is at back,
 then add WIP spritexboxes to a 'Document Group' that replaces Workspace with 'Document' menu
 */
 
-public void setPosition(Stage Parent, Stage myStage, String myCategory) {
+public void setPosition(Stage myStage, String myCategory) {
 
     switch(myCategory){
 
@@ -113,63 +118,63 @@ public void setPosition(Stage Parent, Stage myStage, String myCategory) {
                 break;
 
             case "editor":
-                myStage.initOwner(Parent);  //this must be called before '.show()' on child
-                myStage.setX(650); //TO DO: Relative
+                //myStage.initOwner(Parent);  //this must be called before '.show()' on child
+                myStage.setX(850); //TO DO: Relative
                 myStage.setY(0);
                 myStage.toFront();
                 break;
 
             case "library":
-                myStage.initOwner(Parent);
+                //myStage.initOwner(Parent);
                 myStage.setX(1000); //1440 is about 71%
                 myStage.setY(300); 
                 myStage.toFront();
                 break;
 
             case "document":
-                myStage.initOwner(Parent);
+                //myStage.initOwner(Parent);
                 myStage.setX(800); //1440 is about 71%
-                myStage.setY(300); 
+                myStage.setY(200); 
                 myStage.toFront();
                 break;
 
             case "toolbar":
-                myStage.initOwner(Parent);
+                //myStage.initOwner(Parent);
                 myStage.setX(1000); //1440 is about 71%
                 myStage.setY(50); //900 is abot 0.05%
                 myStage.toFront();
                 break;
 
             case "textmaker":  
-                myStage.initOwner(Parent);
+                //myStage.initOwner(Parent);
                 myStage.setX(150);
                 myStage.setY(550);
                 myStage.toFront();
                 break;
 
             case "importwindow":
-                myStage.initOwner(Parent);
+                //myStage.initOwner(Parent);
                 myStage.setX(800);
                 myStage.setY(200);
                 myStage.toFront();
                 break;
             
             case "display":  
-                myStage.initOwner(Parent);
+                //myStage.initOwner(Parent);
                 myStage.setX(800);
                 myStage.setY(550);
                 myStage.toFront();
                 break;
             
             case "icons":
-                myStage.initOwner(Parent);
+                //myStage.initOwner(Parent);
                 myStage.setX(800);
                 myStage.setY(550);
                 myStage.toFront();
                 break;
                    
             default:
-                myStage.initOwner(Parent);
+                //myStage.initOwner(Parent);
                 myStage.setX(200);
                 myStage.setY(200);
                 myStage.toFront();

@@ -47,6 +47,7 @@ public class SpriteBox extends StackPane implements java.io.Serializable {
     //instance variables are contained Nodes/Objects.
     //Not class variables as they are not 'static'
     ColBox myBox;
+    Object BoxContent; //generic holder of content
     Clause myClause;
     ClauseContainer myDocument;
     String Category=""; //will be Clause, Definition etc
@@ -87,7 +88,20 @@ public class SpriteBox extends StackPane implements java.io.Serializable {
         this.boxtext = new Text (startLabel);//myBox.getLabel();
      }
     
-    /* General setup */
+     /*Place an Object inside (e.g. handles subclasses Clause or ClauseContainer) */
+
+    public void setBoxContent (Object myObject) {
+        this.BoxContent = myObject;
+        this.updateAppearance();
+    }
+
+     /*Return the Object inside (e.g. handles subclasses Clause or ClauseContainer) */
+
+    public Object getBoxContent() {
+        return this.BoxContent;
+    }
+
+    /* General setup with Clause inside */
 
     public void setup() {
         myBox = new ColBox();   //Uses defaults.
@@ -206,13 +220,23 @@ public class SpriteBox extends StackPane implements java.io.Serializable {
         myBox.setColour(defaultColour);
     }
 
-    /*Appearance based on Clause properties */
+    /*
+    Appearance based on Clause properties/contents 
+    */
 
     private void updateAppearance() {
         //set Sprite label to Clause label
         this.boxtext.setText(this.myClause.getLabel());
 
-        //set colour of SpriteBox based on Clause category
+        //if it happens to hold a ClauseContainer set it to dark blue
+        Object testContent = this.getBoxContent();
+        if (testContent instanceof ClauseContainer) {
+            this.SetColour("darkblue");
+            return;
+        }   
+
+        //otherwise, for now, set colour of SpriteBox based on Clause category
+        // TO DO: Make this use 'instanceof' as the case
         switch(this.myClause.getCategory()){
             case "definition":
                 this.SetColour("green");
@@ -246,6 +270,7 @@ public class SpriteBox extends StackPane implements java.io.Serializable {
         this.myClause.setClauselabel(myLabel);
         this.myClause.setHeading(myHeading);
         this.myClause.setCategory(myCategory);
+        this.setBoxContent(myClause);
 
         //sync relevant Spritebox appearance based on Clause variables
         this.setContent(myText);
@@ -263,6 +288,7 @@ public class SpriteBox extends StackPane implements java.io.Serializable {
         if (inputClause.getLabel().length()>=50) {
             myClause.setClauselabel(inputClause.getLabel().substring(0,47)+"...");
         }
+        this.setBoxContent(inputClause);
         this.updateAppearance();
         }
 

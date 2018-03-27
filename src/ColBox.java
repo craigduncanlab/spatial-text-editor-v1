@@ -49,10 +49,15 @@ public class ColBox extends Rectangle{
      } 
 
      //TO DO: Use key, value pairs
+     //See https://docs.oracle.com/javase/8/javafx/api/javafx/scene/paint/Color.html
 
      public void setColour (String mycol) {
         if (mycol.equals("blue")) {
             myColour = Color.BLUE;
+            this.boxcolour = mycol;
+        }
+        if (mycol.equals("darkblue")) {
+            myColour = Color.DARKBLUE;
             this.boxcolour = mycol;
         }
         if (mycol.equals("lightblue")) {

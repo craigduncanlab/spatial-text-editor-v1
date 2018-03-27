@@ -2,7 +2,7 @@
 //import utilities needed for Arrays lists etc
 import java.util.*;
 
-/*This is a class for a single definition object, not a collection.
+/*This is a (super)class for a single paragraph object, not a collection.
 Implements serializable for save functions.
 Order of encapsulation is BoxContainer-->SpriteBox-->Clause
 */
@@ -30,8 +30,8 @@ int frequency = 0;  //frequency of use in text
 //TO DO: financial terms.  These may need to be extensions of Clause?
 //TO DO: terms, time periods
 //new event-related categories
-String eventDesc = "";
-String eventDate = "";
+//String eventDesc = "";
+//String eventDate = "";
 //Event related data TO DO: include a SimpleDateFormat data type
 ArrayList<String> Participants = new ArrayList<String>();
 ArrayList<String> Witnesses = new ArrayList<String>();
@@ -108,6 +108,7 @@ public void incFreq() {
 	this.frequency++;
 }
 
+/*
 public void setEventDate(String mytext) {
 	this.eventDate=mytext;
 }
@@ -125,5 +126,5 @@ public void setEventDesc(String mytext) {
 public String getEventDesc() {
 	return this.eventDesc;
 }
-
+*/
 }
