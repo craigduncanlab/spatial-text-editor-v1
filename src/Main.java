@@ -812,14 +812,16 @@ public Pane setupEditorPanel(Stage myStage, String myTitle) {
         Text labelTag = new Text("Label:");
         labelEdit = new TextArea();
         labelEdit.setPrefRowCount(2);
-        labelEdit.setPrefColumnCount(40);
+        labelEdit.setPrefColumnCount(80);
         Text headingTag = new Text("Clause heading:");
         headingEdit = new TextArea();
         headingEdit.setPrefRowCount(2);
         Text contentsTag = new Text("Clause text:");
         textEdit = new TextArea();
-        textEdit.setPrefRowCount(5);
-        textEdit.setPrefColumnCount(40);
+        //textEdit.setPrefRowCount(5);
+        //textEdit.setPrefColumnCount(80);
+        textEdit.setPrefHeight(100);
+        textEdit.setPrefWidth(400);
         textEdit.setWrapText(true);
         Text categoryTag = new Text("Category:");
         categoryEdit = new TextArea();
@@ -831,7 +833,9 @@ public Pane setupEditorPanel(Stage myStage, String myTitle) {
         SpriteBox focusSprite = mySpriteManager.getCurrentSprite();
         editClause = focusSprite.getClause();
         VBox vboxEdit;
+
         if (editClause.getCategory().equals("event")) {
+        //first paramater is the spacing between childen
         vboxEdit = new VBox(0,headingTag,headingEdit,dateTag,dateEdit,contentsTag,textEdit,categoryTag,categoryEdit);
         }
         else {
@@ -840,6 +844,12 @@ public Pane setupEditorPanel(Stage myStage, String myTitle) {
         vboxEdit = new VBox(0,headingTag,headingEdit,contentsTag,textEdit,categoryTag,categoryEdit);
         //vboxEdit.setVgrow(textEdit, Priority.ALWAYS);
         }
+        //children vertical grow priority
+        vboxEdit.setVgrow(textEdit,null);
+        vboxEdit.setVgrow(categoryEdit,null);
+        vboxEdit.setVgrow(dateEdit,null);
+        vboxEdit.setFillWidth(true); //for width of vbox children 
+        System.out.println("FillWidth status: "+vboxEdit.isFillWidth());
         //Appearance for specific types of Clauses
         if (editClause.getCategory().equals("definition")) {
             headingTag.setText("Defined term:");
@@ -1061,7 +1071,6 @@ public ScrollPane setupTextOutputWindow() {
         textOutputStage.setScene(textOutputScene);
         myStageManager.setPosition(ParentStage, textOutputStage, "textmaker");
         textOutputStage.setTitle("Text Output");
-        textOutputStage.show();
         //setup text scroll node
         double width = 600; 
         double height = 500; 
@@ -1071,6 +1080,8 @@ public ScrollPane setupTextOutputWindow() {
         //text area settings
         textmakerTextArea.setWrapText(true);
         textmakerTextArea.setText("Some future contents");
+        //default is hidden
+        textOutputStage.hide();
         return rootnode_scroll;
 }
 
@@ -1970,7 +1981,7 @@ Event handlers will apply to new scene added to that stage.
         Group myGroup = new Group();
         outerScroll.setContent(myGroup); 
         //now give the root node its Scene, then add event listeners
-        Scene myScene = new Scene (outerScroll,650,600); //default width x height (px)
+        Scene myScene = new Scene (outerScroll,650,400); //default width x height (px)
         myScene.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
          @Override
          public void handle(MouseEvent mouseEvent) {
