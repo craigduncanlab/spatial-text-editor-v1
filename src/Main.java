@@ -378,6 +378,8 @@ public Group setupWorkspaceStage(Stage myStage, String myTitle) {
         MenuItem OutputWork = new MenuItem("Output as Text");
         MenuItem SaveDoc = new MenuItem("Save");
         MenuItem LoadDoc = new MenuItem("Load");
+        MenuItem SaveCont = new MenuItem("SaveCont");
+        MenuItem LoadDocCont = new MenuItem("LoadCont");
         MenuItem NewDoc = new MenuItem("New");
         MenuItem OutputDoc = new MenuItem("Output as Text");
         MenuItem SaveLibrary = new MenuItem("Save");
@@ -408,6 +410,8 @@ public Group setupWorkspaceStage(Stage myStage, String myTitle) {
         menuDocument.getItems().addAll(
             SaveDoc,
             LoadDoc,
+            SaveCont,
+            LoadDocCont,
             NewDoc); //OutputDoc
         menuLibrary.getItems().addAll(
             SaveLibrary,
@@ -544,7 +548,34 @@ public Group setupWorkspaceStage(Stage myStage, String myTitle) {
             }
         });
 
-        /* Method to load up saved document clauses.   */
+        //Trial method to save a Clause Container
+        SaveCont.setOnAction(new EventHandler<ActionEvent>() {
+        public void handle(ActionEvent t) {
+                //TO DO: ADD SERIALISATION OR FUNCTION CALL
+                BoxFilename = "document-cont.ser";
+                FileOutputStream fos = null;
+                ObjectOutputStream out = null;
+                //ArrayList<Clause> myBoxList =  DocumentClauseContainer.getClauseArray();
+                //BoxFilename = DocumentClauseContainer.getDocName();
+                //ClauseContainer myBoxList = DocumentClauseContainer;
+                //TO DO: select an array of Clause Containers to write out.
+                if (BoxFilename.equals("")) {
+                    BoxFilename="document-cont.ser";
+                }
+                try {
+                    fos = new FileOutputStream(BoxFilename);
+                    out = new ObjectOutputStream(fos);
+                    out.writeObject(DocumentClauseContainer); //the top-level object to be saved
+                    out.close();
+                }
+                catch(IOException ex) {
+                    ex.printStackTrace();
+                }
+
+            }
+        });
+
+        /* Method to load up saved document clauses from arraylist.   */
 
         //TO DO : Just insert function name here and function detail elsewhere
         LoadDoc.setOnAction(new EventHandler<ActionEvent>() {
@@ -578,6 +609,44 @@ public Group setupWorkspaceStage(Stage myStage, String myTitle) {
                 //Load saved Document into Document Stage.
                 DocumentClauseContainer.setClauseArray(inputContainer.getClauseArray());
                 DocumentClauseContainer.setDocName("document.ser");
+                displaySpritesInDocumentStage(DocumentClauseContainer, "Loaded Document");
+            }
+        });
+
+        //load documents from single clause container
+        LoadDocCont.setOnAction(new EventHandler<ActionEvent>() {
+        public void handle(ActionEvent t) {
+                //TO DO: ADD SERIALISATION OR FUNCTION CALL
+                String BoxFilename="document-cont.ser";
+                FileInputStream fis = null;
+                ObjectInputStream in = null;
+                //ArrayList <Clause> myBoxListIn = null;
+                ClauseContainer inputContainer = new ClauseContainer();
+                try {
+                    fis = new FileInputStream(BoxFilename);
+                    in = new ObjectInputStream(fis);
+                    inputContainer = (ClauseContainer)in.readObject();
+                    in.close();
+                }
+                catch(IOException ex) {
+                    ex.printStackTrace();
+                }
+                catch(ClassNotFoundException ex)
+                {
+                     ex.printStackTrace();
+                }
+                System.out.println("Success!");
+                System.out.println(inputContainer.toString());
+                //ClauseContainer inputContainer = new ClauseContainer();
+                //inputContainer.setClauseArray(myBoxListIn);
+                mySpriteManager.resetDocXY();
+                //hold existing document TO DO: collapse into icon in Collection Window
+                //(creates new icon if there wasn't one before, or if modified?)
+                displaySpritesInNewStage(DocumentClauseContainer, "Previous Document");
+                //TO DO: clear workspace
+                //Load saved Document into Document Stage.
+                DocumentClauseContainer.setClauseArray(inputContainer.getClauseArray());
+                DocumentClauseContainer.setDocName("document-cont.ser");
                 displaySpritesInDocumentStage(DocumentClauseContainer, "Loaded Document");
             }
         });
@@ -1231,7 +1300,7 @@ TO DO: Cater for other windows e.g. new loaded workspace window...
 public void deleteSprite(SpriteBox mySprite) {
     System.out.println("in Lib: "+mySprite.isInLibrary());
     System.out.println("on WS: "+mySprite.isOnStage());
-    System.out.println("in Doc: "+mySprite.isInDocument());
+    System.out.println("in Doc: "+mySprite.isInDocumentStage());
     if (mySprite.isInLibrary()==true) {
         LibraryClauseContainer.removeClause(mySprite.getClause());
         LibraryGroup.getChildren().remove(mySprite); 
@@ -1250,10 +1319,10 @@ public void deleteSprite(SpriteBox mySprite) {
         return;
     }
 
-    if (mySprite.isInDocument()==true) {
+    if (mySprite.isInDocumentStage()==true) {
         DocumentClauseContainer.removeClause(mySprite.getClause());
         DocumentGroup.getChildren().remove(mySprite); 
-        mySprite.setInDocument(false); //not needed?
+        mySprite.setInDocumentStage(false); //not needed?
         //do this to refresh
         DocumentStage.show();
         return;
@@ -1470,9 +1539,9 @@ public void deleteSprite(SpriteBox mySprite) {
             //lose focus
             currentSprite.endAlert();
             //assume it could only be in library for now - not stage specific?
-             if (currentSprite.isInDocument()==true) {
+             if (currentSprite.isInDocumentStage()==true) {
                 DocumentClauseContainer.removeClause(currentSprite.getClause());
-                currentSprite.setInDocument(false);
+                currentSprite.setInDocumentStage(false);
             }
             if (currentSprite.isInLibrary()==true) {
                 DocumentClauseContainer.removeClause(currentSprite.getClause());
@@ -1503,7 +1572,7 @@ public void deleteSprite(SpriteBox mySprite) {
             if (currentSprite.isOnStage()==true) {
                 WorkspaceClauseContainer.removeClause(currentSprite.getClause());
             }
-            if (currentSprite.isInDocument()==true) {
+            if (currentSprite.isInDocumentStage()==true) {
                 DocumentClauseContainer.removeClause(currentSprite.getClause());
             }
             //add sprite to Library Stage. This will clean up same object on Workspace...
@@ -1526,7 +1595,7 @@ public void deleteSprite(SpriteBox mySprite) {
             //lose focus
             currentSprite.endAlert();
             WorkspaceBoxes.removeBox(currentSprite); //cleanup stage refs.  TO DO: use sprite manager
-            if (currentSprite.isInDocument()==false) {
+            if (currentSprite.isInDocumentStage()==false) {
             /* add clause to the list of clauses in the Library clause array */
             DocumentClauseContainer.addClause(currentSprite.getClause()); 
             }
@@ -1578,7 +1647,7 @@ public void deleteSprite(SpriteBox mySprite) {
             }
             //don't lose focus - just do a copy 
             //currentSprite.endAlert();
-            if (currentSprite.isInDocument()==false) {
+            if (currentSprite.isInDocumentStage()==false) {
             //copy Spritebox and clause contents
             SpriteBox copySprite = makeCopySprite(currentSprite);
             /* add clause to the list of clauses in the Library clause array */
@@ -1943,7 +2012,7 @@ Create new scene from input Clause Container that updates the Document Stage.
             
             //add Spriteboxes (rectangles) to the Group in the Scrollpane in Scene
             DocumentGroup.getChildren().add(b);
-            b.setInDocument(true);
+            b.setInDocumentStage(true);
             //set current box as the current
             //myStageManager.setCurrentSprite(b);
             if (offX>440) {

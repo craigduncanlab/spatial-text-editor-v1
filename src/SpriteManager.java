@@ -118,7 +118,7 @@ public void placeInDocument(SpriteBox mySprite) {
         this.setCurrentSprite(mySprite); 
         this.currentSprite.doAlert();
         //TO DO: if this is a move then this might be needed : this.currentSprite.setOnStage(false);
-        this.currentSprite.setInDocument(true);
+        this.currentSprite.setInDocumentStage(true);
     }
 
 public void setStageFocus(String myFocus) {

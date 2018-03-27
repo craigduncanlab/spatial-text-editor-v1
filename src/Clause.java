@@ -9,11 +9,19 @@ Order of encapsulation is BoxContainer-->SpriteBox-->Clause
 
 //TO DO: Rename this class as 'Contents' or 'DataObject' etc.  Equivalent to a scene?
 public class Clause implements java.io.Serializable {
+
+//mark this class this to allow for changes to variables in class (refactoring)
+private static final long serialVersionUID = -64701044414208496L;
 //setup declare instance variables. shared in class if preceded by static.	
 String label=""; //will hold the GUI box term (initially same as def'n)
 String heading="";
 String interpretation="";
 String clausetext=""; //will hold the definition or clause text
+String footnote=""; //to hold footnote text
+//meta-data or property information
+String author=""; //to hold author name
+String notes=""; //to hold Document notes
+
 ArrayList<String> Definitions = new ArrayList<String>(); //Currently: list of most freq definition words, not Def objects
 ArrayList<String> Keywords = new ArrayList<String>();
 String Category = "";
@@ -21,7 +29,7 @@ int IndexValue=0; //index for positioning in documents
 int frequency = 0;  //frequency of use in text
 //TO DO: financial terms.  These may need to be extensions of Clause?
 //TO DO: terms, time periods
-//new categories
+//new event-related categories
 String eventDesc = "";
 String eventDate = "";
 //Event related data TO DO: include a SimpleDateFormat data type

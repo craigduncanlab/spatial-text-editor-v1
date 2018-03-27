@@ -11,11 +11,16 @@ Or create empty SpriteBoxes and populate with Clauses from a list?
 
 */
 
-public class ClauseContainer {
+public class ClauseContainer implements java.io.Serializable {
+
+//mark this class this to allow for changes to variables in class (refactoring)
+private static final long serialVersionUID = -64702044414208496L;
 //setup declare instance variables. shared in class if preceded by static.	
 ArrayList<Clause> myClauses = new ArrayList<Clause>();  
 int numClauses=0; //this will hold number of clauses
 String docname=""; //to hold the container name or filename
+String docauthor=""; //to hold author name
+String docnotes=""; //to hold Document notes
 //Stage ContainerStage = new Stage(); //to hold Stage associated with this container?
 
 //empty constructor no arguments

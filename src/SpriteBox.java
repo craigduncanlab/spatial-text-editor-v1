@@ -39,6 +39,8 @@ If the location of each Spritebox can be saved (e.g. the parent window), this ma
 14.3.18 Add Library status
 Query if stage and library status should also be in Clause instances
 
+27.3.18 Consider if SpriteBox can also hold a Document (ClauseContainer)
+
 */
 
 public class SpriteBox extends StackPane implements java.io.Serializable {         
@@ -46,6 +48,7 @@ public class SpriteBox extends StackPane implements java.io.Serializable {
     //Not class variables as they are not 'static'
     ColBox myBox;
     Clause myClause;
+    ClauseContainer myDocument;
     String Category=""; //will be Clause, Definition etc
     Text boxtext = new Text ("empty box");//Default label text for every SpriteBox
     String contents;  // Text for the SpriteBox outside of Clause objects.  Currently unused.
@@ -54,7 +57,7 @@ public class SpriteBox extends StackPane implements java.io.Serializable {
     Boolean isAlert=false;
     Boolean OnStage=false;
     Boolean InLibrary=false;
-    Boolean InDocument=false;
+    Boolean InDocumentStage=false;
     Boolean OtherStage=false;
     String defaultColour="";
     String alertColour="red";
@@ -160,8 +163,8 @@ public class SpriteBox extends StackPane implements java.io.Serializable {
         return this.InLibrary;
     }
 
-    public Boolean isInDocument() {
-        return this.InDocument;
+    public Boolean isInDocumentStage() {
+        return this.InDocumentStage;
     }
 
     public Boolean isInOtherStage() {
@@ -182,8 +185,8 @@ public class SpriteBox extends StackPane implements java.io.Serializable {
 
     /* This is set to true when Sprite/Clause is in Document Window */ 
 
-    public void setInDocument(Boolean myBool) {
-        this.InDocument = myBool;
+    public void setInDocumentStage(Boolean myBool) {
+        this.InDocumentStage = myBool;
     }
 
      public void setInOtherStage(Boolean myBool) {
