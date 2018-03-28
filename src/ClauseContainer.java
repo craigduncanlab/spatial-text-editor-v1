@@ -251,6 +251,7 @@ public ClauseContainer cloneContainer() {
 	clone.setAuthorName(this.docauthor); //to hold author name
 	clone.setNotes(this.docnotes);
 	clone.setDate(this.date);
+	clone.setType(this.ContainerType);
 	return clone;
 }
 
