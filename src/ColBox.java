@@ -20,8 +20,8 @@ public class ColBox extends Rectangle{
 //default constructor
     public ColBox() {
     	this.setColour("salmon"); //default
-        setWidth(150);
-        setHeight(40);
+        this.setWidth(150);
+        this.setHeight(40);
         //setArcWidth(60);  //do this enough you get a circle.  option
         //setArcHeight(60);                
         //-->setFill(myColour.deriveColor(0, 1.2, 1, 0.6));  //allows for transparency so order not so important
@@ -58,6 +58,10 @@ public class ColBox extends Rectangle{
         }
         if (mycol.equals("darkblue")) {
             myColour = Color.DARKBLUE;
+            this.boxcolour = mycol;
+        }
+        if (mycol.equals("lemon")) {
+            myColour = Color.LEMONCHIFFON;
             this.boxcolour = mycol;
         }
         if (mycol.equals("lightblue")) {

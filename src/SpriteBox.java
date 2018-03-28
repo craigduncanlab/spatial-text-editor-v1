@@ -9,6 +9,7 @@ import javafx.scene.paint.Color;
 //Scene - Text as text, with font option
 import javafx.scene.text.Text; 
 import javafx.scene.text.Font;
+import javafx.scene.text.*;
 //Layout - use StackPane for now
 import javafx.scene.layout.StackPane;
 //Events
@@ -58,6 +59,7 @@ public class SpriteBox extends StackPane implements java.io.Serializable {
     Boolean isAlert=false;
     Boolean OnStage=false;
     Boolean InLibrary=false;
+    Boolean InCollection=false;
     Boolean InDocumentStage=false;
     Boolean OtherStage=false;
     String defaultColour="";
@@ -101,6 +103,17 @@ public class SpriteBox extends StackPane implements java.io.Serializable {
         return this.BoxContent;
     }
 
+    /*Return the Object inside (if ClauseContainer) */
+
+    public ClauseContainer getCC() {
+        if(this.BoxContent instanceof ClauseContainer) {
+            return (ClauseContainer)this.BoxContent;
+        }
+        else {
+            return new ClauseContainer(); //error?
+        }
+    }
+
     /* General setup with Clause inside */
 
     public void setup() {
@@ -109,11 +122,6 @@ public class SpriteBox extends StackPane implements java.io.Serializable {
         Font boxfont=Font.font ("Verdana", 10);
         boxtext.setFont(boxfont);
         boxtext.setWrappingWidth(130);
-        /*
-        boxtext.setWrapText(true);
-        boxtext.setMaxWidth(40);
-        boxtext.setMaxHeight(30);
-        */
         this.setCursor(Cursor.HAND);
         this.getChildren().addAll(myBox,boxtext); 
     }
@@ -177,6 +185,10 @@ public class SpriteBox extends StackPane implements java.io.Serializable {
         return this.InLibrary;
     }
 
+    public Boolean isInCollection() {
+        return this.InCollection;
+    }
+
     public Boolean isInDocumentStage() {
         return this.InDocumentStage;
     }
@@ -195,6 +207,12 @@ public class SpriteBox extends StackPane implements java.io.Serializable {
 
     public void setInLibrary(Boolean myBool) {
         this.InLibrary = myBool;
+    }
+
+    /* This is set to true when Sprite/Clause is in Collection Window */ 
+
+    public void setInCollection(Boolean myBool) {
+        this.InCollection = myBool;
     }
 
     /* This is set to true when Sprite/Clause is in Document Window */ 
@@ -225,15 +243,29 @@ public class SpriteBox extends StackPane implements java.io.Serializable {
     */
 
     private void updateAppearance() {
-        //set Sprite label to Clause label
-        this.boxtext.setText(this.myClause.getLabel());
-
+        
         //if it happens to hold a ClauseContainer set it to dark blue
         Object testContent = this.getBoxContent();
         if (testContent instanceof ClauseContainer) {
-            this.SetColour("darkblue");
+            String cctype = ((ClauseContainer)testContent).getType();
+            if (cctype.equals("library")) {
+                this.SetColour("lemon");
+            }
+            else {
+                this.SetColour("darkblue");
+            }
+            this.setLabel(((ClauseContainer)testContent).getDocName());
+            /* TO DO: change shape for docs
+            myBox.setWidth(90);
+            myBox.setHeight(100);
+            this.boxtext.setWrappingWidth(130);
+            this.boxtext.setTextAlignment(TextAlignment.JUSTIFY);
+            */
             return;
         }   
+        else {
+        //set Sprite label to Clause label
+        this.boxtext.setText(this.myClause.getLabel());
 
         //otherwise, for now, set colour of SpriteBox based on Clause category
         // TO DO: Make this use 'instanceof' as the case
@@ -260,6 +292,7 @@ public class SpriteBox extends StackPane implements java.io.Serializable {
             }
         //to do : set shape based on category too
         }
+    }
 
     /* ----  INTERNAL OBJECT DATA --- */
 
@@ -291,7 +324,6 @@ public class SpriteBox extends StackPane implements java.io.Serializable {
         this.setBoxContent(inputClause);
         this.updateAppearance();
         }
-
 
     public Clause getClause() {
         return this.myClause;

@@ -131,9 +131,16 @@ public void setPosition(Stage myStage, String myCategory) {
                 myStage.toFront();
                 break;
 
-            case "document":
+            case "collection":
                 //myStage.initOwner(Parent);
                 myStage.setX(800); //1440 is about 71%
+                myStage.setY(100); 
+                myStage.toFront();
+                break;
+                
+            case "document":
+                //myStage.initOwner(Parent);
+                myStage.setX(400); //1440 is about 71%
                 myStage.setY(200); 
                 myStage.toFront();
                 break;

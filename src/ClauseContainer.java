@@ -17,11 +17,14 @@ public class ClauseContainer implements java.io.Serializable {
 private static final long serialVersionUID = -64702044414208496L;
 //setup declare instance variables. shared in class if preceded by static.	
 //TO DO: Make this generic i.e. will hold different objects, even if not subclasses?
-ArrayList<Clause> myClauses = new ArrayList<Clause>();  
+ArrayList<Clause> myClauses = new ArrayList<Clause>(); 
+String ContainerType=""; 
 int numClauses=0; //this will hold number of clauses
 String docname=""; //to hold the container name or filename
 String docauthor=""; //to hold author name
 String docnotes=""; //to hold Document notes
+String date="";
+
 //Stage ContainerStage = new Stage(); //to hold Stage associated with this container?
 
 //empty constructor no arguments
@@ -29,14 +32,54 @@ public ClauseContainer() {
 
 }
 
+//CONTAINER TYPE
+public void setType(String myString) {
+	this.ContainerType=myString;
+}
+
+public String getType() {
+	return this.ContainerType;
+}
+
+//CLONING
+public void setNumClauses(int myNum) {
+	this.numClauses=myNum;
+}
+
+public void setAuthorName(String myString) {
+	this.docauthor=myString;
+}
+
+public void setNotes(String myString) {
+	this.docnotes=myString;
+}
+
+public void setDate(String myString) {
+	this.date=myString;
+}
+
 //FILE FUNCTIONS
 public void setDocName(String myString) {
 	this.docname=myString;
 }
 
+//GETTERS
 public String getDocName() {
 	return this.docname;
 }
+
+public String getAuthorName() {
+	return this.docauthor;
+}
+
+public String getNotes() {
+	return this.docnotes;
+}
+
+public String getDate() {
+	return this.date;
+}
+
 
 /* STAGE SYNC
 public void setStage(Stage myStage) {
@@ -197,6 +240,18 @@ public ArrayList<Clause> getClauseArray() {
 
 public int getNumClauses() {
 	return this.myClauses.size();
+}
+
+public ClauseContainer cloneContainer() {
+	ClauseContainer clone = new ClauseContainer();
+	clone.setClauseArray(this.myClauses); 
+	clone.setDocName(this.ContainerType); 
+	clone.setNumClauses(this.numClauses); //this will hold number of clauses
+	clone.setDocName(this.docname); //to hold the container name or filename
+	clone.setAuthorName(this.docauthor); //to hold author name
+	clone.setNotes(this.docnotes);
+	clone.setDate(this.date);
+	return clone;
 }
 
 }

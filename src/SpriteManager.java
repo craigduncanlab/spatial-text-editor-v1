@@ -8,6 +8,8 @@ SpriteBox currentSprite = null;
 SpriteBox targetSprite = null;
 double stageX = 0;
 double stageY = 0;
+double CollX = 0;
+double CollY = 0;
 double LibX = 0;
 double LibY = 0;
 double DocX = 0;
@@ -86,6 +88,23 @@ public void placeOnMainStage(SpriteBox mySprite) {
     }
 
 // This can be used for both new boxes and a box being moved
+
+public void placeInCollection(SpriteBox mySprite) {
+        
+        if (this.currentSprite!=null) {  //might be no current sprite if not dbl clicked
+                this.currentSprite.endAlert();
+        }
+        //set position relative to Library Window
+        this.CollX=this.CollX+50;
+        this.CollY=this.CollY+50;
+        mySprite.setTranslateX(this.LibX);
+        mySprite.setTranslateY(this.LibY); 
+        //
+        this.setCurrentSprite(mySprite); 
+        this.currentSprite.doAlert();
+        //TO DO: if this is a move then this might be needed : this.currentSprite.setOnStage(false);
+        this.currentSprite.setInLibrary(true);
+    }
 
 public void placeInLibrary(SpriteBox mySprite) {
         
