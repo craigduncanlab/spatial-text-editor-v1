@@ -1364,20 +1364,16 @@ public Group setupToolbarPanel(Stage myStage, String myTitle) {
         btnDoEdit.setTooltip(new Tooltip ("Press to Edit Selection (Red Block)"));
         btnDoEdit.setOnAction(DoEditStage);
 
-        //TO DO:  Buttons for 'Copy to Library' {Definition Library}{Clause Library}
-        //Button for "Load a clause library from disk"  etc
-        
         //Set horizontal box to hold buttons
         //HBox hboxButtons = new HBox(0,btnMoveClauseWS,btnCopyClause);
-        VBox vbox1 = new VBox(0,btnNewDef,btnNewClause,btnCopyCC,btnMoveClauseWS,btnCopyClauseWS,btnMoveClauseDoc, btnCopyClauseDoc, btnCopyClauseLib,btnMoveClauseLib,btnDeleteClause,btnDoEdit);
+        //VBox vbox1 = new VBox(0,btnNewDef,btnNewClause,btnCopyCC,btnMoveClauseWS,btnCopyClauseWS,btnMoveClauseDoc, btnCopyClauseDoc, btnCopyClauseLib,btnMoveClauseLib,btnDeleteClause,btnDoEdit);
+        VBox vbox1 = new VBox(0,btnCopyCC,btnMoveClauseWS,btnCopyClauseWS,btnMoveClauseDoc, btnCopyClauseDoc, btnCopyClauseLib,btnMoveClauseLib,btnDeleteClause,btnDoEdit);
         
-        //VBox vbox1 = new VBox(0,btnMoveClauseWS,btnCopyClause,btnDoEdit);
         //
         toolbar_root.getChildren().add(vbox1); //add the vbox to the root node to hold everything
         int totalwidth=190;
         vbox1.setPrefWidth(totalwidth); //this is in different units to textarea
        
-        //return the child node, not the root in this case?
         return toolbar_root;
 }
 

@@ -10,6 +10,9 @@ Depends on SpriteBox class.
 QN: is it easier to serialise the BoxContainer as a singleton than deal with ArrayList directly?
 
 nb - all non-serializable fields should be mark transient...e.g.
+
+To do: Use this at project level, so entire project can be dumped into text file for alternative archive form.
+
 */
 
 public class BoxContainer implements java.io.Serializable {
