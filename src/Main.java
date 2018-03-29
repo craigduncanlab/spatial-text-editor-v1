@@ -104,20 +104,32 @@ public class Main extends Application {
     ClauseContainer WorkspaceClauseContainer = null;
     BoxContainer WorkspaceBoxes; //A serializable top-level container (optional)
     Collection wsCollection = new Collection(); //for holding workspace contents (inside boxes)
-    //
+    //Opus = project collection.  Display Projects as Icons, as in a library.
+    Stage ProjectLibStage;
+    Scene ProjectLibScene;
+    Group ProjectLibGroup;
+    ProjectContainer myProjectLib = new ProjectContainer();
+    //ProjectOpen Stage (to display contents of each Project i.e. an open Project with Collection(s), MergeData etc)
+    Stage ProjectStage;
+    Scene ProjectScene;
+    Group ProjectGroup;
+    //String ProjectName = "project.ser";
+    Project myOpenProject = new Project(); //currently opened project
+    //To do: MergeDataWindow
+    //Collection Stage (to hold groups of libraries and documents).. i.e an open Collection.
     Stage CollectionStage;
     Scene CollectionScene;
     Group CollectionGroup;
     String CollectionName = "collection.ser";
-    Collection myCollection = new Collection(); //use for keeping/saving all Docs (ClauseContainers) in Collection
-    //Main Stages and Collections for Clauses
+    Collection myCollection = new Collection(); //the curently open Collection.
+    //To hold groups of Clauses in SpriteBoxes (as needed) i.e. an Open Document.
     Stage DocumentStage;
     Scene DocumentScene;
     Group DocumentGroup;
     String BoxFilename="document.ser";
     ClauseContainer DocumentClauseContainer = null; 
     ClauseContainer LibraryClauseContainer = null; //library import/save
-    //Library Window (as needed)
+    //Library Window (for display of the Open Library)
     Stage LibraryStage=null;
     Scene LibraryScene;
     Group LibraryGroup;
@@ -221,7 +233,23 @@ private ClauseContainer extractStatuteSectionsFromSampleText(String mydata) {
     return clauseCarton;
 } 
 
-//used by event handler
+//---EVENT HANDLER FUNCTIONS
+
+private void toggleView(Stage myStage) {
+                
+    if (myStage==null) {
+        System.out.println("Problem with Stage setup +"+myStage.toString());
+    }
+    if (myStage.isShowing()==false) {
+        myStage.show();
+        return;
+    }
+    if (myStage.isShowing()==true) {
+        myStage.hide();
+        return;
+    }
+}
+            
 
 private String getMatched(String data) {
     WordTool myTool = new WordTool();
@@ -297,29 +325,58 @@ public void setupImportStage(Stage textStage, String myTitle) {
         
     }
 
+
 /*
-Method to setup single Library stage for Workspace
+Method to setup single stage to display all Projects
 */
 
-public Group setupLibraryStage() {
+public Group setupProjectLibStage() {
+
     //Create scrollpane as root and attach group node
     Group tempGroup = new Group();
     ScrollPane outerScroll = new ScrollPane();
     outerScroll.setContent(tempGroup);
     //give root node its Scene with event handlers on it
-    LibraryScene = new Scene (outerScroll,650,400); //default width x height (px)
-    LibraryScene.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
+    ProjectLibScene = new Scene (outerScroll,650,400); //default width x height (px)
+    ProjectLibScene .addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
          @Override
          public void handle(MouseEvent mouseEvent) {
-         System.out.println("Mouse click detected! " + mouseEvent.getSource());
-         mySpriteManager.setStageFocus("library");
+         System.out.println("Mouse click detected - Project Stage! " + mouseEvent.getSource());
+         mySpriteManager.setStageFocus("project");
              }
         });
     //Configure the Stage and its position/visibility
-    LibraryStage.setScene(LibraryScene); //set current scene for the Stage
-    LibraryStage.setTitle("Library");
-    myStageManager.setPosition(LibraryStage,"library");
-    LibraryStage.hide(); //<---do this after set position otherwise it affects scene attachment
+    ProjectLibStage.setScene(ProjectLibScene); //set current scene for the Stage
+    ProjectLibStage.setTitle("Project");//later, use loaded project title
+    myStageManager.setPosition(ProjectLibStage,"projectlib");
+    ProjectLibStage.hide(); 
+    return tempGroup;
+}
+
+/*
+Method to setup single Project stage for currently open Project
+*/
+
+public Group setupProjectOpenStage() {
+
+    //Create scrollpane as root and attach group node
+    Group tempGroup = new Group();
+    ScrollPane outerScroll = new ScrollPane();
+    outerScroll.setContent(tempGroup);
+    //give root node its Scene with event handlers on it
+    ProjectScene = new Scene (outerScroll,650,400); //default width x height (px)
+    ProjectScene .addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
+         @Override
+         public void handle(MouseEvent mouseEvent) {
+         System.out.println("Mouse click detected - Project Stage! " + mouseEvent.getSource());
+         mySpriteManager.setStageFocus("project");
+             }
+        });
+    //Configure the Stage and its position/visibility
+    ProjectStage.setScene(ProjectScene); //set current scene for the Stage
+    ProjectStage.setTitle("Project");//later, use loaded project title
+    myStageManager.setPosition(ProjectStage,"project");
+    ProjectStage.hide(); 
     return tempGroup;
 }
 
@@ -351,7 +408,33 @@ public Group setupCollectionStage() {
 }
 
 /*
-Method to setup single Document stage for Workspace
+Method to setup single Library stage for currently open library
+*/
+
+public Group setupLibraryStage() {
+    //Create scrollpane as root and attach group node
+    Group tempGroup = new Group();
+    ScrollPane outerScroll = new ScrollPane();
+    outerScroll.setContent(tempGroup);
+    //give root node its Scene with event handlers on it
+    LibraryScene = new Scene (outerScroll,650,400); //default width x height (px)
+    LibraryScene.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
+         @Override
+         public void handle(MouseEvent mouseEvent) {
+         System.out.println("Mouse click detected! " + mouseEvent.getSource());
+         mySpriteManager.setStageFocus("library");
+             }
+        });
+    //Configure the Stage and its position/visibility
+    LibraryStage.setScene(LibraryScene); //set current scene for the Stage
+    LibraryStage.setTitle("Library");
+    myStageManager.setPosition(LibraryStage,"library");
+    LibraryStage.hide(); //<---do this after set position otherwise it affects scene attachment
+    return tempGroup;
+}
+
+/*
+Method to setup single Document stage for currently open Document
 */
 
 public Group setupDocumentStage() {
@@ -377,9 +460,9 @@ public Group setupDocumentStage() {
     return tempGroup;
 }
 
-/* Setup method to create a space to add or remove clauses, and then process them into some kind of output
+/* 
 
-At this stage, the root node is a Group (sizes according to children, unlike Pane).
+The root node is a Group (resizes according to children, unlike Pane).
 
 */
 
@@ -388,12 +471,12 @@ public Group setupWorkspaceStage(Stage myStage, String myTitle) {
         myStage.setTitle(myTitle);
         
         
-        Group myGroup_root = new Group(); //for root
+        Group myGroup_root = new Group(); //for root node
         DocumentClauseContainer = new ClauseContainer();
         WorkspaceClauseContainer = new ClauseContainer();
         LibraryClauseContainer = new ClauseContainer(); //for library window/stage
         WorkspaceBoxes = new BoxContainer(); //for load/save
-        WorkspaceGroup = new Group(); //for child node
+        Group menubarGroup = new Group(); //to hold menubar
 
 
         MenuBar menuBar = new MenuBar();
@@ -402,6 +485,8 @@ public Group setupWorkspaceStage(Stage myStage, String myTitle) {
         Menu menuWorkspace = new Menu("Workspace");
         Menu menuDocument = new Menu("Document");
         Menu menuCollection = new Menu("Collection");
+        Menu menuProject = new Menu("Project");
+        Menu menuProjectLib = new Menu ("ProjectLib");
         Menu menuLibrary = new Menu("Library");
         Menu menuOutput = new Menu("Output");
         Menu menuImport = new Menu("Importer");
@@ -410,7 +495,9 @@ public Group setupWorkspaceStage(Stage myStage, String myTitle) {
         MenuItem NewClause = new MenuItem("Clause");
         MenuItem NewEvent = new MenuItem("Event");
         MenuItem NewDocCont = new MenuItem("Document");
-        MenuItem NewLibrary = new MenuItem("New");
+        MenuItem NewLibrary = new MenuItem("NewLibrary");
+        MenuItem NewCollection = new MenuItem("Collection");
+        MenuItem NewProject = new MenuItem("Project");
         MenuItem viewImporter = new MenuItem("Importer");
         MenuItem viewDocument = new MenuItem("Document");
         MenuItem viewEditor = new MenuItem("Editor");
@@ -418,6 +505,10 @@ public Group setupWorkspaceStage(Stage myStage, String myTitle) {
         MenuItem viewToolbar = new MenuItem("Clause Toolbar");
         MenuItem viewLibrary = new MenuItem("Library");
         MenuItem viewCollection = new MenuItem("Collection");
+        MenuItem viewProject = new MenuItem("Project");
+        MenuItem viewProjectLib = new MenuItem("ProjectLib");
+        MenuItem SaveProject = new MenuItem("Save");
+        MenuItem LoadProject = new MenuItem("Load");
         MenuItem SaveColl = new MenuItem("Save");
         MenuItem LoadColl = new MenuItem("Load");
         MenuItem SaveWork = new MenuItem("Save");
@@ -440,15 +531,20 @@ public Group setupWorkspaceStage(Stage myStage, String myTitle) {
         MenuItem GetDefs = new MenuItem("GetDefs");
         MenuItem GetClauses = new MenuItem("GetClauses");
         MenuItem GetSections = new MenuItem("GetSections");
-         menuObject.getItems().addAll(NewDef,NewClause,NewEvent,NewDocCont,NewLibrary);
+         menuObject.getItems().addAll(NewDef,NewClause,NewEvent,NewDocCont,NewLibrary,NewCollection,NewProject);
          menuViews.getItems().addAll(
+            viewProjectLib,
+            viewProject,
             viewCollection,
             viewLibrary,
-            viewImporter,
             viewDocument,
             viewEditor,
+            viewImporter,
             viewtextmaker,
             viewToolbar);
+         menuProject.getItems().addAll(
+            SaveProject,
+            LoadProject);
          menuCollection.getItems().addAll(
             SaveColl,
             LoadColl);
@@ -463,8 +559,7 @@ public Group setupWorkspaceStage(Stage myStage, String myTitle) {
             NewDoc); //OutputDoc
         menuLibrary.getItems().addAll(
             SaveLibrary,
-            LoadLibrary,
-            NewLibrary);
+            LoadLibrary);
         menuOutput.getItems().addAll(
             SaveOutput);
         menuImport.getItems().addAll(
@@ -550,23 +645,15 @@ public Group setupWorkspaceStage(Stage myStage, String myTitle) {
             }
         });
 
-        //TO : Just insert function name here and function detail elsewhere
-        /*TO DO: ADD OPTION TO TAKE FILENAME AS ARG WHEN INVOKING MAIN
-                i.e. you can specify your workspace name when starting it up */
+        //Method to save workspace (serial)
+
         SaveWork.setOnAction(new EventHandler<ActionEvent>() {
         public void handle(ActionEvent t) {
                 //TO DO: ADD SERIALISATION OR FUNCTION CALL
                 BoxFilename = "workspace.ser";
                 FileOutputStream fos = null;
                 ObjectOutputStream out = null;
-                //ArrayList <SpriteBox> myBoxList = new ArrayList<SpriteBox>();
-                //ArrayList <SpriteBox> myBoxList = WorkspaceBoxes.getBoxArray();
-                //ArrayList<String> myBoxList =  new ArrayList<String>(Arrays.asList("Hot","Potato","Test"));
                 ArrayList<Clause> myBoxList =  WorkspaceClauseContainer.getClauseArray();
-                //BoxFilename = WorkspaceClauseContainer.getDocName();
-                if (BoxFilename.equals("")) {
-                    BoxFilename="workspace-1-temp.ser";
-                }
                 try {
                     fos = new FileOutputStream(BoxFilename);
                     out = new ObjectOutputStream(fos);
@@ -580,10 +667,8 @@ public Group setupWorkspaceStage(Stage myStage, String myTitle) {
             }
         });
 
-        /* Method to load up saved workspace clauses.  At the moment, this loads up in a new window.
-        So it allows the workspace to be created fresh, but the loaded window is not saved. */
+        /* Method to load up saved workspace */
 
-        //TO DO : Just insert function name here and function detail elsewhere
         LoadWork.setOnAction(new EventHandler<ActionEvent>() {
         public void handle(ActionEvent t) {
                 //TO DO: ADD SERIALISATION OR FUNCTION CALL
@@ -609,13 +694,8 @@ public Group setupWorkspaceStage(Stage myStage, String myTitle) {
                 System.out.println(myBoxListIn.toString());
                 ClauseContainer inputContainer = new ClauseContainer();
                 inputContainer.setClauseArray(myBoxListIn);
-                //hold existing workspace
-                //displaySpritesInNewStage(WorkspaceClauseContainer, "Previous Workspace");
-                //TO DO: clear workspace
-                //Load saved Workspace into Workspace.
                 WorkspaceClauseContainer.setClauseArray(inputContainer.getClauseArray());
                 displaySpritesOnWorkspace(WorkspaceClauseContainer);
-                //displaySpritesInDocumentStage(inputContainer, "Loaded Document");
             }
         });
 
@@ -650,7 +730,7 @@ public Group setupWorkspaceStage(Stage myStage, String myTitle) {
             }
         });    
 
-        //DOCUMENT FUNCTIONS
+        //----DOCUMENT EVENT HANDLER FUNCTIONS 
         /*  Function to save current document clauses/contents  */
         SaveDocAs.setOnAction(new EventHandler<ActionEvent>() {
         public void handle(ActionEvent t) {
@@ -738,25 +818,9 @@ public Group setupWorkspaceStage(Stage myStage, String myTitle) {
                 //create spritebox
                 SpriteBox b = new SpriteBox();
                 b.setBoxContent(newDocument);
-                b.setOnMousePressed(PressDocBoxEventHandler); 
+                b.setOnMousePressed(PressDocBoxEventHandler); //dbl click = open contents window
                 b.setOnMouseDragged(DragBoxEventHandler);
-                //place icon in Collection Stage (contents visible on double-click)
                 placeSpriteOnMainStage(b);
-                /*
-                System.out.println(myBoxListIn.toString());
-                ClauseContainer inputContainer = new ClauseContainer();
-                inputContainer.setClauseArray(myBoxListIn);
-                mySpriteManager.resetDocXY();
-                //hold existing document
-                //displaySpritesInNewStage(DocumentClauseContainer, "Previous Document");
-                //TO DO: clear workspace
-                //Load saved Document into a new Document Stage.
-                DocumentStage = new Stage(); //reset reference
-                myStageManager.setStageParent(ParentStage,DocumentStage);
-                DocumentClauseContainer.setClauseArray(inputContainer.getClauseArray());
-                DocumentClauseContainer.setDocName("document.ser");
-                displaySpritesInDocumentStage(DocumentClauseContainer, "Loaded Document");
-                */
             }
         });
 
@@ -767,7 +831,6 @@ public Group setupWorkspaceStage(Stage myStage, String myTitle) {
                 String BoxFilename="document-cont.ser";
                 FileInputStream fis = null;
                 ObjectInputStream in = null;
-                //ArrayList <Clause> myBoxListIn = null;
                 ClauseContainer inputContainer = new ClauseContainer();
                 try {
                     fis = new FileInputStream(BoxFilename);
@@ -790,8 +853,6 @@ public Group setupWorkspaceStage(Stage myStage, String myTitle) {
                 if (inputContainer.getDocName().equals("")) {
                     inputContainer.setDocName("CraigsLoadedDocument"+Integer.toString(loaddocnum));
                 }
-                //inputContainer.addClause(myClause); //default clause for new container to work with
-                
                 //create spritebox
                 SpriteBox b = new SpriteBox();
                 b.setBoxContent(inputContainer);
@@ -845,7 +906,6 @@ public Group setupWorkspaceStage(Stage myStage, String myTitle) {
             }
         });    
 
-        
         LoadLibrary.setOnAction(LoadLibraryFile);
         
         //Load up an empty library window
@@ -892,114 +952,58 @@ public Group setupWorkspaceStage(Stage myStage, String myTitle) {
         //Toggle visibility of Document window
         viewDocument.setOnAction(new EventHandler<ActionEvent>() {
         public void handle(ActionEvent t) {
-                if (DocumentStage==null) {
-                    System.out.println("Problem with Document Stage setup");
-                }
-                if (DocumentStage.isShowing()==false) {
-                    DocumentStage.show();
-                    return;
-                }
-                if (DocumentStage.isShowing()==true) {
-                    DocumentStage.hide();
-                    return;
-                }
+                toggleView(DocumentStage);
             }
         });
 
         //Toggle visibility of Library window
         viewLibrary.setOnAction(new EventHandler<ActionEvent>() {
         public void handle(ActionEvent t) {
-                if (LibraryStage==null) {
-                    System.out.println("Problem with Library Stage setup");
-                }
-                if (LibraryStage.isShowing()==false) {
-                    LibraryStage.show();
-                    return;
-                }
-                if (LibraryStage.isShowing()==true) {
-                    LibraryStage.hide();
-                    return;
-                }
+                toggleView(LibraryStage);
+            }
+        });
+
+        //Toggle visibility of Project window
+        viewProject.setOnAction(new EventHandler<ActionEvent>() {
+        public void handle(ActionEvent t) {
+                toggleView(ProjectStage);
             }
         });
 
         //Toggle visibility of Collection window
         viewCollection.setOnAction(new EventHandler<ActionEvent>() {
         public void handle(ActionEvent t) {
-                if (CollectionStage==null) {
-                    System.out.println("Problem with Collection Stage setup");
-                }
-                if (CollectionStage.isShowing()==false) {
-                    CollectionStage.show();
-                    return;
-                }
-                if (CollectionStage.isShowing()==true) {
-                    CollectionStage.hide();
-                    return;
-                }
+                toggleView(CollectionStage);
             }
         });
 
         //Toggle visibility of output window
         viewtextmaker.setOnAction(new EventHandler<ActionEvent>() {
         public void handle(ActionEvent t) {
-                if (textOutputStage.isShowing()==false) {
-                    textOutputStage.show();
-                    return;
-                }
-                if (textOutputStage.isShowing()==true) {
-                    textOutputStage.hide();
-                    return;
-                }
+                toggleView(textOutputStage);
             }
         });
 
         //toggle visibility of editor
         viewEditor.setOnAction(new EventHandler<ActionEvent>() {
         public void handle(ActionEvent t) {
-                if (editorStage.isShowing()==false) {
-                    editorStage.show();
-                    return;
-                }
-                if (editorStage.isShowing()==true) {
-                    editorStage.hide();
-                    return;
-                }
+                toggleView(editorStage);
             }
         });
 
          //toggle visibility of importer
         viewImporter.setOnAction(new EventHandler<ActionEvent>() {
         public void handle(ActionEvent t) {
-                if (importStage.isShowing()==false) {
-                    importStage.show();
-                    return;
-                }
-                if (importStage.isShowing()==true) {
-                    importStage.hide();
-                    return;
-                }
-
+                toggleView(importStage);
             }
         });
 
          //toggle visibility of toolbar
         viewToolbar.setOnAction(new EventHandler<ActionEvent>() {
         public void handle(ActionEvent t) {
-                if (toolbarStage.isShowing()==false) {
-                    toolbarStage.show();
-                    return;
-                }
-                if (toolbarStage.isShowing()==true) {
-                    toolbarStage.hide();
-                    return;
-                }
+                toggleView(toolbarStage);
             }
         });
-
-        //To add Menus you simply use 'getMenus' on the MenuBar and do not add to Scene.
-        //menuBar.getMenus().addAll(menuViews);
-        //menuBar.getMenus().add(menuViews);  
 
         SaveOutput.setOnAction(new EventHandler<ActionEvent>() {
         public void handle(ActionEvent t) {
@@ -1011,26 +1015,26 @@ public Group setupWorkspaceStage(Stage myStage, String myTitle) {
             }
         });
 
-        /*procedures for Object menu*/
+        /* --- OBJECT MENU --- */
         NewClause.setOnAction(addNewClauseBox);
         NewDef.setOnAction(addNewDefBox);
         NewEvent.setOnAction(addNewEventBox);
         NewDocCont.setOnAction(addNewDocCont);
-        /*procedures for Import menu  TO DO: File Open*/
+        
+        /* --- IMPORT MENU ---   TO DO: File Open*/
         WordCount.setOnAction(updateWordCounts); //argument is an EventHandler with ActionEvent object
         GetDefText.setOnAction(extractDefinitions);
         GetDefs.setOnAction(makeDefIcons);
         GetClauses.setOnAction(makeClauseIcons);
         GetSections.setOnAction(importStatuteClauses);
 
-        menuBar.getMenus().addAll(menuViews, menuObject,menuWorkspace, menuDocument, menuLibrary, menuOutput, menuImport,menuCollection);     
-
+        
 
         //add group layout object as root node for Scene at time of creation
         //defScene = new Scene (myGroup_root,650,300); //default width x height (px)
         defScene = new Scene (myGroup_root,myStageManager.getBigX(),myStageManager.getBigY(), Color.BEIGE);
         //scene.getRoot()).getChildren().addAll(menuBar);
-        WorkspaceGroup.getChildren().addAll(menuBar);
+        
 
         //optional event handler
         defScene.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
@@ -1047,13 +1051,16 @@ public Group setupWorkspaceStage(Stage myStage, String myTitle) {
         myStageManager.setPosition(myStage,"workspace");
         myStage.show();
         
-        VBox vbox1 = new VBox(0,WorkspaceGroup);
+        /* --- MENU BAR --- */
+        menuBar.getMenus().addAll(menuViews, menuObject,menuWorkspace, menuDocument, menuLibrary, menuOutput, menuImport,menuCollection,menuProject);     
+        menubarGroup.getChildren().addAll(menuBar);
+        VBox vbox1 = new VBox(0,menubarGroup);
         myGroup_root.getChildren().add(vbox1); //add the vbox to the root node to hold everything
         int totalwidth=650;
         vbox1.setPrefWidth(totalwidth); //this is in different units to textarea
        
         //return the child node, not the root in this case?
-        return WorkspaceGroup;
+        return myGroup_root;
         
     }
 
@@ -1476,7 +1483,7 @@ private void setArea2Text(String fname) {
 /* Method to see if any label or text contains legal 'role' words, for display purposes 
 
 Many of these are pair words: relationship dichotomies; 
-a RELATIVE inequality or division of social, economic or legal power that defines a transaction or struture, and the role of the participants.
+a RELATIVE inequality or division of social, economic or legal power that defines a transaction or structure, and the role of the participants.
 
 TO DO: put into groups for managing different areas of law, but iterate through all.
 */
@@ -1486,14 +1493,9 @@ public Boolean isLegalRoleWord (String myWord) {
     Iterator<String> myIterator = RoleWords.iterator(); //alternatively use Java method to see if in Array?
     while (myIterator.hasNext()) {
         String checkWord = myIterator.next();
-        if (myWord.equalsIgnoreCase(checkWord)) {
+        if (myWord.equalsIgnoreCase(checkWord)) { //use equals fo case checking
             return true;
         }
-        /* pedantic version with case checking
-        if (myWord.equals(checkWord)) {
-            return true;
-        }
-        */
     }
     return false;
 }
@@ -1729,18 +1731,27 @@ public void deleteSprite(SpriteBox mySprite) {
        
         //setup clauses sandbox as first Stage (preserves order for display)
         ParentStage = new Stage();
-        Group clausePlayBox = Main.this.setupWorkspaceStage(ParentStage, "Main Workspace");
+        WorkspaceGroup = Main.this.setupWorkspaceStage(ParentStage, "Main Workspace");
 
-        //setup libary window
-        LibraryStage = new Stage();
-        myStageManager.setStageParent(ParentStage,LibraryStage);
-        LibraryGroup = Main.this.setupLibraryStage();
+        //setup Project Libary window
+        ProjectLibStage = new Stage();
+        myStageManager.setStageParent(ParentStage,ProjectLibStage);
+        ProjectLibGroup = Main.this.setupProjectLibStage();
 
+        //setup Project window
+        ProjectStage = new Stage();
+        myStageManager.setStageParent(ParentStage,ProjectStage);
+        ProjectGroup = Main.this.setupProjectOpenStage();
 
         //setup Collection window
         CollectionStage = new Stage();
         myStageManager.setStageParent(ParentStage,CollectionStage);
         CollectionGroup = Main.this.setupCollectionStage();
+
+        //setup libary window
+        LibraryStage = new Stage();
+        myStageManager.setStageParent(ParentStage,LibraryStage);
+        LibraryGroup = Main.this.setupLibraryStage();
 
         //setup Document window
         DocumentStage = new Stage();
@@ -1751,7 +1762,7 @@ public void deleteSprite(SpriteBox mySprite) {
         editorStage = new Stage();
         myStageManager.setStageParent(ParentStage,editorStage);
 
-        //*Stage that I will use for main text input display and editing
+        //*setup Import window (text input display and editing)
         importStage = new Stage();
         myStageManager.setStageParent(ParentStage,importStage);
         this.setupImportStage(importStage,"Text Importer");
