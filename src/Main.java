@@ -12,6 +12,9 @@ import javafx.stage.Stage;
 import javafx.stage.Screen;
 //Screen positioning
 import javafx.geometry.Rectangle2D;
+import javafx.geometry.Bounds;
+import javafx.geometry.HPos;
+import javafx.geometry.VPos;
 import javafx.geometry.Insets;
 //Scene graph (nodes) and traversal
 import javafx.scene.Group;
@@ -30,15 +33,20 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
-//Scene - general appearance & layout of Stages, nodes
+//Scene - general appearance & layout of Background Fills, Stages, nodes
+import javafx.scene.layout.Region;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane; //these still have individual positions (like Sprites)
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.layout.HBox;
-//Scene colour
+//Scene colour and Background Fills
 import javafx.scene.paint.Color;
+import javafx.scene.paint.Paint;
 
 //for UI and Mouse Click and Drag
 import javafx.scene.input.MouseEvent;
@@ -80,12 +88,7 @@ public class Main extends Application {
     //setup instance variables here.  Static if shared across class (i.e. static=same memory location used)
     //instance variables for Screens to hold them if changed.
     Stage textStage = new Stage(); //basic constructor for main text stage
-    Scene ImportScene; // scene for adding on textStage.
-    Scene boxScene;   //scene for graphic window
-    Group boxGroup_root; //root node for graphic window
-    ScrollPane scroll_rootNode; //root Node for Text Area
-    HBox hbox1; //an hbox to add text and things to!
-    HBox hbox3;
+    
     TextArea textArea1 = new TextArea();
     TextArea textArea2 = new TextArea();
     TextArea textArea3 = new TextArea();
@@ -96,63 +99,79 @@ public class Main extends Application {
     double orgTranslateX, orgTranslateY;
     //General managers
     SpriteManager mySpriteManager;
-    StageManager myStageManager = new StageManager();
     ControlsManager myControlsManager = new ControlsManager();
-    //Main Stage (Workspace window) that owns all other Stages
+    //
+    StageManager ParentStageSM;//= new StageManager();
     Stage ParentStage;
+    //Main Stage (Workspace window) that owns all other Stages
+    StageManager Stage_WS;
+    Stage WorkspaceStage;
     Group WorkspaceGroup;
-    ClauseContainer WorkspaceClauseContainer = null;
+    ClauseContainer WorkspaceNode = null;
     BoxContainer WorkspaceBoxes; //A serializable top-level container (optional)
-    Collection wsCollection = new Collection(); //for holding workspace contents (inside boxes)
+    ClauseContainer wsCollection = new ClauseContainer(); //for holding workspace contents (inside boxes)
     //Opus = project collection.  Display Projects as Icons, as in a library.
+    StageManager Stage_PROJLIB;
     Stage ProjectLibStage;
     Scene ProjectLibScene;
     Group ProjectLibGroup;
-    ProjectContainer myProjectLib = new ProjectContainer();
+    ClauseContainer projectLibNode = new ClauseContainer();
     //ProjectOpen Stage (to display contents of each Project i.e. an open Project with Collection(s), MergeData etc)
+    StageManager Stage_PROJ;
     Stage ProjectStage;
     Scene ProjectScene;
     Group ProjectGroup;
-    //String ProjectName = "project.ser";
-    Project myOpenProject = new Project(); //currently opened project
+    ClauseContainer projectNode = new ClauseContainer(); //currently opened project
     //To do: MergeDataWindow
     //Collection Stage (to hold groups of libraries and documents).. i.e an open Collection.
+    StageManager Stage_COLL;
+    /*
     Stage CollectionStage;
     Scene CollectionScene;
     Group CollectionGroup;
     String CollectionName = "collection.ser";
-    Collection myCollection = new Collection(); //the curently open Collection.
+    */
+    ClauseContainer collectionNode = new ClauseContainer(); 
+    
+    //the curently open Collection.
     //To hold groups of Clauses in SpriteBoxes (as needed) i.e. an Open Document.
+    StageManager Stage_DOC;
     Stage DocumentStage;
     Scene DocumentScene;
     Group DocumentGroup;
     String BoxFilename="document.ser";
-    ClauseContainer DocumentClauseContainer = null; 
-    ClauseContainer LibraryClauseContainer = null; //library import/save
+    ClauseContainer documentNode = new ClauseContainer(); 
+    
     //Library Window (for display of the Open Library)
+    StageManager Stage_LIB;
     Stage LibraryStage=null;
     Scene LibraryScene;
     Group LibraryGroup;
     String LibFilename="library.ser";
-    //importStage
-    Stage importStage;
+    ClauseContainer libraryNode = null; //library import/save
+    //ImportStage
+    StageManager Stage_Import;
+    Stage ImportStage;
+    Scene ImportScene; // scene for adding on textStage.
+    ScrollPane import_rootnode_scroll; //root Node for import stage
 
-    //textmaker window (no edits)
-    Stage textOutputStage;
-    Scene textOutputScene; 
-    ScrollPane textmakerGroup_root;
-    TextArea textmakerTextArea = new TextArea();
+    //Text Output windows (no edits)
+    StageManager Stage_Output = new StageManager();
+    StageManager Stage_Definitions = new StageManager();
+    
     //Display SpriteBoxes window(s)
-    Scene defScene;  //<----used multiple times in different methods.  TO DO:  localise Scene variables.
+    Scene workspaceScene;  //<----used multiple times in different methods.  TO DO:  localise Scene variables.
     //Group defGroup_root; //<---used for display Sprites in new stage
     //Extracted Definitions window (text)
     Stage defsTextStage;
     ScrollPane defsTextStage_root;
     //Toolbar
+    StageManager Stage_Toolbar;
     Stage toolbarStage = null;
     Group toolbarGroup = null;
     Scene toolbarScene = null;   
     //Clause editor
+    StageManager Stage_EDITNODEPROP = new StageManager();
     TextArea labelEdit;
     TextArea headingEdit;
     TextArea textEdit;
@@ -172,6 +191,11 @@ public class Main extends Application {
     //document loaded sequence
     int loaddocnum=0;
     int libdocnum=0;
+    //move active sprite tracking to here from spritemanager class (redundant)
+    SpriteBox activeSprite;
+    SpriteTracker myTracker = new SpriteTracker();
+    //STAGE IDS
+    int location = 0;
 
 /*The main method uses the launch method of the Application class.
 https://docs.oracle.com/javase/8/javafx/api/javafx/application/Application.html
@@ -206,7 +230,7 @@ private ClauseContainer grabDefinitionsFile(String fname) {
     return defbox;
 }
 
-private ClauseContainer extractDefinitionsFromSampleString(String mydata) {
+private ClauseContainer NodeFromDefinitionsSampleText(String mydata) {
     WordTool myTool = new WordTool();
     ClauseContainer defbox = myTool.doDefTextSearch(mydata);
     return defbox;
@@ -214,7 +238,7 @@ private ClauseContainer extractDefinitionsFromSampleString(String mydata) {
 
 //return a ClauseContainer object with clauses after using text document as input
 
-private ClauseContainer extractClausesFromSampleText(String mydata) {
+private ClauseContainer NodeFromClausesSampleText(String mydata) {
     WordTool myTool = new WordTool();
     //TO DO: add options for different clause extractions
     ClauseContainer clauseCarton = myTool.ClauseImport(mydata);
@@ -222,10 +246,9 @@ private ClauseContainer extractClausesFromSampleText(String mydata) {
     return clauseCarton;
 } 
 
-//extractStatuteSectionsFromSampleText(textArea1.getText());
-//return a ClauseContainer object with statute sections after using text document as input
+/* Convert String into a Node with contained clauses */
 
-private ClauseContainer extractStatuteSectionsFromSampleText(String mydata) {
+private ClauseContainer NodeFromStatuteSampleText(String mydata) {
     WordTool myTool = new WordTool();
     //TO DO: add options for different clause extractions
     ClauseContainer clauseCarton = myTool.StatuteSectionImport(mydata);
@@ -233,23 +256,242 @@ private ClauseContainer extractStatuteSectionsFromSampleText(String mydata) {
     return clauseCarton;
 } 
 
-//---EVENT HANDLER FUNCTIONS
+//---COMMON DOCUMENT / SPRITEBOX REQUESTS
 
-private void toggleView(Stage myStage) {
-                
-    if (myStage==null) {
-        System.out.println("Problem with Stage setup +"+myStage.toString());
+private Clause getDefaultNodeData() {
+    String label = "New document"; //unused
+    String text = "Some text";
+    String heading = "A heading";
+    String category = "clause"; //for now - check it later
+    Clause myClause = new Clause(label,heading,text,category); 
+    return myClause;
+}
+
+private ClauseContainer getNewNodeWithData(int nodelevel) {
+    ClauseContainer clauseNode = new ClauseContainer();
+    clauseNode.setDocName("Node with Data"+Integer.toString(libdocnum));
+    clauseNode.setNodeCategory("clause");
+    clauseNode.setNodeLevel(nodelevel);
+    clauseNode.setType("document");
+    clauseNode.setAuthorName("Craig");
+    clauseNode.addNodeClause(getDefaultNodeData());
+    return clauseNode;
+}
+
+private ClauseContainer getNewNodeNoData() {
+    ClauseContainer clauseNode = new ClauseContainer();
+    clauseNode.setDocName("New Node"+Integer.toString(libdocnum));
+    clauseNode.setNodeCategory("collection");
+    clauseNode.setType("collection");
+    clauseNode.setAuthorName("Craig");
+    //clauseNode.addNodeClause(makeProFormaClause());
+    return clauseNode;
+}
+
+private SpriteBox makeBoxWithNode(ClauseContainer node) {
+    
+    SpriteBox b = new SpriteBox();
+    b.setOnMousePressed(PressBoxEventHandler); 
+    b.setOnMouseDragged(DragBoxEventHandler);
+    b.setBoxNode(node);
+    return b;
+}
+
+private SpriteBox boxNodeForStage(ClauseContainer node, StageManager mySM) {
+    
+    SpriteBox b = new SpriteBox(node,mySM);
+    b.setOnMousePressed(PressBoxEventHandler); //internalise?
+    b.setOnMouseDragged(DragBoxEventHandler);
+    return b;
+}
+
+private ClauseContainer makeProjectTree() {
+
+    ClauseContainer firstClause = getNewNodeWithData(1);
+    ClauseContainer tempDoc = new ClauseContainer();
+    tempDoc.addChildNode(firstClause); //some metadata?
+    ClauseContainer tempCollection = new ClauseContainer();
+    tempCollection.addChildNode(tempDoc);
+    ClauseContainer tempProject = new ClauseContainer();
+    tempProject.addChildNode(tempCollection);
+    return tempProject;
+}
+
+private SpriteBox makeProjectBox() {
+
+    ClauseContainer proj = makeProjectTree();
+    SpriteBox box = makeBoxWithNode(proj);
+    return box;
+}
+
+private void addNewBoxWithClause() {
+
+    SpriteBox b = new SpriteBox(getNewNodeWithData(3),Stage_DOC);
+    placeSpriteOnTargetStage(b, Stage_DOC);
     }
-    if (myStage.isShowing()==false) {
-        myStage.show();
-        return;
+
+//LOAD, SAVE AND NEW FOR NODES - EVENT HANDLERS
+
+private void LoadNode(String filename, StageManager mySM) {
+                ClauseContainer targetNode = new ClauseContainer(); //not global anymore 
+                //String filename = mySM.getFilename();
+                System.out.println("Load filename:"+filename);
+                //TO DO: check function
+                FileInputStream fis = null;
+                ObjectInputStream in = null;
+                try {
+                    fis = new FileInputStream(filename);
+                    in = new ObjectInputStream(fis);
+                    targetNode=(ClauseContainer)in.readObject();
+                    in.close();
+                    System.out.println(targetNode.toString());
+                }
+                catch(IOException ex) {
+                    ex.printStackTrace();
+                }
+                catch(ClassNotFoundException ex)
+                {
+                     ex.printStackTrace();
+                }
+                loaddocnum++;
+                if (targetNode.getDocName().equals("")) {
+                    targetNode.setDocName("LoadedNode"+Integer.toString(loaddocnum));
+                }
+                //create spritebox
+                SpriteBox b = new SpriteBox(targetNode, mySM);
+                placeSpriteOnTargetStage(b, mySM);
+            }
+
+private void SaveNode (StageManager mySM) {
+        ClauseContainer node = mySM.getDisplayNode();
+        System.out.println("Saving:"+node.toString());
+        String filename = mySM.getFilename();
+
+        FileOutputStream fos = null;
+        ObjectOutputStream out = null;
+        try {
+            fos = new FileOutputStream(filename);
+            out = new ObjectOutputStream(fos);
+            out.writeObject(node); //the top-level object to be saved
+            out.close();
+        }
+        catch(IOException ex) {
+            ex.printStackTrace();
+        }
     }
-    if (myStage.isShowing()==true) {
-        myStage.hide();
-        return;
+
+//method to set parent node based on stage for child node on stage
+private void setParentChild(StageManager targetSM, SpriteBox mySprite) {
+    ClauseContainer parentNode = targetSM.getRefParentNode();
+    ClauseContainer thisNode = mySprite.getBoxNode();
+    thisNode.setParentNode(parentNode);
+    parentNode.addChildNode(thisNode);
+}
+
+//method to set parent node based on stage for child node on stage
+private void unsetParentChild(SpriteBox mySprite) {
+    ClauseContainer thisNode = mySprite.getBoxNode();
+    ClauseContainer parentNode=thisNode.getParentNode();
+    thisNode.unsetParentNode();
+    parentNode.removeChildNode(thisNode);
+}
+
+
+//Adds a container that is not holding a specific clause (could be anything)
+private void NewNodeForStage(StageManager targetStage, int nodelevel) {
+
+    SpriteBox b = new SpriteBox(getNewNodeWithData(nodelevel),targetStage);
+    b.setOnMousePressed(PressBoxEventHandler); 
+    b.setOnMouseDragged(DragBoxEventHandler);
+    if (targetStage.getStage().isShowing()==true) {
+        placeSpriteOnTargetStage(b, targetStage);
+        System.out.println("New node for stage - target is:"+targetStage.toString());
+    }
+    else {
+        System.out.println(b.toString()+Stage_WS.toString());
+            placeSpriteOnStage(b, Stage_WS);
+            System.out.println("New sprite on Stage_WS called from main new node:"+b.toString());
     }
 }
-            
+
+//place Sprite on Target stage if open otherwise workspace
+
+private void placeSpriteOnTargetStage(SpriteBox mySprite, StageManager targetStage) {
+    if (targetStage.getStage().isShowing()==true) {
+            placeSpriteOnStage(mySprite, targetStage);
+            System.out.println("New sprite :"+mySprite.toString()+"on target stage:"+targetStage.toString());
+        }
+        else {
+            System.out.println(mySprite.toString()+Stage_WS.toString());
+            placeSpriteOnStage(mySprite, Stage_WS);
+            System.out.println("New sprite on Stage_WS:"+mySprite.toString());
+        }
+}
+
+//---EVENT HANDLER FUNCTIONS
+
+private void toggleView(StageManager mySM) {
+             
+    mySM.toggleStage();
+}
+
+//end alert status for current sprite and reassign
+private void moveAlertFromBoxtoBox(SpriteBox hadFocus, SpriteBox mySprite) {
+    hadFocus = getCurrentSprite();
+    if (hadFocus!=null) {
+        hadFocus.endAlert();
+    }
+    setCurrentSprite(mySprite);
+    mySprite.doAlert();
+    }
+       
+//General function for box clicks
+private void processBoxClick(MouseEvent t, StageManager mySM) {
+
+SpriteBox hadFocus=null;
+SpriteBox currentSprite = (SpriteBox)t.getSource();
+
+int clickcount = t.getClickCount();
+
+orgSceneX = t.getSceneX();
+orgSceneY = t.getSceneY();
+
+orgTranslateX = currentSprite.getTranslateX();
+orgTranslateY = currentSprite.getTranslateY();
+//orgTranslateX = ((SpriteBox)(t.getSource())).getTranslateX();
+//orgTranslateY = ((SpriteBox)(t.getSource())).getTranslateY();
+System.out.println("getx: "+ orgSceneX+ " gety: "+orgSceneY);
+
+switch(clickcount) {
+    //single click
+    case 1:
+        moveAlertFromBoxtoBox(getCurrentSprite(),currentSprite);
+        System.out.println("One click");
+
+        break;
+    case 2:
+        System.out.println("Two clicks");
+        
+        moveAlertFromBoxtoBox(getCurrentSprite(),currentSprite);
+        
+        //Dbl Click action options depending on box type
+        ClauseContainer myNode = currentSprite.getBoxNode();
+        if (mySM == Stage_EDITNODEPROP && (myNode.NodeIsLeaf()==false)) {
+            editGroup_root = Main.this.setupNodePropertyEditor(mySM, editorStage);
+            }
+        if (mySM == Stage_EDITNODEPROP && (myNode.NodeIsLeaf()==true)) {
+            editGroup_root = Main.this.setupClauseEditorPanel(mySM, editorStage);
+        }
+        else {
+            openBoxesOnStage(mySM,myNode);
+        }
+
+        break;
+    case 3:
+        System.out.println("Three clicks");
+        break;
+}
+}     
 
 private String getMatched(String data) {
     WordTool myTool = new WordTool();
@@ -273,7 +515,7 @@ public void pressMe() {
 insert text strings into TextArea arguments
 make this public so that the inner class can find it  */
 
-public void setupImportStage(Stage textStage, String myTitle) {
+public void setupImportStage(StageManager myStageManager, Stage textStage, String myTitle) {
 
         //This is the stage to be used but is not the JavaFX application default
         textStage.setTitle(myTitle);
@@ -286,199 +528,103 @@ public void setupImportStage(Stage textStage, String myTitle) {
         double leftColWidth = 650;
         double leftColHeight = 400;
         double rightColWidth = 150;
-        double windowWidth = leftColWidth+rightColWidth;
-        double windowHeight = leftColHeight;
         /* Setup a horizontal box with two text areas, but put first in scrollpane to allow scrolling */
-        this.textArea1.setWrapText(true);
+        
+        TextArea textarea2 = new TextArea();
         this.textArea2.setWrapText(true);
-        this.textArea1.setPrefWidth(leftColWidth);
-        this.textArea1.setPrefHeight(leftColHeight);
         this.textArea2.setPrefWidth(rightColWidth);
         
+        //put text in a scrollpane
+        this.textArea1.setWrapText(true);
+        this.textArea1.setPrefWidth(leftColWidth);
+        this.textArea1.setPrefHeight(leftColHeight);
+
+        //config the scrollpane and put textarea1(input) into it
         ScrollPane textpane = new ScrollPane();
         textpane.setContent(textArea1);
         textpane.setPrefHeight(leftColHeight);  
         textpane.setPrefWidth(leftColWidth);
-        hbox1 = new HBox(0,textpane,this.textArea2);
-        //
-        this.textArea3 = new TextArea();
-        this.textArea4 = new TextArea();
-        this.textArea3.setPrefWidth(leftColWidth);
-        this.textArea4.setPrefWidth(leftColWidth);
-        
-        //Set horizontal boxes with spacing and child nodes *i.e. a row 
-        //HBox hbox2 = new HBox(0,this.textArea3,this.textArea4);
+
+        //put scrollpane and text output area into an hbox
+        HBox hbox1 = new HBox(0,textpane,this.textArea2);
+        //put the horizontal boxes in a vertical box which will also be in a scrollpane
         VBox vbox2 = new VBox(0,hbox1);
         vbox2.setPrefWidth(totalwidth);
-        //vbox2.getChildren().add(hbox3);
-        
         
         // Lastly, attach vbox to root scrollpane and add to Scene
-        scroll_rootNode = new ScrollPane();
-        scroll_rootNode.setContent(vbox2); 
-        this.ImportScene = new Scene(scroll_rootNode, windowWidth, windowHeight, Color.GREY); //width x height in pixels?  
+        double windowWidth=400;
+        double windowHeight = 150;
+        import_rootnode_scroll = new ScrollPane();
+        import_rootnode_scroll.setContent(vbox2); 
+        this.ImportScene = new Scene(import_rootnode_scroll, windowWidth, windowHeight, Color.GREY); //width x height in pixels?  
         //add Scene to Stage and position it
         textStage.setScene(ImportScene);
         textStage.sizeToScene(); 
-        myStageManager.setPosition(textStage, "importwindow");
+        //myStageManager.setInitStage(Stage_WS);
+        myStageManager.setStage(textStage); //maybe rename in Stage Manager
+        myStageManager.setSceneRoot(import_rootnode_scroll);
         textStage.show();
-        
     }
 
-
-/*
-Method to setup single stage to display all Projects
-*/
-
-public Group setupProjectLibStage() {
-
-    //Create scrollpane as root and attach group node
-    Group tempGroup = new Group();
-    ScrollPane outerScroll = new ScrollPane();
-    outerScroll.setContent(tempGroup);
-    //give root node its Scene with event handlers on it
-    ProjectLibScene = new Scene (outerScroll,650,400); //default width x height (px)
-    ProjectLibScene .addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
-         @Override
-         public void handle(MouseEvent mouseEvent) {
-         System.out.println("Mouse click detected - Project Stage! " + mouseEvent.getSource());
-         mySpriteManager.setStageFocus("project");
-             }
-        });
-    //Configure the Stage and its position/visibility
-    ProjectLibStage.setScene(ProjectLibScene); //set current scene for the Stage
-    ProjectLibStage.setTitle("Project");//later, use loaded project title
-    myStageManager.setPosition(ProjectLibStage,"projectlib");
-    ProjectLibStage.hide(); 
-    return tempGroup;
+//fine tuning of region objects.   Not needed if working directly with Pane etc
+public Region setWorkSpaceRegion(Node inputNode) {
+    Region myRegion = new Region();
+    return myRegion;
+    //Paint myPaint = new Paint(Color.BEIGE);
+    //BackgroundFill myBF = new BackgroundFill(myPaint); 
+    /*
+    BackgroundFill myBF = new BackgroundFill(Color.BEIGE,null,null); //cnr radii, inset
+    Background myBG = new Background(myBF);
+    Region myRegion = new Region ();
+    myRegion.setBackground(myBG);
+    Rectangle2D ScreenBounds = Screen.getPrimary().getVisualBounds();
+    double myBigX = ScreenBounds.getWidth();
+    double myBigY = ScreenBounds.getHeight()-100.00;
+    myRegion.setPrefSize(myBigX,myBigY); //Node property
+    
+    //
+    Region myRegion = setWorkSpaceRegion();
+    //set layout of node in region...
+        double zero = 0.0;
+        double rw = 600;
+        double rh = 600;
+        double baseOff = 40;
+        boolean fillWidth=true;
+        boolean fillHeight=true;
+        boolean snap=false;
+        myRegion.layoutInArea(inputNode, zero,zero,rw,rh,baseOff,new Insets (40,40,40,40),fillWidth,fillHeight,HPos.LEFT,VPos.TOP,snap);
+      
+    return myRegion;
+    */
 }
 
-/*
-Method to setup single Project stage for currently open Project
-*/
-
-public Group setupProjectOpenStage() {
-
-    //Create scrollpane as root and attach group node
-    Group tempGroup = new Group();
-    ScrollPane outerScroll = new ScrollPane();
-    outerScroll.setContent(tempGroup);
-    //give root node its Scene with event handlers on it
-    ProjectScene = new Scene (outerScroll,650,400); //default width x height (px)
-    ProjectScene .addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
-         @Override
-         public void handle(MouseEvent mouseEvent) {
-         System.out.println("Mouse click detected - Project Stage! " + mouseEvent.getSource());
-         mySpriteManager.setStageFocus("project");
-             }
-        });
-    //Configure the Stage and its position/visibility
-    ProjectStage.setScene(ProjectScene); //set current scene for the Stage
-    ProjectStage.setTitle("Project");//later, use loaded project title
-    myStageManager.setPosition(ProjectStage,"project");
-    ProjectStage.hide(); 
-    return tempGroup;
-}
-
-/*
-Method to setup single Collection stage 
-*/
-
-public Group setupCollectionStage() {
-
-    //Create scrollpane as root and attach group node
-    Group tempGroup = new Group();
-    ScrollPane outerScroll = new ScrollPane();
-    outerScroll.setContent(tempGroup);
-    //give root node its Scene with event handlers on it
-    CollectionScene = new Scene (outerScroll,650,400); //default width x height (px)
-    CollectionScene.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
-         @Override
-         public void handle(MouseEvent mouseEvent) {
-         System.out.println("Mouse click detected - Collection Stage! " + mouseEvent.getSource());
-         mySpriteManager.setStageFocus("collection");
-             }
-        });
-    //Configure the Stage and its position/visibility
-    CollectionStage.setScene(CollectionScene); //set current scene for the Stage
-    CollectionStage.setTitle("Collection");
-    myStageManager.setPosition(CollectionStage,"collection");
-    CollectionStage.hide(); 
-    return tempGroup;
-}
-
-/*
-Method to setup single Library stage for currently open library
-*/
-
-public Group setupLibraryStage() {
-    //Create scrollpane as root and attach group node
-    Group tempGroup = new Group();
-    ScrollPane outerScroll = new ScrollPane();
-    outerScroll.setContent(tempGroup);
-    //give root node its Scene with event handlers on it
-    LibraryScene = new Scene (outerScroll,650,400); //default width x height (px)
-    LibraryScene.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
-         @Override
-         public void handle(MouseEvent mouseEvent) {
-         System.out.println("Mouse click detected! " + mouseEvent.getSource());
-         mySpriteManager.setStageFocus("library");
-             }
-        });
-    //Configure the Stage and its position/visibility
-    LibraryStage.setScene(LibraryScene); //set current scene for the Stage
-    LibraryStage.setTitle("Library");
-    myStageManager.setPosition(LibraryStage,"library");
-    LibraryStage.hide(); //<---do this after set position otherwise it affects scene attachment
-    return tempGroup;
-}
-
-/*
-Method to setup single Document stage for currently open Document
-*/
-
-public Group setupDocumentStage() {
-
-    //Create scrollpane as root and attach group node
-    Group tempGroup = new Group();
-    ScrollPane outerScroll = new ScrollPane();
-    outerScroll.setContent(tempGroup);
-    //give root node its Scene with event handlers on it
-    DocumentScene = new Scene (outerScroll,650,400); //default width x height (px)
-    DocumentScene.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
-         @Override
-         public void handle(MouseEvent mouseEvent) {
-         System.out.println("Mouse click detected - Doc Stage! " + mouseEvent.getSource());
-         mySpriteManager.setStageFocus("document");
-             }
-        });
-    //Configure the Stage and its position/visibility
-    DocumentStage.setScene(DocumentScene); //set current scene for the Stage
-    DocumentStage.setTitle("Document");
-    myStageManager.setPosition(DocumentStage,"document");
-    DocumentStage.hide(); //<---do this after set position otherwise it affects scene attachment
-    return tempGroup;
-}
-
-/* 
-
-The root node is a Group (resizes according to children, unlike Pane).
-
-*/
-
-public Group setupWorkspaceStage(Stage myStage, String myTitle) {
-
-        myStage.setTitle(myTitle);
+public Scene updateWorkSpaceScene(Group myGroup) {
         
+        workspaceScene = new Scene (myGroup,Stage_WS.getBigX(),Stage_WS.getBigY(), Color.BEIGE);
         
-        Group myGroup_root = new Group(); //for root node
-        DocumentClauseContainer = new ClauseContainer();
-        WorkspaceClauseContainer = new ClauseContainer();
-        LibraryClauseContainer = new ClauseContainer(); //for library window/stage
-        WorkspaceBoxes = new BoxContainer(); //for load/save
-        Group menubarGroup = new Group(); //to hold menubar
+        //optional event handler
+        workspaceScene.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
+             @Override
+             public void handle(MouseEvent mouseEvent) {
+             System.out.println("Workspace Stage Mouse click detected! " + mouseEvent.getSource());
+            }
+        });
+        return workspaceScene;
+    }
+    
+public Stage newWorkstageFromGroup(Group myGroup) {
+        Scene myScene = updateWorkSpaceScene(myGroup);
+        Stage myStage = Stage_WS.makeNewSpriteStage(myScene); 
+        //Stage_WS.setSpriteGroup(myGroup);
+        return myStage; 
+}
 
 
+/* Make menuBar for workspace */
+
+private void makeMenuBarGroup(Group myGroup) {
+        
+        //MENUBAR SETUP
         MenuBar menuBar = new MenuBar();
         //Items for horizontal menu, vertical MenuItems for each
         Menu menuObject = new Menu("New");
@@ -494,7 +640,7 @@ public Group setupWorkspaceStage(Stage myStage, String myTitle) {
         MenuItem NewDef = new MenuItem("Def");
         MenuItem NewClause = new MenuItem("Clause");
         MenuItem NewEvent = new MenuItem("Event");
-        MenuItem NewDocCont = new MenuItem("Document");
+        MenuItem NewDoc = new MenuItem("Document");
         MenuItem NewLibrary = new MenuItem("NewLibrary");
         MenuItem NewCollection = new MenuItem("Collection");
         MenuItem NewProject = new MenuItem("Project");
@@ -514,11 +660,8 @@ public Group setupWorkspaceStage(Stage myStage, String myTitle) {
         MenuItem SaveWork = new MenuItem("Save");
         MenuItem LoadWork = new MenuItem("Load");
         MenuItem OutputWork = new MenuItem("Output as Text");
-        MenuItem SaveDocAs = new MenuItem("Save");
-        MenuItem LoadDocWS = new MenuItem("Load");
-        MenuItem SaveCont = new MenuItem("SaveCont");
-        MenuItem LoadDocCont = new MenuItem("LoadCont");
-        MenuItem NewDoc = new MenuItem("New");
+        MenuItem SaveDoc = new MenuItem("SaveDoc");
+        MenuItem LoadDoc = new MenuItem("LoadDoc");
         MenuItem OutputDoc = new MenuItem("Output as Text");
         MenuItem SaveLibrary = new MenuItem("Save");
         MenuItem LoadLibrary = new MenuItem("Load");
@@ -531,7 +674,7 @@ public Group setupWorkspaceStage(Stage myStage, String myTitle) {
         MenuItem GetDefs = new MenuItem("GetDefs");
         MenuItem GetClauses = new MenuItem("GetClauses");
         MenuItem GetSections = new MenuItem("GetSections");
-         menuObject.getItems().addAll(NewDef,NewClause,NewEvent,NewDocCont,NewLibrary,NewCollection,NewProject);
+         menuObject.getItems().addAll(NewDef,NewClause,NewEvent,NewDoc,NewLibrary,NewCollection,NewProject);
          menuViews.getItems().addAll(
             viewProjectLib,
             viewProject,
@@ -554,9 +697,8 @@ public Group setupWorkspaceStage(Stage myStage, String myTitle) {
             OutputWork,
             PrintBoxes);
         menuDocument.getItems().addAll(
-            SaveCont,
-            LoadDocCont,
-            NewDoc); //OutputDoc
+            SaveDoc,
+            LoadDoc); //OutputDoc
         menuLibrary.getItems().addAll(
             SaveLibrary,
             LoadLibrary);
@@ -565,105 +707,65 @@ public Group setupWorkspaceStage(Stage myStage, String myTitle) {
         menuImport.getItems().addAll(
             WordCount,GetDefText,GetDefs,GetClauses,GetSections);
         
-        //COLLECTION FUNCTIONS
-        /*Trial method to save a Collection 
-        The Collection object doesn't serialize, but the ArrayList it contains will
-        */
-        SaveColl.setOnAction(new EventHandler<ActionEvent>() {
+        //PROJECT
+
+        NewProject.setOnAction(new EventHandler<ActionEvent>() {
+        public void handle(ActionEvent t) {
+                NewNodeForStage(Stage_PROJLIB,2);
+            }
+        }); 
+
+
+        SaveProject.setOnAction(new EventHandler<ActionEvent>() {
         public void handle(ActionEvent t) {
                 //Check
-                System.out.println("Save Coll Pre-check");
-                ArrayList<ClauseContainer> myACCsave = myCollection.getCollectionItems();
-                Iterator myACCsaveIT = myACCsave.iterator();
-                while(myACCsaveIT.hasNext()) {
-                    System.out.println(myACCsaveIT.next().toString());
-                }
-                //TO DO: ADD SERIALISATION OR FUNCTION CALL
-                BoxFilename = "collection.ser";
-                FileOutputStream fos = null;
-                ObjectOutputStream out = null;
-                if (BoxFilename.equals("")) {
-                    BoxFilename="collection2.ser";
-                }
-                try {
-                    fos = new FileOutputStream(BoxFilename);
-                    out = new ObjectOutputStream(fos);
-                    out.writeObject(myCollection);
-                    /*
-                    out.writeObject(myACCsave); //the top-level object to be saved
-                    */
-                    out.close();
-                    myACCsave = myCollection.getCollectionItems();
-                    System.out.println("Saved Collection:"+myACCsave.toString());
-                }
-                catch(IOException ex) {
-                    ex.printStackTrace();
-                }
-                
+                SaveNode(Stage_PROJ);
             }
         });
 
-        /* Load Collection
-        Currently only loads ArrayList, so loses Collection object meta-data
+        /* Load Collection into an open window TO DO: as icon.
+        */
+        LoadProject.setOnAction(new EventHandler<ActionEvent>() {
+        public void handle(ActionEvent t) {
+                String filename = Stage_PROJ.getFilename();
+                LoadNode(filename,Stage_PROJLIB);
+            }
+        });
+        
+        //COLLECTION FUNCTIONS
+
+        // New Collection object
+
+        NewCollection.setOnAction(new EventHandler<ActionEvent>() {
+        public void handle(ActionEvent t) {
+                NewNodeForStage(Stage_COLL,1);
+            }
+        }); 
+
+        //Save the current Collection object in use (open) by the GUI
+
+        SaveColl.setOnAction(new EventHandler<ActionEvent>() {
+        public void handle(ActionEvent t) {
+                SaveNode(Stage_COLL);
+            }
+        });
+
+        /* Load Collection into an open window TO DO: as icon.
         */
         LoadColl.setOnAction(new EventHandler<ActionEvent>() {
         public void handle(ActionEvent t) {
-                //Check
-                System.out.println("Load Coll Pre-check");
-                ArrayList<ClauseContainer> myACC = new ArrayList<ClauseContainer>();
-                Iterator myACCit = myACC.iterator();
-                while(myACCit.hasNext()) {
-                    System.out.println(myACCit.next().toString());
-                }
-                //TO DO: ADD SERIALISATION OR FUNCTION CALL
-                String BoxFilename="collection.ser";
-                FileInputStream fis = null;
-                ObjectInputStream in = null;
-                try {
-                    fis = new FileInputStream(BoxFilename);
-                    in = new ObjectInputStream(fis);
-                    myCollection=(Collection)in.readObject();
-                    in.close();
-                    System.out.println(myCollection.toString());
-                    myACC = myCollection.getCollectionItems();
-                    System.out.println("Loaded Collection:"+myACC.toString());
-                    displaySpritesInCollectionStage(myCollection, "Collection");
-                }
-                catch(IOException ex) {
-                    ex.printStackTrace();
-                }
-                catch(ClassNotFoundException ex)
-                {
-                     ex.printStackTrace();
-                }
-                System.out.println("Load Coll Post-check");
-                ArrayList<ClauseContainer> myACC2 = myCollection.getCollectionItems();
-                Iterator myACC2it = myACC2.iterator();
-                while(myACC2it.hasNext()) {
-                    System.out.println(myACC2it.next().toString());
-                }
+                String filename = Stage_COLL.getFilename();
+                LoadNode(filename, Stage_PROJ);
             }
         });
+
+        //---WORKSPACE FUNCTIONS ---
 
         //Method to save workspace (serial)
 
         SaveWork.setOnAction(new EventHandler<ActionEvent>() {
         public void handle(ActionEvent t) {
-                //TO DO: ADD SERIALISATION OR FUNCTION CALL
-                BoxFilename = "workspace.ser";
-                FileOutputStream fos = null;
-                ObjectOutputStream out = null;
-                ArrayList<Clause> myBoxList =  WorkspaceClauseContainer.getClauseArray();
-                try {
-                    fos = new FileOutputStream(BoxFilename);
-                    out = new ObjectOutputStream(fos);
-                    out.writeObject(myBoxList); //the top-level object to be saved
-                    out.close();
-                }
-                catch(IOException ex) {
-                    ex.printStackTrace();
-                }
-
+                SaveNode(Stage_WS);
             }
         });
 
@@ -671,31 +773,8 @@ public Group setupWorkspaceStage(Stage myStage, String myTitle) {
 
         LoadWork.setOnAction(new EventHandler<ActionEvent>() {
         public void handle(ActionEvent t) {
-                //TO DO: ADD SERIALISATION OR FUNCTION CALL
-                String BoxFilename="workspace.ser";
-                WorkspaceClauseContainer.setDocName(BoxFilename);
-                FileInputStream fis = null;
-                ObjectInputStream in = null;
-                ArrayList <Clause> myBoxListIn = null;
-                try {
-                    fis = new FileInputStream(BoxFilename);
-                    in = new ObjectInputStream(fis);
-                    myBoxListIn = (ArrayList<Clause>)in.readObject();
-                    in.close();
-                }
-                catch(IOException ex) {
-                    ex.printStackTrace();
-                }
-                catch(ClassNotFoundException ex)
-                {
-                     ex.printStackTrace();
-                }
-                System.out.println("Success!");
-                System.out.println(myBoxListIn.toString());
-                ClauseContainer inputContainer = new ClauseContainer();
-                inputContainer.setClauseArray(myBoxListIn);
-                WorkspaceClauseContainer.setClauseArray(inputContainer.getClauseArray());
-                displaySpritesOnWorkspace(WorkspaceClauseContainer);
+                String filename = Stage_WS.getFilename();
+                LoadNode(filename, Stage_WS);
             }
         });
 
@@ -703,25 +782,14 @@ public Group setupWorkspaceStage(Stage myStage, String myTitle) {
         OutputWork.setOnAction(new EventHandler<ActionEvent>() {
         public void handle(ActionEvent t) {
                 
-            WorkspaceClauseContainer.doPrintIteration();
-            String output=WorkspaceClauseContainer.getClauseAndText();
-            textmakerTextArea.setText(output);
-            if (textOutputStage.isShowing()==false) {
-                    textOutputStage.show();
-            }
-
+            WorkspaceNode.doPrintIteration();
+            String output=WorkspaceNode.getClauseAndText();
+            Stage_Output.setOutputText(output);
+            Stage_Output.showStage();
             }
         });
 
         
-        /*//Button for export/document clauses TO DO: some config or separate panel.
-        Button btnExportClause = new Button();
-        btnExportClause.setTooltip(new Tooltip ("Press to output clauses as RTF"));
-        btnExportClause.setText("RTF Export");
-        //btnDeleteClause.setOnAction(extractDefinitions);
-        */
-
-        //TO : Just insert function name here and function detail elsewhere
         PrintBoxes.setOnAction(new EventHandler<ActionEvent>() {
         public void handle(ActionEvent t) {
                 //call the 'print function' on the BoxContainer object (for now)
@@ -730,278 +798,138 @@ public Group setupWorkspaceStage(Stage myStage, String myTitle) {
             }
         });    
 
+        /* --- New clause/leaf nodes --- */
+        //New document
+        NewDef.setOnAction(new EventHandler<ActionEvent>() {
+        public void handle(ActionEvent t) {
+                System.out.println("New Def button - called from Main");
+                NewNodeForStage(Stage_DOC,0);
+            }
+        });
+
+        NewClause.setOnAction(new EventHandler<ActionEvent>() {
+        public void handle(ActionEvent t) {
+                System.out.println("New Clause button - called from Main");
+                NewNodeForStage(Stage_DOC,0);
+            }
+        });
+
+        NewEvent.setOnAction(new EventHandler<ActionEvent>() {
+        public void handle(ActionEvent t) {
+                System.out.println("New Event button - called from Main");
+                NewNodeForStage(Stage_DOC,0);
+            }
+        });
+
         //----DOCUMENT EVENT HANDLER FUNCTIONS 
-        /*  Function to save current document clauses/contents  */
-        SaveDocAs.setOnAction(new EventHandler<ActionEvent>() {
+        
+        //New document
+        NewDoc.setOnAction(new EventHandler<ActionEvent>() {
         public void handle(ActionEvent t) {
-                //TO DO: ADD SERIALISATION OR FUNCTION CALL
-                BoxFilename = "document.ser";
-                FileOutputStream fos = null;
-                ObjectOutputStream out = null;
-                ArrayList<Clause> myBoxList =  DocumentClauseContainer.getClauseArray();
-                //BoxFilename = DocumentClauseContainer.getDocName();
-                if (BoxFilename.equals("")) {
-                    BoxFilename="document-1-temp.ser";
-                }
-                try {
-                    fos = new FileOutputStream(BoxFilename);
-                    out = new ObjectOutputStream(fos);
-                    out.writeObject(myBoxList); //the top-level object to be saved
-                    out.close();
-                }
-                catch(IOException ex) {
-                    ex.printStackTrace();
-                }
-
+                System.out.println("Event handler in main detected - newdoc button");
+                NewNodeForStage(Stage_COLL,1);
             }
         });
 
-        //Trial method to save a Clause Container (just the DocumentClauseContainer)
-        SaveCont.setOnAction(new EventHandler<ActionEvent>() {
+        //Trial method to save a Clause Container (just the documentNode)
+        SaveDoc.setOnAction(new EventHandler<ActionEvent>() {
         public void handle(ActionEvent t) {
-                //TO DO: ADD SERIALISATION OR FUNCTION CALL
-                BoxFilename = "document-cont.ser";
-                FileOutputStream fos = null;
-                ObjectOutputStream out = null;
-                //ArrayList<Clause> myBoxList =  DocumentClauseContainer.getClauseArray();
-                //BoxFilename = DocumentClauseContainer.getDocName();
-                //ClauseContainer myBoxList = DocumentClauseContainer;
-                //TO DO: select an array of Clause Containers to write out.
-                if (BoxFilename.equals("")) {
-                    BoxFilename="document-cont.ser";
-                }
-                try {
-                    fos = new FileOutputStream(BoxFilename);
-                    out = new ObjectOutputStream(fos);
-                    out.writeObject(DocumentClauseContainer); //the top-level object to be saved
-                    out.close();
-                }
-                catch(IOException ex) {
-                    ex.printStackTrace();
-                }
-
-            }
-        });
-
-        /* Method to load up container of document clauses from arraylist.  
-        Now loads as SpriteBox with ClauseContainer (effectively, link for opening later)
-         */
-
-        //TO DO : Just insert function name here and function detail elsewhere
-        LoadDocWS.setOnAction(new EventHandler<ActionEvent>() {
-        public void handle(ActionEvent t) {
-                //TO DO: ADD SERIALISATION OR FUNCTION CALL
-                String BoxFilename="document.ser";
-                FileInputStream fis = null;
-                ObjectInputStream in = null;
-                ClauseContainer newDocument = new ClauseContainer();
-                //ArrayList <Clause> myBoxListIn = null;
-                try {
-                    fis = new FileInputStream(BoxFilename);
-                    in = new ObjectInputStream(fis);
-                    newDocument=(ClauseContainer)in.readObject();
-                    /*
-                    myBoxListIn = (ArrayList<Clause>)in.readObject();
-                    */
-                    in.close();
-                }
-                catch(IOException ex) {
-                    ex.printStackTrace();
-                }
-                catch(ClassNotFoundException ex)
-                {
-                     ex.printStackTrace();
-                }
-                System.out.println("Loaded document:"+newDocument.toString());
-                loaddocnum++;
-                newDocument.setDocName("CraigsLoadedDocument"+Integer.toString(loaddocnum));
-                //create spritebox
-                SpriteBox b = new SpriteBox();
-                b.setBoxContent(newDocument);
-                b.setOnMousePressed(PressDocBoxEventHandler); //dbl click = open contents window
-                b.setOnMouseDragged(DragBoxEventHandler);
-                placeSpriteOnMainStage(b);
+                SaveNode(Stage_DOC);
             }
         });
 
         //load documents from single clause container
-        LoadDocCont.setOnAction(new EventHandler<ActionEvent>() {
+        LoadDoc.setOnAction(new EventHandler<ActionEvent>() {
         public void handle(ActionEvent t) {
-                //TO DO: ADD SERIALISATION OR FUNCTION CALL
-                String BoxFilename="document-cont.ser";
-                FileInputStream fis = null;
-                ObjectInputStream in = null;
-                ClauseContainer inputContainer = new ClauseContainer();
-                try {
-                    fis = new FileInputStream(BoxFilename);
-                    in = new ObjectInputStream(fis);
-                    inputContainer = (ClauseContainer)in.readObject();
-                    in.close();
-                }
-                catch(IOException ex) {
-                    ex.printStackTrace();
-                }
-                catch(ClassNotFoundException ex)
-                {
-                     ex.printStackTrace();
-                }
-                System.out.println("Success loaded document!");
-                inputContainer.doPrintIteration();
-                System.out.println(inputContainer.toString());
-                //Add this Container to Spritebox and add to Workspace
-                loaddocnum++;
-                if (inputContainer.getDocName().equals("")) {
-                    inputContainer.setDocName("CraigsLoadedDocument"+Integer.toString(loaddocnum));
-                }
-                //create spritebox
-                SpriteBox b = new SpriteBox();
-                b.setBoxContent(inputContainer);
-                b.setOnMousePressed(PressDocBoxEventHandler); 
-                b.setOnMouseDragged(DragBoxEventHandler);
-                //
-                if (CollectionStage.isShowing()==true) {
-                    placeInCollectionStage(b);
-                    myCollection.addCC(inputContainer); //store contents not sprite
-                }
-                else {
-                    placeSpriteOnMainStage(b);
-                    wsCollection.addCC(inputContainer);
-                }
-            }
-        });
-
-        //New document
-        NewDoc.setOnAction(new EventHandler<ActionEvent>() {
-        public void handle(ActionEvent t) {
-                //TO DO: ADD SERIALISATION OR FUNCTION CALL
-                System.out.println ("Called New Document function");
-                DocumentGroup = Main.this.setupDocumentStage();
-                mySpriteManager.resetDocXY();
-                //
-                ClauseContainer inputContainer = new ClauseContainer();
-                Clause myClause = new Clause("Label","Heading","Text","clause");
-                inputContainer.addClause(myClause);
-                DocumentClauseContainer.setClauseArray(inputContainer.getClauseArray());
-                displaySpritesInDocumentStage(DocumentClauseContainer, "New Document");
+                String filename = Stage_DOC.getFilename();
+                LoadNode(filename,Stage_COLL);
             }
         });
 
         //LIBRARY load and save functions
         SaveLibrary.setOnAction(new EventHandler<ActionEvent>() {
         public void handle(ActionEvent t) {
-                //TO DO: ADD SERIALISATION OR FUNCTION CALL
-                String BoxFilename="library.ser";
-                FileOutputStream fos = null;
-                ObjectOutputStream out = null;
-                try {
-                    fos = new FileOutputStream(BoxFilename);
-                    out = new ObjectOutputStream(fos);
-                    out.writeObject(LibraryClauseContainer); //the top-level object to be saved
-                    out.close();
-                }
-                catch(IOException ex) {
-                    ex.printStackTrace();
-                }
-
+                SaveNode(Stage_LIB);
             }
         });    
 
-        LoadLibrary.setOnAction(LoadLibraryFile);
-        
+        LoadLibrary.setOnAction(new EventHandler<ActionEvent>() {
+        public void handle(ActionEvent t) {
+                String filename = Stage_LIB.getFilename();
+                LoadNode(filename,Stage_PROJ);
+            }
+        });
+
+
         //Load up an empty library window
         //TO DO: Save under different name
 
         NewLibrary.setOnAction(new EventHandler<ActionEvent>() {
         public void handle(ActionEvent t) {
-                System.out.println ("Called New Library function");
-                //Create SpriteBox as icon
-                SpriteBox b;
-                String label = "New Library Document"; //unused
-                String text = "replace with some text";
-                String heading = "replace with a heading";
-                String category = "clause"; //for now - check it later
-                Clause myClause = new Clause(label,heading,text,category); 
-                //create clause container
-                ClauseContainer tempContainer = new ClauseContainer();
-                libdocnum++;
-                tempContainer.setDocName("CraigsLibrary"+Integer.toString(libdocnum));
-                tempContainer.setType("library");
-                tempContainer.addClause(myClause); //default clause for new container to work with
-                b = new SpriteBox(myClause); //leave default settings to the 'setClause' method in SpriteBox
-                b.setBoxContent(tempContainer);
-                b.setOnMousePressed(PressLibBoxEventHandler); 
-                b.setOnMouseDragged(DragBoxEventHandler);
-                //place icon in Collection Stage (contents visible on double-click)
-                
-                // b.setInCollection(true); - not needed as done by Spritebox
-                if (CollectionStage.isShowing()==true) {
-                    placeInCollectionStage(b);
-                    myCollection.addCC(tempContainer);
-                }
-                else {
-                    placeSpriteOnMainStage(b);
-                    wsCollection.addCC(tempContainer);
-                }
-                //check
-                ArrayList<ClauseContainer> testData = new ArrayList<ClauseContainer>();
-                testData = myCollection.getCollectionItems();
-                System.out.println("Finished NewLibCont. \nTesting current Collection : "+testData.toString());
+                NewNodeForStage(Stage_PROJLIB,1);
             }
         }); 
 
         //Toggle visibility of Document window
         viewDocument.setOnAction(new EventHandler<ActionEvent>() {
         public void handle(ActionEvent t) {
-                toggleView(DocumentStage);
+                toggleView(Stage_DOC);
             }
         });
 
         //Toggle visibility of Library window
         viewLibrary.setOnAction(new EventHandler<ActionEvent>() {
         public void handle(ActionEvent t) {
-                toggleView(LibraryStage);
+                toggleView(Stage_LIB);
+            }
+        });
+
+        //Toggle visibility of Project Lib window
+        viewProjectLib.setOnAction(new EventHandler<ActionEvent>() {
+        public void handle(ActionEvent t) {
+                toggleView(Stage_PROJLIB);
             }
         });
 
         //Toggle visibility of Project window
         viewProject.setOnAction(new EventHandler<ActionEvent>() {
         public void handle(ActionEvent t) {
-                toggleView(ProjectStage);
+                toggleView(Stage_PROJ);
             }
         });
 
         //Toggle visibility of Collection window
         viewCollection.setOnAction(new EventHandler<ActionEvent>() {
         public void handle(ActionEvent t) {
-                toggleView(CollectionStage);
+                toggleView(Stage_COLL);
             }
         });
 
         //Toggle visibility of output window
         viewtextmaker.setOnAction(new EventHandler<ActionEvent>() {
         public void handle(ActionEvent t) {
-                toggleView(textOutputStage);
+                toggleView(Stage_Output);
             }
         });
 
         //toggle visibility of editor
         viewEditor.setOnAction(new EventHandler<ActionEvent>() {
         public void handle(ActionEvent t) {
-                toggleView(editorStage);
+                toggleView(Stage_EDITNODEPROP);
             }
         });
 
          //toggle visibility of importer
         viewImporter.setOnAction(new EventHandler<ActionEvent>() {
         public void handle(ActionEvent t) {
-                toggleView(importStage);
+                toggleView(Stage_Import);
             }
         });
 
          //toggle visibility of toolbar
         viewToolbar.setOnAction(new EventHandler<ActionEvent>() {
         public void handle(ActionEvent t) {
-                toggleView(toolbarStage);
+                toggleView(Stage_Toolbar);
             }
         });
 
@@ -1010,68 +938,64 @@ public Group setupWorkspaceStage(Stage myStage, String myTitle) {
                 
             System.out.println("Save Output selected!");
             EDOfileApp myfileApp = new EDOfileApp("output(PDock).txt");
-            String savecontents = textmakerTextArea.getText();
-            myfileApp.replaceText(savecontents);
+            myfileApp.replaceText(Stage_Output.getOutputText());
             }
         });
-
-        /* --- OBJECT MENU --- */
-        NewClause.setOnAction(addNewClauseBox);
-        NewDef.setOnAction(addNewDefBox);
-        NewEvent.setOnAction(addNewEventBox);
-        NewDocCont.setOnAction(addNewDocCont);
         
         /* --- IMPORT MENU ---   TO DO: File Open*/
         WordCount.setOnAction(updateWordCounts); //argument is an EventHandler with ActionEvent object
         GetDefText.setOnAction(extractDefinitions);
-        GetDefs.setOnAction(makeDefIcons);
-        GetClauses.setOnAction(makeClauseIcons);
-        GetSections.setOnAction(importStatuteClauses);
+        GetDefs.setOnAction(makeDefBoxesFromText);
+        GetClauses.setOnAction(makeClauseBoxesFromText);
+        GetSections.setOnAction(makeBoxesFromStatuteText);
 
         
 
-        //add group layout object as root node for Scene at time of creation
-        //defScene = new Scene (myGroup_root,650,300); //default width x height (px)
-        defScene = new Scene (myGroup_root,myStageManager.getBigX(),myStageManager.getBigY(), Color.BEIGE);
-        //scene.getRoot()).getChildren().addAll(menuBar);
-        
-
-        //optional event handler
-        defScene.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
-         @Override
-         public void handle(MouseEvent mouseEvent) {
-         System.out.println("Workspace Stage Mouse click detected! " + mouseEvent.getSource());
-         mySpriteManager.setStageFocus("workspace");
-             }
-        });
-
-               //
-        myStage.setScene(defScene); //set current scene for the Stage
-        //Position
-        myStageManager.setPosition(myStage,"workspace");
-        myStage.show();
-        
         /* --- MENU BAR --- */
         menuBar.getMenus().addAll(menuViews, menuObject,menuWorkspace, menuDocument, menuLibrary, menuOutput, menuImport,menuCollection,menuProject);     
-        menubarGroup.getChildren().addAll(menuBar);
-        VBox vbox1 = new VBox(0,menubarGroup);
-        myGroup_root.getChildren().add(vbox1); //add the vbox to the root node to hold everything
-        int totalwidth=650;
-        vbox1.setPrefWidth(totalwidth); //this is in different units to textarea
-       
-        //return the child node, not the root in this case?
-        return myGroup_root;
-        
-    }
+        myGroup.getChildren().addAll(menuBar);
+}
 
-/* Setup Stage as a Container inspection and edit Window 
-resuses the editorStage with new Scene and content for Container objects 
+/* 
+
+Setup workspace stage with 2 subgroups for vertical separation:
+(a) menubar
+(b) sprite display area.  (this group is returned to become WorkspaceGroup - global.)
+
 */
 
-public Pane setupContainerEditor(Stage myStage, String myTitle) {
+public Group makeWorkspaceGroups() {
 
-        System.out.println("Setup Container editor Panel");
-        myStage.setTitle(myTitle);
+        Group myGroup_root = new Group(); //for root node
+        BorderPane myBP = new BorderPane();
+        Group menubarGroup = new Group(); //subgroup
+        Group displayAreaGroup = new Group(); //subgroup
+        makeMenuBarGroup(menubarGroup); 
+        
+        //the Pane holding the group allows movement of SpriteBoxes independently, without relative movement
+        Pane workspacePane = new Pane();
+        //workspacePane.setPadding(new Insets(150,150,150,150));
+        workspacePane.getChildren().addAll(displayAreaGroup);
+        
+        //The BorderPane holds the menu separate from Pane, adds constraints. 
+        myBP.setTop(menubarGroup);
+        myBP.setCenter(workspacePane);
+        myBP.setMargin(workspacePane, new Insets(50,50,50,50));
+        //add the Box Pane
+        myGroup_root.getChildren().addAll(myBP);
+        Stage_WS.setSceneRoot(myGroup_root); //store 
+        //for box placement within the Scene - attach them to the correct Node.
+        Stage_WS.setSpriteGroup(displayAreaGroup);
+        return myGroup_root;  
+    }
+
+/* TO DO: One for edit metadata/properties; another for editing clauses
+*/
+
+public Pane setupNodePropertyEditor(StageManager mySM, Stage myStage) {
+
+        System.out.println("Setup node property editor Panel");
+        myStage.setTitle("Node Property Editor");
         //TO DO: Instance variable
         //Group editorPanel_root = new Group(); 
         Pane editorPane = new Pane();
@@ -1080,10 +1004,10 @@ public Pane setupContainerEditor(Stage myStage, String myTitle) {
         //optional event handler (cf editorScene.setOnMousePressed(EventHandler))
         CCeditScene.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
          @Override
-         public void handle(MouseEvent mouseEvent) {
-         System.out.println("Mouse click detected - Container edit! " + mouseEvent.getSource());
-         mySpriteManager.setStageFocus("CCEditor");
-        }
+             public void handle(MouseEvent mouseEvent) {
+             System.out.println("Mouse click detected - Container edit! " + mouseEvent.getSource());
+             mySpriteManager.setStageFocus("CCEditor");
+            }
         });
         //TextArea and contents
         Text docnameTag = new Text("Doc/Lib Name:");
@@ -1101,10 +1025,9 @@ public Pane setupContainerEditor(Stage myStage, String myTitle) {
         CCdateEdit = new TextArea();
         CCdateEdit.setPrefRowCount(1);
         //
-        SpriteBox focusSprite = mySpriteManager.getCurrentSprite();
+        SpriteBox focusSprite = getCurrentSprite();
         System.out.println("Current sprite for edit:"+focusSprite.toString());
-        Object myEditObject = focusSprite.getBoxContent();
-        myEditCC = (ClauseContainer)myEditObject;
+        myEditCC = focusSprite.getBoxNode();
         System.out.println("Current Container for edit:"+myEditCC.toString());
         VBox vboxEdit;
 
@@ -1125,9 +1048,6 @@ public Pane setupContainerEditor(Stage myStage, String myTitle) {
         CCdateEdit.setText(myEditCC.getDate());
 
         myStage.setScene(CCeditScene); //set current scene for the Stage
-        //Layout
-        myStageManager.setPosition(myStage,"editor");
-        myStage.show();
         
         //Button for saving clauses
         Button btnUpdate = new Button();
@@ -1139,8 +1059,6 @@ public Pane setupContainerEditor(Stage myStage, String myTitle) {
         Button btnEditCancel = new Button();
         btnEditCancel.setText("Cancel Edits");
         btnEditCancel.setTooltip(new Tooltip ("Press to Cancel current edits"));
-        //btnEditCancel.setOnAction(EditCancel);
-        
         
         //Set horizontal box to hold buttons
         HBox hboxButtons = new HBox(0,btnUpdate,btnEditCancel);
@@ -1149,22 +1067,21 @@ public Pane setupContainerEditor(Stage myStage, String myTitle) {
         vboxAll.setPrefWidth(200);
         //
         editorPane.getChildren().add(vboxAll); //add the vbox to the root node to hold everything
-        /*int totalwidth=190;
-        vboxAll.setPrefWidth(totalwidth); //this is in different units to textarea
-        */
-       
-        //return the child node, not the root in this case? e.g.vBoxEdit?
+        //Stage Management and Layout
+        mySM.setStageName("Editor");
+        mySM.setStageParent(Stage_WS);
+        mySM.setPosition();
+        mySM.getStage().show();
+        mySM.setSceneRoot(editorPane);
         return editorPane;
 }
 
 /* Setup Stage as a Clause inspection and edit Window */
 
-public Pane setupEditorPanel(Stage myStage, String myTitle) {
+public Pane setupClauseEditorPanel(StageManager myStageManager, Stage myStage) {
 
         System.out.println("Making editor Panel");
-        myStage.setTitle(myTitle);
-        //TO DO: Instance variable
-        //Group editorPanel_root = new Group(); 
+        myStage.setTitle("Clause Content Editor Panel");
         Pane editorPanel_root = new Pane();
 
         Scene editorScene = new Scene (editorPanel_root,400,400, Color.GREY); //default width x height (px)
@@ -1198,7 +1115,7 @@ public Pane setupEditorPanel(Stage myStage, String myTitle) {
         dateEdit = new TextArea();
         dateEdit.setPrefRowCount(1);
         //
-        SpriteBox focusSprite = mySpriteManager.getCurrentSprite();
+        SpriteBox focusSprite = getCurrentSprite();
         editClause = focusSprite.getClause();
         VBox vboxEdit;
 
@@ -1223,16 +1140,8 @@ public Pane setupEditorPanel(Stage myStage, String myTitle) {
             headingTag.setText("Defined term:");
             contentsTag.setText("means:");
         }
-        /*if (editClause.getCategory().equals("event")) {
-            headingTag.setText("Event:");
-            contentsTag.setText("Description:");
-            dateTag.setText("Date:");
-            dateEdit.setText(editClause.getEventDate());
-            //TO DO: add participants/witness edit
-        }
-        */
 
-        if (editClause instanceof Event) {
+        if (editClause.getCategory().equals("event")) {
             headingTag.setText("Event:");
             contentsTag.setText("Description:");
             dateTag.setText("Date:");
@@ -1241,19 +1150,20 @@ public Pane setupEditorPanel(Stage myStage, String myTitle) {
 
         labelEdit.setText(editClause.getHeading());
         headingEdit.setText(editClause.getHeading());
-        textEdit.setText(editClause.getClause());
+        textEdit.setText(editClause.getClauseText());
         categoryEdit.setText(editClause.getCategory());
 
         myStage.setScene(editorScene); //set current scene for the Stage
         //Layout
-        myStageManager.setPosition(myStage,"editor");
+        myStageManager.setStageParent(Stage_WS);
+        myStageManager.setPosition();
         myStage.show();
         
         //Button for saving clauses
         Button btnUpdate = new Button();
         btnUpdate.setText("Update");
         btnUpdate.setTooltip(new Tooltip ("Press to Save current edits"));
-        btnUpdate.setOnAction(UpdateEditor);
+        btnUpdate.setOnAction(UpdateClauseInEditor);
 
         //Button for cancel
         Button btnEditCancel = new Button();
@@ -1269,20 +1179,96 @@ public Pane setupEditorPanel(Stage myStage, String myTitle) {
         vboxAll.setPrefWidth(200);
         //
         editorPanel_root.getChildren().add(vboxAll); //add the vbox to the root node to hold everything
-        /*int totalwidth=190;
-        vboxAll.setPrefWidth(totalwidth); //this is in different units to textarea
-        */
-       
-        //return the child node, not the root in this case? e.g.vBoxEdit?
+        
+        //Stage Management and Layout
+        myStageManager.setStageName("Editor");
+        myStageManager.setStageParent(Stage_WS);
+        myStageManager.setPosition();
+        myStageManager.getStage().show();
+
         return editorPanel_root;
 }
 
+private VBox makeToolBarButtons() {
+
+        //Button for removing clauses
+        Button btnDeleteClause = myControlsManager.newStdButton();
+        btnDeleteClause.setTooltip(new Tooltip ("Press to delete selected box"));
+        btnDeleteClause.setText("Delete");
+        btnDeleteClause.setOnAction(this.deleteCurrentSprite);
+
+        //Button for moving clauses to Workspace
+        Button btnMoveClauseWS = myControlsManager.newStdButton();
+        btnMoveClauseWS.setText("Move to Workspace");
+        btnMoveClauseWS.setTooltip(new Tooltip ("Press to move box to Workspace Window"));
+        btnMoveClauseWS.setOnAction(MoveBoxtoWorkspace);
+
+        //Button for moving clauses to Library
+        //To DO: only visible if Library has been loaded
+        Button btnMoveClauseLib = myControlsManager.newStdButton();
+        btnMoveClauseLib.setText("Move to Library");
+        btnMoveClauseLib.setTooltip(new Tooltip ("Press to move box to Library Window"));
+        btnMoveClauseLib.setOnAction(MoveBoxtoLibrary);
+
+        //Button for moving clauses to Document
+        Button btnMoveClauseDoc = myControlsManager.newStdButton();
+        btnMoveClauseDoc.setText("Move to Document");
+        btnMoveClauseDoc.setTooltip(new Tooltip ("Press to move box to Document Window"));
+        btnMoveClauseDoc.setOnAction(MoveBoxtoDocument);
+
+        //Button for copying clause to document (leaves copy behind)
+        Button btnCopyClauseDoc = myControlsManager.newStdButton();
+        btnCopyClauseDoc.setText("Copy to Document");
+        btnCopyClauseDoc.setTooltip(new Tooltip ("Press to copy box to Document Window"));
+        btnCopyClauseDoc.setOnAction(CopyBoxtoDocument);
+
+        //Button for copying clause to library (leaves copy in workspace)
+        Button btnCopyClauseLib = myControlsManager.newStdButton();
+        btnCopyClauseLib.setText("Copy to Library");
+        btnCopyClauseLib.setTooltip(new Tooltip ("Press to copy box to Library Window"));
+        btnCopyClauseLib.setOnAction(CopyBoxtoLibrary);
+
+        //Button for copying clauses to workspace
+        Button btnCopyClauseWS = myControlsManager.newStdButton();
+        btnCopyClauseWS.setText("Copy to Workspace");
+        btnCopyClauseWS.setTooltip(new Tooltip ("Press to copy box to Workspace"));
+        btnCopyClauseWS.setOnAction(CopyBoxtoWorkspace);
+
+        //Button for copying ClauseContainer to Collection (leaves copy in workspace)
+        Button btnCopyCC = myControlsManager.newStdButton();
+        btnCopyCC.setText("Copy to Collection");
+        btnCopyCC.setTooltip(new Tooltip ("Press to copy box to Collection"));
+        btnCopyCC.setOnAction(CopyBoxtoCollection);
+
+        //CopyBoxtoProject
+        Button btnCopyColl = myControlsManager.newStdButton();
+        btnCopyColl.setText("Copy to Project");
+        btnCopyColl.setTooltip(new Tooltip ("Press to copy box to Project"));
+        btnCopyColl.setOnAction(CopyBoxtoProject);
+
+        //doEdit
+        Button btnDoEdit = myControlsManager.newStdButton();
+        btnDoEdit.setText("Edit");
+        btnDoEdit.setTooltip(new Tooltip ("Press to Edit Selection (Red Block)"));
+        btnDoEdit.setOnAction(DoPropertyEditStage);
+
+        //Set horizontal box to hold buttons
+        //HBox hboxButtons = new HBox(0,btnMoveClauseWS,btnCopyClause);
+        VBox vbox1 = new VBox(0,btnCopyColl,btnCopyCC,btnMoveClauseWS,btnCopyClauseWS,btnMoveClauseDoc, btnCopyClauseDoc, btnCopyClauseLib,btnMoveClauseLib,btnDeleteClause,btnDoEdit);
+        int totalwidth=190;
+        vbox1.setPrefWidth(totalwidth);
+        return vbox1;
+
+}
 
 /* Setup Stage as a Toolbar Panel for Sprite Move, Copy functions etc */
 
-public Group setupToolbarPanel(Stage myStage, String myTitle) {
+public Group setupToolbarPanel(StageManager mySM, Stage myStage, String myTitle) {
 
-        myStage.setTitle(myTitle);
+        //do this before .show
+        mySM.setStage(myStage);
+        mySM.setStageParent(Stage_WS);
+        
         //Instance variable
         Group toolbar_root = new Group(); //for root
         toolbarScene = new Scene (toolbar_root,150,350, Color.GREY); //default width x height (px)
@@ -1291,96 +1277,23 @@ public Group setupToolbarPanel(Stage myStage, String myTitle) {
          @Override
          public void handle(MouseEvent mouseEvent) {
          System.out.println("Clause Toolbar: Mouse click detected! " + mouseEvent.getSource());
-         mySpriteManager.setStageFocus("Toolbar");
+         //mySpriteManager.setStageFocus("Toolbar");
              }
         });
 
-        //
-        myStage.setScene(toolbarScene); //set current scene for the Stage
-        //Layout
-        myStageManager.setPosition(myStage,"toolbar");
-        myStage.show();
+        VBox vbox1 = makeToolBarButtons();
         
-        //Button for new clauses
-        //Button btnNewClause = new Button();
-        Button btnNewClause = myControlsManager.newStdButton();
-        btnNewClause.setText("New Clause");
-        btnNewClause.setTooltip(new Tooltip ("Press to add a new clause"));
-        btnNewClause.setOnAction(addNewClauseBox);
-
-        //Button for new definitions addNewDefBox
-        //Button btnNewDef = new Button();
-        Button btnNewDef = myControlsManager.newStdButton();
-        btnNewDef.setText("New Def");
-        btnNewDef.setTooltip(new Tooltip ("Press to add a new definition"));
-        btnNewDef.setOnAction(addNewDefBox);
-        
-        
-        //Button for removing clauses
-        Button btnDeleteClause = myControlsManager.newStdButton();
-        btnDeleteClause.setTooltip(new Tooltip ("Press to remove selected clause"));
-        btnDeleteClause.setText("Delete");
-        btnDeleteClause.setOnAction(deleteCurrentSprite);
-
-        //Button for moving clauses to Workspace
-        Button btnMoveClauseWS = myControlsManager.newStdButton();
-        btnMoveClauseWS.setText("Move to Workspace");
-        btnMoveClauseWS.setTooltip(new Tooltip ("Press to move clause to Workspace Window"));
-        btnMoveClauseWS.setOnAction(MoveClausetoWS);
-
-        //Button for moving clauses to Library
-        //To DO: only visible if Library has been loaded
-        Button btnMoveClauseLib = myControlsManager.newStdButton();
-        btnMoveClauseLib.setText("Move to Library");
-        btnMoveClauseLib.setTooltip(new Tooltip ("Press to move clause to Library Window"));
-        btnMoveClauseLib.setOnAction(MoveClausetoLib);
-
-        //Button for moving clauses to Document
-        Button btnMoveClauseDoc = myControlsManager.newStdButton();
-        btnMoveClauseDoc.setText("Move to Document");
-        btnMoveClauseDoc.setTooltip(new Tooltip ("Press to move clause to Document Window"));
-        btnMoveClauseDoc.setOnAction(MoveClausetoDoc);
-
-        //Button for copying clause to document (leaves copy behind)
-        Button btnCopyClauseDoc = myControlsManager.newStdButton();
-        btnCopyClauseDoc.setText("Copy to Document");
-        btnCopyClauseDoc.setTooltip(new Tooltip ("Press to copy clause to Document Window"));
-        btnCopyClauseDoc.setOnAction(CopyClausetoDoc);
-
-        //Button for copying clause to library (leaves copy in workspace)
-        Button btnCopyClauseLib = myControlsManager.newStdButton();
-        btnCopyClauseLib.setText("Copy to Library");
-        btnCopyClauseLib.setTooltip(new Tooltip ("Press to copy clause to Library Window"));
-        btnCopyClauseLib.setOnAction(CopyClausetoLib);
-
-        //Button for copying clauses to workspace
-        Button btnCopyClauseWS = myControlsManager.newStdButton();
-        btnCopyClauseWS.setText("Copy to Workspace");
-        btnCopyClauseWS.setTooltip(new Tooltip ("Press to copy clause to Workspace"));
-        btnCopyClauseWS.setOnAction(CopyClausetoWorkspace);
-
-        //Button for copying ClauseContainer to Collection (leaves copy in workspace)
-        Button btnCopyCC = myControlsManager.newStdButton();
-        btnCopyCC.setText("Copy to Collection");
-        btnCopyCC.setTooltip(new Tooltip ("Press to copy Container to Collection"));
-        btnCopyCC.setOnAction(CopyCCtoCollection);
-
-
-        Button btnDoEdit = myControlsManager.newStdButton();
-        btnDoEdit.setText("Edit");
-        btnDoEdit.setTooltip(new Tooltip ("Press to Edit Selection (Red Block)"));
-        btnDoEdit.setOnAction(DoEditStage);
-
-        //Set horizontal box to hold buttons
-        //HBox hboxButtons = new HBox(0,btnMoveClauseWS,btnCopyClause);
-        //VBox vbox1 = new VBox(0,btnNewDef,btnNewClause,btnCopyCC,btnMoveClauseWS,btnCopyClauseWS,btnMoveClauseDoc, btnCopyClauseDoc, btnCopyClauseLib,btnMoveClauseLib,btnDeleteClause,btnDoEdit);
-        VBox vbox1 = new VBox(0,btnCopyCC,btnMoveClauseWS,btnCopyClauseWS,btnMoveClauseDoc, btnCopyClauseDoc, btnCopyClauseLib,btnMoveClauseLib,btnDeleteClause,btnDoEdit);
-        
-        //
+        //add Button box to root node
         toolbar_root.getChildren().add(vbox1); //add the vbox to the root node to hold everything
-        int totalwidth=190;
-        vbox1.setPrefWidth(totalwidth); //this is in different units to textarea
        
+        //setup Stage config
+        mySM.setStageParent(Stage_WS);
+        mySM.setPosition();
+        mySM.setSceneRoot(toolbar_root);
+        myStage.setTitle(myTitle);
+        myStage.setScene(toolbarScene); //set current scene for the Stage
+        myStage.show();
+
         return toolbar_root;
 }
 
@@ -1392,7 +1305,7 @@ public Group setupToolbarPanel(Stage myStage, String myTitle) {
 
 **/
 
-public ScrollPane setupDefinitionsWindow() {
+public ScrollPane setupDefinitionsWindow(StageManager myStageManager) {
         
         defsTextStage = new Stage();
             
@@ -1400,14 +1313,18 @@ public ScrollPane setupDefinitionsWindow() {
         ScrollPane rootnode_scroll = new ScrollPane();
         rootnode_scroll.setFitToHeight(true);
         rootnode_scroll.setFitToWidth(true);
+
+        //make Text Area
         double width = 800; 
         double height = 500; 
         textArea3.setPrefHeight(height);  
         textArea3.setPrefWidth(width);
         textArea3.setWrapText(true);
+
+        //add Text Area
         rootnode_scroll.setContent(textArea3); 
 
-        //give rootnode its Scene with event handler
+        //Add rootnode to Scene graph
         int setWidth=500;
         int setHeight=500;
         Scene defsTextScene = new Scene (rootnode_scroll,setWidth,setHeight); //width x height (px)
@@ -1417,52 +1334,29 @@ public ScrollPane setupDefinitionsWindow() {
          System.out.println("Mouse click detected for text scroll window! " + mouseEvent.getSource());
              }
         });
-        //Size and positioning
+        //Add Scene to Stage, size and position 
         defsTextStage.setScene(defsTextScene);
-        defsTextStage.setTitle("Definitions List");
-        myStageManager.setPosition(defsTextStage, "display");
         defsTextStage.setY(350);
         defsTextStage.show();
-        //TO DO: return Stage object
+
+        myStageManager.setStageParent(Stage_WS);
+        myStageManager.setPosition();
+        myStageManager.setSceneRoot(rootnode_scroll);
+        myStageManager.setTitle("Definitions List");
+        
         return rootnode_scroll; 
         }
 
 //Function to setup independent output window
 
-public ScrollPane setupTextOutputWindow() {
+public void setupTextOutputWindow(StageManager myStageManager, String myTitle) {
 
-        textOutputStage = new Stage();
-
-        //setup root node as a scrollpane
-        ScrollPane rootnode_scroll = new ScrollPane();
-        rootnode_scroll.setFitToHeight(true);
-        rootnode_scroll.setFitToWidth(true);
-        //give rootnode a Scene and event handlers for scene
-        int setWidth=500;
-        int setHeight=250;
-        textOutputScene = new Scene (rootnode_scroll,setWidth,setHeight); //width x height (px)
-        textOutputScene.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
-         @Override
-         public void handle(MouseEvent mouseEvent) {
-         System.out.println("Mouse click detected for text output window! " + mouseEvent.getSource());
-             }
-        });
-        //Size and positioning
-        textOutputStage.setScene(textOutputScene);
-        myStageManager.setPosition(textOutputStage, "textmaker");
-        textOutputStage.setTitle("Text Output");
-        //setup text scroll node
-        double width = 600; 
-        double height = 500; 
-        rootnode_scroll.setPrefHeight(height);  
-        rootnode_scroll.setPrefWidth(width);
-        rootnode_scroll.setContent(textmakerTextArea); 
-        //text area settings
-        textmakerTextArea.setWrapText(true);
-        textmakerTextArea.setText("Some future contents");
-        //default is hidden
-        textOutputStage.hide();
-        return rootnode_scroll;
+        myStageManager.putTextScrollerOnStage();
+        myStageManager.setOutputText("Some future contents");
+        myStageManager.hideStage();
+        myStageManager.setTitle(myTitle);
+        myStageManager.setStageParent(Stage_WS);
+        myStageManager.setPosition();
 }
 
 private void setArea1Text(String fname) {
@@ -1475,6 +1369,7 @@ private void setArea1Text(String fname) {
 private void setArea2Text(String fname) {
         //get stats from file and put in textarea 2
         String myStats=this.getMostCommon(fname);
+        Stage_Import.setOutputText(myStats);
         this.textArea2.setText(myStats);
         //send some stats to console
         this.printStatsfromFile(fname);
@@ -1500,291 +1395,292 @@ public Boolean isLegalRoleWord (String myWord) {
     return false;
 }
 
-/*Method to iterate through all sprites on Workspace */
-public void removeBoxesFromStage(Group targetGroup) {
-    //loop:
-    //.getChildren().remove(Spritebox??); 
-    //remove associated clauses
-    //should clauses keep record of parent SpriteBox ref?
-    /*ArrayList<Clause> myWSList = WorkspaceClauseContainer.getClauseArray();
-        Iterator<Clause> myDeleteList = myWSList.iterator();
-        while (myiterator.hasNext()) {
-            //removeFromMainStage()
-            //Delete WS Spritebox from Stage
-        }
-        */
+/* Method to open the node in a new Stage window */
+
+private void openNodeInNewStage(ClauseContainer myContainer) {
+        StageManager myStageManager = new StageManager();
+        myStageManager.defaultConfigStage();
+        openBoxesOnStage(myStageManager, myContainer);
     }
 
+/* Method to open the node in existing Stage  */
 
-/* Method to remove spritebox from workspace */
-public void removeFromMainStage(SpriteBox thisSprite) {
+public void openBoxesOnStage(StageManager mySM, ClauseContainer myNode) {
+
+    mySM.openBoxesOnStage(myNode);
+    setCurrentSprite(mySM.getFocusBox());
     /*
-        WorkspaceGroup.getChildren().remove(thisSprite); 
-        mySpriteManager.removeFromMainStage(thisSprite);
-        */
-    }
-
-/* Method to open the contents of currentSprite DocContainer in Document Stage */
-public void openDocumentContainerStage(ClauseContainer myContainer) {
-    
-    //point to same container
-    DocumentClauseContainer=myContainer;
-    mySpriteManager.resetDocXY(); //may not be needed in function below
-    displaySpritesInDocumentStage(DocumentClauseContainer, "Current Document");
-    }
-
-/* Method to open the contents of currentSprite DocContainer in Document Stage */
-public void openLibraryContainerStage(ClauseContainer myContainer) {
-    
-    /* This doesn't pick up metadata, only clauses:
-    LibraryClauseContainer.setClauseArray(myContainer.getClauseArray());
+    mySM.resetSpriteOrigin();
+    mySM.defaultConfigStage();
+    mySM.setTitle(myNode.getDocName());
+    mySM.setDisplayNode(myNode);
+    displayBoxesOnStage(mySM,myNode);
     */
-    LibraryClauseContainer=myContainer;
-    mySpriteManager.resetLibXY(); //may not be needed
-    displaySpritesInLibraryStage(LibraryClauseContainer, "Current Library");
-    }
-
-
-/* Method to handle all consequences of adding spritebox to workspace
-1. Add to workspace group (implicitly removes from existing group)
-2. update state in sprite manager
-3. add to collections (if needed)
-*/
-
-    public void placeSpriteOnMainStage(SpriteBox thisSprite) {
-        WorkspaceGroup.getChildren().add(thisSprite); 
-        mySpriteManager.placeOnMainStage(thisSprite);
-        WorkspaceBoxes.addBox(thisSprite);
-    }
-
-/* Method to handle all consequences of adding spritebox to Collection
-1. Add to library group
-2. update state in sprite manager (i.e. position)
-3. add to collections (if needed)
-*/
-    public void placeInCollectionStage(SpriteBox thisSprite) {
-        System.out.println("Sprite received for placing in Collection:"+thisSprite.toString());
-        CollectionGroup.getChildren().add(thisSprite); 
-        mySpriteManager.placeInCollection(thisSprite);
-        WorkspaceBoxes.addBox(thisSprite);
-    }
-
-/* Method to handle all consequences of adding spritebox to Library
-1. Add to library group
-2. update state in sprite manager (i.e. position)
-3. add to collections (if needed)
-*/
-    public void placeInLibraryStage(SpriteBox thisSprite) {
-        System.out.println("Sprite received for placing in Library:"+thisSprite.toString());
-        LibraryGroup.getChildren().add(thisSprite); 
-        mySpriteManager.placeInLibrary(thisSprite);
-        WorkspaceBoxes.addBox(thisSprite);
-    }
-
-/* Method to handle all consequences of adding spritebox to Document stage
-1. Add to document group
-2. update state in sprite manager (i.e. position)
-3. add to collections (if needed)
-*/
-    public void placeInDocumentStage(SpriteBox thisSprite) {
-        System.out.println("Sprite received for placing in Document:"+thisSprite.toString());
-        DocumentGroup.getChildren().add(thisSprite); 
-        mySpriteManager.placeInDocument(thisSprite);
-        WorkspaceBoxes.addBox(thisSprite);
-    }
-
-    public void placeInOtherStage(Stage myStage, Group thisGroup, SpriteBox thisSprite) {
-        System.out.println("Sprite received for placing in OtherStage:"+thisSprite.toString());
-        thisGroup.getChildren().add(thisSprite);
-        thisSprite.setInOtherStage(true); 
-        mySpriteManager.placeInOtherStage(thisSprite);
-        WorkspaceBoxes.addBox(thisSprite);
-            //set current box as the current
-            //myStageManager.setCurrentSprite(b);
-    }
-
-/* Method to copy SpriteBox including event handlers needed
-It takes just the clause from the existing Sprite and builds rest from scratch */
-    public SpriteBox makeCopySprite (SpriteBox mySprite) {
-        Object copyClause = mySprite.getClause(); //this copies the pointer, not contents
-        System.out.println(copyClause.toString());
-        //copy values for clause, not references
-        SpriteBox copySprite;
-        if (copyClause instanceof Event) {
-            Event freshEvent = makeCopyEvent((Event)copyClause);
-            copySprite = new SpriteBox(freshEvent);
-        }
-        else {
-            Clause freshClause = makeCopyClause((Clause)copyClause);
-            copySprite = new SpriteBox(freshClause);
-        }
-        copySprite.setOnMousePressed(PressBoxEventHandler); 
-        copySprite.setOnMouseDragged(DragBoxEventHandler);
-        return copySprite;
-    }
-
-/*Method to copy contents of SpriteBox with Document(ClauseCollection) */
- public SpriteBox makeCopyCollectionSprite (SpriteBox mySprite) {
-        ClauseContainer copyCC = (ClauseContainer)mySprite.getBoxContent(); //this copies the pointer, not contents
-        ClauseContainer tempContainer = copyCC.cloneContainer();
-        myCollection.addCC(tempContainer); 
-        System.out.println(copyCC.toString());
-        SpriteBox copySprite = new SpriteBox();
-        copySprite.setBoxContent(tempContainer);
-        //event handlers
-        copySprite.setOnMousePressed(PressBoxEventHandler); 
-        copySprite.setOnMouseDragged(DragBoxEventHandler);
-        return copySprite;
-    }
-
-/*Method  copy of Clause object but with a new reference 
-Option: put these getters and setters inside a Clause constructor */
-public Clause makeCopyClause(Clause myClause) {
-    Clause anotherClause = new Clause();
-    anotherClause.setClauselabel(myClause.getLabel());
-    anotherClause.setClausetext(myClause.getClause());
-    anotherClause.setHeading(myClause.getHeading());
-    anotherClause.setCategory(myClause.getCategory());
-    anotherClause.setFreq(myClause.getFreq());
-    return anotherClause;
 }
 
-//make copy of Event
-public Event makeCopyEvent(Event myClause) {
-    Event anotherClause = new Event();
-    anotherClause.setEventDesc(myClause.getEventDesc());
-    anotherClause.setDate(myClause.getDate());
-    anotherClause.setClauselabel(myClause.getLabel());
-    anotherClause.setClausetext(myClause.getClause());
-    anotherClause.setHeading(myClause.getHeading());
-    anotherClause.setCategory(myClause.getCategory());
-    anotherClause.setFreq(myClause.getFreq());
-    return anotherClause;
+/* Box up a container of Sprites and place on Stage */
+
+ public void displayBoxesOnStage(StageManager myStageManager, ClauseContainer myNode) {
+    
+        ArrayList<ClauseContainer> myNodes = myNode.getChildNodes();
+        Iterator<ClauseContainer> myiterator = myNodes.iterator();
+
+        while (myiterator.hasNext()) {
+            ClauseContainer thisNode = myiterator.next(); 
+            SpriteBox b = makeBoxWithNode(thisNode);
+            placeSpriteOnStage(b, myStageManager);
+        }
+        setCurrentSprite(myStageManager.getFocusBox());
+        myStageManager.getStage().show();
+        }
+
+//general method to store currentSprite
+
+private void setCurrentSprite(SpriteBox mySprite) {
+    SpriteBox activeSprite = myTracker.getCurrentSprite();
+    if (activeSprite!=null) {  //might be no current sprite if not dbl clicked
+            activeSprite.endAlert();
+        }
+        myTracker.setCurrentSprite(mySprite);
+        mySprite.doAlert();  
+}
+
+private SpriteBox getCurrentSprite() {
+    //return this.activeSprite;
+    return myTracker.getCurrentSprite();  
+}
+
+//General method to place sprite on Stage.  Uses Stage Manager class 
+//Since data nodes are to mirror GUI, update parent child relations here too
+
+private void placeSpriteOnStage(SpriteBox mySprite, StageManager targetStage) {
+    SpriteBox prevSprite = getCurrentSprite(); //not based on the button
+    if (prevSprite !=null) {
+        prevSprite.endAlert(); 
+        System.out.println("Ended alert:"+prevSprite.toString());
+    }
+    setCurrentSprite(mySprite); 
+    targetStage.addSpriteToStage(mySprite);
+    
     }
 
-/* Method to remove current SpriteBox and contained clause from system 
-TO DO: Cater for other windows e.g. new loaded workspace window...
+
+private void placeCurrentSpriteOnStage(StageManager targetStage) {
+    SpriteBox currentSprite = getCurrentSprite(); //not based on the button
+    if (currentSprite !=null) {
+        currentSprite.endAlert(); 
+        System.out.println("Ended alert current:"+currentSprite.toString());
+    }
+    ClauseContainer currentParent = currentSprite.getBoxNode().getParentNode();
+    unsetParentChild(currentSprite);
+    targetStage.addSpriteToStage(currentSprite);
+    setParentChild(targetStage,currentSprite);
+}
+
+public void copySpriteToDestination(SpriteBox mySprite, StageManager myStageMan) {
+            
+            System.out.println("Sprite to copy:"+mySprite.toString());
+            SpriteBox b = mySprite.clone(); //clone event handlers or add?
+            System.out.println("Sprite clone:"+b.toString());
+            myStageMan.showStage();
+            placeSpriteOnStage(b, myStageMan);  
+}
+
+public void copyCurrentSpriteToDestination(StageManager myStageMan) {
+            
+            SpriteBox mySprite = getCurrentSprite();
+            copySpriteToDestination(mySprite,myStageMan); 
+}
+
+/* Method to remove current SpriteBox and contents 
 */
+
 public void deleteSprite(SpriteBox mySprite) {
-    System.out.println("in Lib: "+mySprite.isInLibrary());
-    System.out.println("on WS: "+mySprite.isOnStage());
-    System.out.println("in Doc: "+mySprite.isInDocumentStage());
-    System.out.println("in Collection: "+mySprite.isInCollection());
-    if (mySprite.isInLibrary()==true) {
-        LibraryClauseContainer.removeClause(mySprite.getClause());
-        LibraryGroup.getChildren().remove(mySprite); 
-        mySprite.setInLibrary(false); //not needed?
-        //do this to refresh - or just Library window?
-        //ParentStage.show();
-        LibraryStage.show();
-        return;
-    }
-    if (mySprite.isOnStage()==true) {
-        WorkspaceClauseContainer.removeClause(mySprite.getClause());
-        wsCollection.removeCC(mySprite.getCC());
-        WorkspaceGroup.getChildren().remove(mySprite); 
-        mySprite.setOnStage(false); //not needed?
-        //do this to refresh
-        ParentStage.show();
-        return;
-    }
-
-    if (mySprite.isInDocumentStage()==true) {
-        DocumentClauseContainer.removeClause(mySprite.getClause());
-        DocumentGroup.getChildren().remove(mySprite); 
-        mySprite.setInDocumentStage(false); //not needed?
-        //do this to refresh
-        DocumentStage.show();
-        return;
-    }
-    if (mySprite.isInCollection()==true) {
-        myCollection.removeCC(mySprite.getCC());
-        CollectionGroup.getChildren().remove(mySprite); 
-        mySprite.setInCollection(false); //not needed?
-        //do this to refresh
-        CollectionStage.show();
-        return;
-    }
-    if (mySprite.isInOtherStage()==true) {
-        //DocumentClauseContainer.removeClause(mySprite.getClause());
-        //DocumentGroup.getChildren().remove(mySprite);
-        System.out.println("Removing ["+mySprite.toString()+"] from Parent: "+mySprite.getParent().toString()); 
-        ((Group) mySprite.getParent()).getChildren().remove(mySprite);
-        mySprite.setInOtherStage(false); //not needed?
-        //do this to refresh
-        //DocumentStage.show();
-        return;
-    }
+    
+    StageManager mySM = mySprite.getStageLocation();
+    mySM.removeSpriteFromStage(mySprite);
+    mySM.getStage().show(); 
+    unsetParentChild(mySprite);
 }
+
+
+//new Stage constructor.  If useful, move to StageManager constructor
+public StageManager newStageConst(StageManager mySM, String myFileLabel, ClauseContainer defaultNode) {
+    mySM = new StageManager(myFileLabel); //category
+    mySM.setStageParent(Stage_WS);
+    mySM.defaultConfigStage(); //empty
+    mySM.setTitle(myFileLabel);
+    mySM.setFilename(myFileLabel+".ser"); //default
+    mySM.setDisplayNode(defaultNode); //default Node
+    mySM.setPressBox(PressBoxEventHandler);
+    mySM.setDragBox(DragBoxEventHandler);
+    mySM.showStage();
+    return mySM;
+}
+
+/*
+public void setStageInit (StageManager mySM, String myTitle)  {
+    mySM.setInitStage(Stage_WS);
+    Group tempGroup = Main.this.setupNewSpriteStage(mySM);
+    mySM.setSpriteGroup(tempGroup);
+}
+
+public void identifyStages (StageManager mySM, Stage myStage, Group myGroup) {
+    myStage = mySM.getStage();
+    myGroup = mySM.getSpriteGroup();
+}
+
+*/
+
 
 /* ---- JAVAFX APPLICATION STARTS HERE --- */
   
     @Override
     public void start(Stage primaryStage) {
-        /* This only affects the primary stage set by the application */
-        primaryStage.setTitle("File Utilities");
-        //primaryStage.show();
-        primaryStage.close();
-
-        //the object that manages sprite with focus etc
-        mySpriteManager = new SpriteManager();
        
-        //setup clauses sandbox as first Stage (preserves order for display)
+        /* This only affects the primary stage set by the application */
+        primaryStage.setTitle("Powerdock App");
+        primaryStage.show();
+        primaryStage.close();
+        
+        ParentStageSM = new StageManager();
         ParentStage = new Stage();
-        WorkspaceGroup = Main.this.setupWorkspaceStage(ParentStage, "Main Workspace");
+        ParentStageSM.setStage(ParentStage);
 
+        //
+    
+        Stage_WS = new StageManager("workspace"); //category
+        Stage_WS.setTitle("Workspace");
+        Stage_WS.setFilename("workspace.ser");
+        Stage_WS.setPressBox(PressBoxEventHandler);
+        Stage_WS.setDragBox(DragBoxEventHandler);
+        Stage_WS.setDisplayNode(WorkspaceNode); //default Node
+        WorkspaceGroup=makeWorkspaceGroups();
+        WorkspaceStage = newWorkstageFromGroup(WorkspaceGroup);        
+       
+        //Group tempGroup = Main.this.setupNewSpriteStage(mySM);
+        //Stage_WS.setSpriteGroup(tempGroup);
+        //identifyStages(Stage_WS,WorkspaceStage,WorkspaceGroup);
+        
         //setup Project Libary window
-        ProjectLibStage = new Stage();
-        myStageManager.setStageParent(ParentStage,ProjectLibStage);
-        ProjectLibGroup = Main.this.setupProjectLibStage();
+        
+        //setStageInit(Stage_PROJLIB,ProjectLibStage,ProjectLibGroup,"Project Library");
+        //identifyStages(Stage_PROJLIB,ProjectLibStage,ProjectLibGroup);
 
-        //setup Project window
-        ProjectStage = new Stage();
-        myStageManager.setStageParent(ParentStage,ProjectStage);
-        ProjectGroup = Main.this.setupProjectOpenStage();
+        //configStageMan(Stage_PROJLIB,ProjectLibStage,ProjLibScene,ProjectLibGroup,"Project Library");
+        
+        //configStageMan(Stage_PROJ,ProjectStage,ProjectScene,ProjectGroup,"Project");
 
-        //setup Collection window
-        CollectionStage = new Stage();
-        myStageManager.setStageParent(ParentStage,CollectionStage);
-        CollectionGroup = Main.this.setupCollectionStage();
+        //configStageMan(Stage_COLL,CollectionStage,CollectionScene,CollectionGroup,"Collection");
+        
+        Stage_COLL=newStageConst(Stage_COLL,"collection", collectionNode);
+        Stage_LIB=newStageConst(Stage_LIB,"library", libraryNode);
+        Stage_DOC=newStageConst(Stage_DOC,"document", documentNode);
+        Stage_PROJ=newStageConst(Stage_PROJ,"project", projectNode);
+        Stage_PROJLIB=newStageConst(Stage_PROJLIB,"projlib", projectLibNode);
 
-        //setup libary window
-        LibraryStage = new Stage();
-        myStageManager.setStageParent(ParentStage,LibraryStage);
-        LibraryGroup = Main.this.setupLibraryStage();
+        /*
+        Stage_COLL = new StageManager("collection"); //category
+        Stage_COLL.setStageParent(Stage_WS);
+        Stage_COLL.defaultConfigStage(); //empty
+        Stage_COLL.setTitle("collection");
+        Stage_COLL.setFilename("collection.ser"); //default
+        Stage_COLL.setDisplayNode(collectionNode); //default Node
+        Stage_COLL.setPressBox(PressBoxEventHandler);
+        Stage_COLL.setDragBox(DragBoxEventHandler);
+        Stage_COLL.showStage();
+        */
+        
 
-        //setup Document window
-        DocumentStage = new Stage();
-        myStageManager.setStageParent(ParentStage,DocumentStage);
-        DocumentGroup = Main.this.setupDocumentStage();
+        //configStageMan(Stage_LIB,LibraryStage,LibraryScene,LibraryGroup,"Library");
+        /*
+        Stage_LIB = new StageManager("library"); //category
+        Stage_LIB.setStageParent(Stage_WS);
+        Stage_LIB.defaultConfigStage(); //empty
+        Stage_LIB.setTitle("library");
+        Stage_LIB.setFilename("library.ser");
+        Stage_LIB.setDisplayNode(libraryNode); //default Node
+        Stage_LIB.setPressBox(PressBoxEventHandler);
+        Stage_LIB.setDragBox(DragBoxEventHandler);
+        Stage_LIB.showStage();
+        */
+        
+        /*
+        Stage_DOC = new StageManager("document"); //category
+        Stage_DOC.setStageParent(Stage_WS);
+        Stage_DOC.defaultConfigStage(); //empty
+        Stage_DOC.setTitle("document");
+        Stage_DOC.setFilename("document.ser");
+        Stage_DOC.setDisplayNode(documentNode); //default Node
+        Stage_DOC.setPressBox(PressBoxEventHandler);
+        Stage_DOC.setDragBox(DragBoxEventHandler);
+        Stage_DOC.showStage();
+        */
 
-        //setup Editor window
+        //configStageMan(Stage_DOC,DocumentStage,DocumentScene,DocumentGroup,"Document");
+
+        /*setup Editor window
         editorStage = new Stage();
-        myStageManager.setStageParent(ParentStage,editorStage);
+        StageManager Stage_EDITCLAUSE = new StageManager();
+        Stage_EDITCLAUSE.setStageParent(ParentStage,editorStage);
+        */
 
+        /*
+        //setup Node Propety Editor window
+        editorStage = new Stage();
+        StageManager Stage_EDITNODEPROP = new StageManager();
+        Stage_EDITNODEPROP.setTitle("Editor");
+        Stage_EDITNODEPROP.setStageParent(ParentStage,editorStage);
+        */
+
+        /*
         //*setup Import window (text input display and editing)
-        importStage = new Stage();
-        myStageManager.setStageParent(ParentStage,importStage);
-        this.setupImportStage(importStage,"Text Importer");
+        ImportStage = new Stage();
+        Stage_Import = new StageManager();
+        this.setupImportStage(Stage_Import,ImportStage,"Text Importer");
         //set some default text in main text window
         //this.myTextFile="popstarlease.txt";
         this.myTextFile="electricity.txt";
         this.setArea1Text(this.myTextFile);
         this.setArea2Text(this.myTextFile);
-        // use this line if you want it by default: importStage.show();
-        importStage.hide();
-
-        //setup main toolbar
+        // use this line if you want it by default: ImportStage.show();
+        ImportStage.hide();
+        */
+        //setup main toolbar for buttons
         toolbarStage = new Stage();
-        myStageManager.setStageParent(ParentStage,toolbarStage);
-        toolbarGroup = Main.this.setupToolbarPanel(toolbarStage, "Toolbar");
+        Stage_Toolbar = new StageManager();
+        toolbarGroup = Main.this.setupToolbarPanel(Stage_Toolbar,toolbarStage, "Toolbar");
 
-        /* Setup default Output Stage  */
+        /* Setup default text Output Stage  */
+        Main.this.setupTextOutputWindow(Stage_Output,"Output");
         
-        textmakerGroup_root = Main.this.setupTextOutputWindow();
-
         //TO DO: Setup another 'Stage' for file input, creation of toolbars etc.
     }
+
+/* This is a defined Eventhandler object (holding a function) for mouse clicks on Project boxes */
+
+    EventHandler<MouseEvent> PressProjBoxEventHandler = 
+        new EventHandler<MouseEvent>() {
+ 
+        @Override
+        public void handle(MouseEvent t) {
+            processBoxClick(t,Stage_PROJ);
+            t.consume();
+        }
+    };
+
+
+/* This is a method to create eventhandler for mouse clicks on Collection boxes */
+
+    EventHandler<MouseEvent> PressCollBoxEventHandler = 
+        new EventHandler<MouseEvent>() {
+ 
+        @Override
+        public void handle(MouseEvent t) {
+            processBoxClick(t,Stage_COLL);
+            t.consume();
+            }
+    };
 
     /* This is a method to create eventhandler for Document ClauseContainer objects */
 
@@ -1793,64 +1689,11 @@ public void deleteSprite(SpriteBox mySprite) {
  
         @Override
         public void handle(MouseEvent t) {
-            orgSceneX = t.getSceneX();
-            orgSceneY = t.getSceneY();
-            // If you are only moving child objects not panes
-            orgTranslateX = ((SpriteBox)(t.getSource())).getTranslateX();
-            orgTranslateY = ((SpriteBox)(t.getSource())).getTranslateY();
-            System.out.println("getx: "+ orgSceneX+ " gety: "+orgSceneY);
-            
-            SpriteBox hadFocus=null;
-            SpriteBox currentSprite = null;
-            switch(t.getClickCount()){
-                //single click
-                case 1:
-                    System.out.println("One click");
-                    //end alert status for current sprite
-                    hadFocus = mySpriteManager.getCurrentSprite();
-                    if (hadFocus!=null) {
-                        hadFocus.endAlert();
-                    }
-                    currentSprite = ((SpriteBox)(t.getSource()));
-                    System.out.println(currentSprite.toString());
-                    //change current sprite and set alert colour
-                    mySpriteManager.setCurrentSprite(currentSprite);
-                    currentSprite.doAlert();
-                    break;
-                case 2:
-                    System.out.println("Two clicks");
-                    
-                    //unfocus current Sprite - only works for the Sandbox? or record in any window?  
-                    hadFocus = mySpriteManager.getCurrentSprite();
-                    if (hadFocus!=null) {
-                        hadFocus.endAlert();
-                    }
-                    //change colour if double click
-                    currentSprite = ((SpriteBox)(t.getSource()));
-                    currentSprite.doAlert();
-                    //change target only if in Workspace stage 
-                    if (mySpriteManager.getStageFocus().equals("workspace")) {
-                        mySpriteManager.setTargetSprite(currentSprite);
-                    }
-                    
-                    mySpriteManager.setCurrentSprite(currentSprite);  //what if not on MainStage?
-                    Clause internalClause = currentSprite.getClause();
-                    String myOutput = internalClause.getClause();
-
-                    //SpriteInternal instanceof ClauseContainer) 
-                    ClauseContainer tempContainer = (ClauseContainer)currentSprite.getBoxContent();
-                    System.out.println("Detected Doc ClauseContainer double click");
-                    openDocumentContainerStage(tempContainer);
-                    
-
-                    break;
-                case 3:
-                    System.out.println("Three clicks");
-                    break;
-            }
-            t.consume(); //trying this to see if it frees up for second press but better to deal with cause
+            processBoxClick(t,Stage_DOC);
+            t.consume();
         }
     };
+
     
     /* This is a method to create eventhandler for Library ClauseContainer objects */
 
@@ -1859,151 +1702,20 @@ public void deleteSprite(SpriteBox mySprite) {
  
         @Override
         public void handle(MouseEvent t) {
-            orgSceneX = t.getSceneX();
-            orgSceneY = t.getSceneY();
-            // If you are only moving child objects not panes
-            orgTranslateX = ((SpriteBox)(t.getSource())).getTranslateX();
-            orgTranslateY = ((SpriteBox)(t.getSource())).getTranslateY();
-            System.out.println("getx: "+ orgSceneX+ " gety: "+orgSceneY);
-            
-            SpriteBox hadFocus=null;
-            SpriteBox currentSprite = null;
-            switch(t.getClickCount()){
-                //single click
-                case 1:
-                    System.out.println("One click");
-                    //end alert status for current sprite
-                    hadFocus = mySpriteManager.getCurrentSprite();
-                    if (hadFocus!=null) {
-                        hadFocus.endAlert();
-                    }
-                    currentSprite = ((SpriteBox)(t.getSource()));
-                    System.out.println(currentSprite.toString());
-                    //change current sprite and set alert colour
-                    mySpriteManager.setCurrentSprite(currentSprite);
-                    currentSprite.doAlert();
-                    break;
-                case 2:
-                    System.out.println("Two clicks");
-                    
-                    //unfocus current Sprite - only works for the Sandbox? or record in any window?  
-                    hadFocus = mySpriteManager.getCurrentSprite();
-                    if (hadFocus!=null) {
-                        hadFocus.endAlert();
-                    }
-                    //change colour if double click
-                    currentSprite = ((SpriteBox)(t.getSource()));
-                    currentSprite.doAlert();
-                    //change target only if in Workspace stage 
-                    if (mySpriteManager.getStageFocus().equals("workspace")) {
-                        mySpriteManager.setTargetSprite(currentSprite);
-                    }
-                    
-                    mySpriteManager.setCurrentSprite(currentSprite);  //what if not on MainStage?
-                    Clause internalClause = currentSprite.getClause();
-                    String myOutput = internalClause.getClause();
-
-                    //SpriteInternal instanceof ClauseContainer) 
-                    ClauseContainer tempContainer = (ClauseContainer)currentSprite.getBoxContent();
-                    System.out.println("Detected Lib ClauseContainer double click");
-                    openLibraryContainerStage(tempContainer);
-                    
-
-                    break;
-                case 3:
-                    System.out.println("Three clicks");
-                    break;
-            }
-            t.consume(); //trying this to see if it frees up for second press but better to deal with cause
+            processBoxClick(t,Stage_LIB);
+            t.consume();
         }
     };
     
-
-
-    /* This is a method to create a new eventhandler for the SpriteBox objects.
-     These are Stackpane that incorporate a Rectangle and a Text Node as components
-     They contain Clauses rather than Clause Containers
-
-    //unfocus current Sprite - only works for the Sandbox.  
-    Need to refine scope so that it works with current window
-
-    */
+    /* Event handler added to box with clause content */
 
     EventHandler<MouseEvent> PressBoxEventHandler = 
         new EventHandler<MouseEvent>() {
  
         @Override
         public void handle(MouseEvent t) {
-            orgSceneX = t.getSceneX();
-            orgSceneY = t.getSceneY();
-            // If you are only moving child objects not panes
-            orgTranslateX = ((SpriteBox)(t.getSource())).getTranslateX();
-            orgTranslateY = ((SpriteBox)(t.getSource())).getTranslateY();
-            System.out.println("getx: "+ orgSceneX+ " gety: "+orgSceneY);
-            
-            SpriteBox hadFocus=null;
-            SpriteBox currentSprite = null;
-            switch(t.getClickCount()){
-                //single click
-                case 1:
-                    System.out.println("One click");
-                    //end alert status for current sprite
-                    hadFocus = mySpriteManager.getCurrentSprite();
-                    if (hadFocus!=null) {
-                        hadFocus.endAlert();
-                    }
-                    currentSprite = ((SpriteBox)(t.getSource()));
-                    System.out.println(currentSprite.toString());
-                    //change current sprite and set alert colour
-                    mySpriteManager.setCurrentSprite(currentSprite);
-                    currentSprite.doAlert();
-                    break;
-                case 2:
-                    System.out.println("Two clicks");
-                    
-                    //unfocus current Sprite - only works for the Sandbox? or record in any window?  
-                    hadFocus = mySpriteManager.getCurrentSprite();
-                    if (hadFocus!=null) {
-                        hadFocus.endAlert();
-                    }
-                    //change colour if double click
-                    currentSprite = ((SpriteBox)(t.getSource()));
-                    currentSprite.doAlert();
-                    //change target only if in Workspace stage 
-                    if (mySpriteManager.getStageFocus().equals("workspace")) {
-                        mySpriteManager.setTargetSprite(currentSprite);
-                    }
-                    
-                    mySpriteManager.setCurrentSprite(currentSprite);  //what if not on MainStage?
-                    Clause internalClause = currentSprite.getClause();
-                    String myOutput = internalClause.getClause();
-
-                    /* previously - double click was output window 
-                    if (textOutputStage.isShowing()==false) {
-                        textOutputStage.show();
-                    }
-                    textmakerTextArea.setText(myOutput);
-                    */
-                    Object SpriteInternal = currentSprite.getBoxContent();
-                    if (SpriteInternal instanceof Clause) {
-                        System.out.println("Detected Clause double click");
-                        // show editor window instead, for current Sprite
-                        //editorStage = new Stage();
-                        editGroup_root = Main.this.setupEditorPanel(editorStage, "Editor");
-                    }
-
-                    if (SpriteInternal instanceof ClauseContainer) {
-                        ClauseContainer tempContainer = (ClauseContainer)currentSprite.getBoxContent();
-                        System.out.println("Detected ClauseContainer double click");
-                        openDocumentContainerStage(tempContainer);
-                    }
-
-                    break;
-                case 3:
-                    System.out.println("Three clicks");
-                    break;
-            }
-            t.consume(); //trying this to see if it frees up for second press but better to deal with cause
+            processBoxClick(t,Stage_EDITNODEPROP);
+            t.consume();
         }
     };
     
@@ -2022,17 +1734,17 @@ public void deleteSprite(SpriteBox mySprite) {
             double offsetY = t.getSceneY() - orgSceneY;
             double newTranslateX = orgTranslateX + offsetX;
             double newTranslateY = orgTranslateY + offsetY;
+            //end alert status for sprite
+            SpriteBox hasFocus = getCurrentSprite();
+            hasFocus.endAlert();
+            //change the active sprite to the current touched sprite.
+            setCurrentSprite(currentSprite);
+            System.out.println("The handler for drag box is acting");
+            //updates to sprite that triggered event
             currentSprite.setTranslateX(newTranslateX);
             currentSprite.setTranslateY(newTranslateY);
-            System.out.println("The handler for drag box is acting");
-            //end alert status for current sprite
-            mySpriteManager.getCurrentSprite().endAlert();
-            //change the active sprite to the current touched sprite.
-            mySpriteManager.setCurrentSprite(currentSprite);
-            currentSprite.doAlert();
-            //single click event by itself will not change alert status - need to do it here.
+            currentSprite.doAlert(); //in case single click event doesn't detect
             t.consume();//check
-
         }
     };
 
@@ -2046,9 +1758,9 @@ public void deleteSprite(SpriteBox mySprite) {
         @Override
         public void handle(ActionEvent t) {
             //This sets the initial reference - should be updated based on previous selections 
-            //SpriteBox currentSprite = mySpriteManager.getCurrentSprite(); //not based on the button
+            //SpriteBox currentSprite = getCurrentSprite(); //not based on the button
             //lose focus
-            SpriteBox hadFocus = mySpriteManager.getCurrentSprite();
+            SpriteBox hadFocus = getCurrentSprite();
                     if (hadFocus!=null) {
                         hadFocus.endAlert();
                         System.out.println("Deleting..."+hadFocus.toString());
@@ -2057,11 +1769,6 @@ public void deleteSprite(SpriteBox mySprite) {
                     else {
                         System.out.println("No current sprite to delete");
                     }
-            //currentSprite.endAlert();
-            /* For now, use single delete function, alternatively use different
-            functions depending on where SpriteBox is located 
-            */
-            //deleteSprite(currentSprite);
             }
         };
 
@@ -2076,378 +1783,101 @@ public void deleteSprite(SpriteBox mySprite) {
 
      */
 
-    EventHandler<ActionEvent> MoveClausetoWS = 
+    EventHandler<ActionEvent> MoveBoxtoWorkspace = 
         new EventHandler<ActionEvent>() {
  
         @Override
         public void handle(ActionEvent t) {
-            //This sets the initial reference 
-            SpriteBox currentSprite = mySpriteManager.getCurrentSprite(); //not based on the button
-            //lose focus
-            currentSprite.endAlert();
-            //assume it could only be in library for now - not stage specific?
-             if (currentSprite.isInDocumentStage()==true) {
-                DocumentClauseContainer.removeClause(currentSprite.getClause());
-                currentSprite.setInDocumentStage(false);
+            placeCurrentSpriteOnStage(Stage_WS);
             }
-            if (currentSprite.isInLibrary()==true) {
-                DocumentClauseContainer.removeClause(currentSprite.getClause());
-                currentSprite.setInLibrary(false);
-            }
+        };
 
-            if (currentSprite.isOnStage()==false) {
-            /* add clause to the list of clauses in the clause array */
-                WorkspaceClauseContainer.addClause(currentSprite.getClause()); 
-                //add sprite to WS Stage. This will clean up object on Stage elsewhere...
-                placeSpriteOnMainStage(currentSprite);
+    EventHandler<ActionEvent> MoveBoxtoLibrary = 
+        new EventHandler<ActionEvent>() {
+ 
+        @Override
+        public void handle(ActionEvent t) {
+            placeCurrentSpriteOnStage(Stage_LIB);
             }
+    };
+
+    EventHandler<ActionEvent> MoveBoxtoDocument = 
+        new EventHandler<ActionEvent>() {
+ 
+        @Override
+        public void handle(ActionEvent t) {
+            placeCurrentSpriteOnStage(Stage_DOC);
+            }
+    };
+
+    EventHandler<ActionEvent> CopyBoxtoProject = 
+        new EventHandler<ActionEvent>() {
+ 
+        @Override
+        public void handle(ActionEvent t) {
+            copyCurrentSpriteToDestination(Stage_PROJ);
         }
     };
 
-    EventHandler<ActionEvent> MoveClausetoLib = 
+    EventHandler<ActionEvent> CopyBoxtoCollection = 
         new EventHandler<ActionEvent>() {
  
         @Override
         public void handle(ActionEvent t) {
-            //This sets the initial reference 
-            SpriteBox currentSprite = mySpriteManager.getCurrentSprite(); //not based on the button
-            //lose focus
-            currentSprite.endAlert();
-             //cleanup stage refs.  TO DO: use sprite manager
-            
-            //remove from other clauses list (so it is not saved)
-            if (currentSprite.isOnStage()==true) {
-                WorkspaceClauseContainer.removeClause(currentSprite.getClause());
-            }
-            if (currentSprite.isInDocumentStage()==true) {
-                DocumentClauseContainer.removeClause(currentSprite.getClause());
-            }
-            //add sprite to Library Stage. This will clean up same object on Workspace...
-            if (currentSprite.isInLibrary()==false) {
-            /* add clause to the list of clauses in the Library clause array */
-                LibraryClauseContainer.addClause(currentSprite.getClause()); 
-                placeInLibraryStage(currentSprite);
-                //WorkspaceBoxes.removeBox(currentSprite);
-            }
+            copyCurrentSpriteToDestination(Stage_COLL);  
         }
     };
 
-    EventHandler<ActionEvent> MoveClausetoDoc = 
+    EventHandler<ActionEvent> CopyBoxtoLibrary = 
         new EventHandler<ActionEvent>() {
  
         @Override
-        public void handle(ActionEvent t) {
-            //This sets the initial reference 
-            SpriteBox currentSprite = mySpriteManager.getCurrentSprite(); //not based on the button
-            //lose focus
-            currentSprite.endAlert();
-            WorkspaceBoxes.removeBox(currentSprite); //cleanup stage refs.  TO DO: use sprite manager
-            if (currentSprite.isInDocumentStage()==false) {
-            /* add clause to the list of clauses in the Library clause array */
-            DocumentClauseContainer.addClause(currentSprite.getClause()); 
-            }
-            //remove from Workspace clause list (so it is not saved)
-            if (currentSprite.isOnStage()==true) {
-                WorkspaceClauseContainer.removeClause(currentSprite.getClause());
-            }
-            if (currentSprite.isInLibrary()==true) {
-                LibraryClauseContainer.removeClause(currentSprite.getClause());
-            }
-            //add sprite to Document Stage. This will clean up same object on Workspace...
-            placeInDocumentStage(currentSprite);
-            }
-    };
-
-    EventHandler<ActionEvent> CopyCCtoCollection = 
-        new EventHandler<ActionEvent>() {
- 
-        @Override
-        public void handle(ActionEvent t) {
-            //This sets the initial reference 
-            SpriteBox currentSprite = mySpriteManager.getCurrentSprite(); //not based on the button
-            if (currentSprite==null) {
-                System.out.println("Current sprite not detected");
-            }
-            if (currentSprite.isInCollection()==false) {
-            //copy Spritebox and clause contents
-            SpriteBox copySprite = makeCopyCollectionSprite(currentSprite);
-            System.out.println(copySprite.toString());
-            //add sprite to stage and to Collection
-            placeInCollectionStage(copySprite);
-            ClauseContainer tempContainer = (ClauseContainer)copySprite.getBoxContent();
-            myCollection.addCC(tempContainer);
-            //check
-            ArrayList<ClauseContainer> testData = new ArrayList<ClauseContainer>();
-            testData = myCollection.getCollectionItems();
-            System.out.println("Finished copy to CC. \nTesting current Collection : "+testData.toString());
-            if (CollectionStage.isShowing()==false) {
-                CollectionStage.show();
-            }
-            }   
+        public void handle(ActionEvent t) { 
+            copyCurrentSpriteToDestination(Stage_LIB);
         }
     };
 
-    EventHandler<ActionEvent> CopyClausetoLib = 
+    EventHandler<ActionEvent> CopyBoxtoDocument = 
         new EventHandler<ActionEvent>() {
  
         @Override
         public void handle(ActionEvent t) {
-            //This sets the initial reference 
-            SpriteBox currentSprite = mySpriteManager.getCurrentSprite(); //not based on the button
-            if (currentSprite==null) {
-                System.out.println("Current sprite not detected");
-            }
-            //don't lose focus - just do a copy 
-            //currentSprite.endAlert();
-            if (currentSprite.isInLibrary()==false) {
-                //copy Spritebox and clause contents
-                SpriteBox copySprite = makeCopySprite(currentSprite);
-                /* add clause to the list of clauses in the Library clause array */
-                LibraryClauseContainer.addClause(copySprite.getClause());  
-                //add sprite to Library Stage. 
-                System.out.println(copySprite.toString());
-                placeInLibraryStage(copySprite);
-            }
-        }
-    };
-
-    EventHandler<ActionEvent> CopyClausetoDoc = 
-        new EventHandler<ActionEvent>() {
- 
-        @Override
-        public void handle(ActionEvent t) {
-            //This sets the initial reference 
-            SpriteBox currentSprite = mySpriteManager.getCurrentSprite(); //not based on the button
-            if (currentSprite==null) {
-                System.out.println("Current sprite not detected");
-            }
-            //don't lose focus - just do a copy 
-            //currentSprite.endAlert();
-            if (currentSprite.isInDocumentStage()==false) {
-            //copy Spritebox and clause contents
-            SpriteBox copySprite = makeCopySprite(currentSprite);
-            /* add clause to the list of clauses in the Library clause array */
-            DocumentClauseContainer.addClause(copySprite.getClause());  
-            //add sprite to Library Stage. 
-            System.out.println(copySprite.toString());
-            placeInDocumentStage(copySprite);
-            }
+            copyCurrentSpriteToDestination(Stage_DOC);
         }
     };
 
     /* This is a copy not a move */
 
-    EventHandler<ActionEvent> CopyClausetoWorkspace = 
+    EventHandler<ActionEvent> CopyBoxtoWorkspace = 
         new EventHandler<ActionEvent>() {
  
         @Override
         public void handle(ActionEvent t) {
-            
-            //This sets the initial reference 
-            SpriteBox currentSprite = mySpriteManager.getCurrentSprite(); //not based on the button
-            if (currentSprite.isOnStage()==false) {
-                //lose focus
-                currentSprite.endAlert();
-                //copy sprite
-                SpriteBox copySprite = makeCopySprite(currentSprite);
-                /* add clause to the list of clauses in the clause array */
-                WorkspaceClauseContainer.addClause(copySprite.getClause()); 
-                placeSpriteOnMainStage(copySprite); 
-            }
+            copyCurrentSpriteToDestination(Stage_WS);
         }
     };
 
-    /* Invoke the SpriteBox/Clause Editor */
+    /* Invoke the SpriteBox/Clause Property Editor */
 
-    /* 
-
-    Event handlers for each SpriteBox added, so that they can handle mouse events inside the Window they've been added to 
-    
-    */
-
-    EventHandler<ActionEvent> DoEditStage = 
+    EventHandler<ActionEvent> DoPropertyEditStage = 
     new EventHandler<ActionEvent>() {
 
         @Override 
         public void handle(ActionEvent event) {
-        System.out.println("Edit Button was pressed!");
-        //editorStage = new Stage();
-        SpriteBox focusSprite = mySpriteManager.getCurrentSprite();
-        Object mycontents = focusSprite.getBoxContent();
-        if (mycontents instanceof ClauseContainer) {
-            editGroup_root = Main.this.setupContainerEditor(editorStage, "Editor");
-        }
-        else {
-                editGroup_root = Main.this.setupEditorPanel(editorStage, "Editor");
-            }    
+            System.out.println("Edit Button was pressed!");
+            editGroup_root = Main.this.setupNodePropertyEditor(Stage_EDITNODEPROP,editorStage); //mySM, Stage
         }
     };
      
-    /* Event handler to save contents of textmaker & overwrite file
-    currently uses default filename 'textmakercontents.txt'
-    */
-
-    EventHandler<ActionEvent> SaveOutputVw = 
-    new EventHandler<ActionEvent>() {
-
-        @Override 
-        public void handle(ActionEvent event) {
-        System.out.println("Save Button was pressed!");
-        EDOfileApp myfileApp = new EDOfileApp("output(PDock).txt");
-        String savecontents = textmakerTextArea.getText();
-        myfileApp.replaceText(savecontents);
-        }    
-    };
-     
-    /* Event handler for adding a new definition box to WIP staging area
-    TO DO: Prevent user from attempting to add same object to same stage twice.
-    i.e. if focus is on clause WIP stage, then either copy, or disallow.
-    */
-
-    EventHandler<ActionEvent> addNewDefBox = 
-    new EventHandler<ActionEvent>() {
-
-        @Override 
-        public void handle(ActionEvent event) {
-            SpriteBox b;
-            String label = "New Definition"; //TO DO: Sprite Manager to increment # unused.
-            String heading = "replace with Defined Term";
-            String text = "replace with definition text";
-            String category = "definition";
-            Clause myClause = new Clause(label,heading,text,category); 
-            //common
-            b = new SpriteBox(); //leave default settings to the 'setClause' method in SpriteBox
-            b.setClause(myClause);
-            //add clause from sprite to clauses container
-            b.setOnMousePressed(PressBoxEventHandler); 
-            b.setOnMouseDragged(DragBoxEventHandler);
-             if (DocumentStage.isShowing()==true) {
-                    placeInDocumentStage(b);
-                    DocumentClauseContainer.addClause(b.getClause());
-                }
-                else {
-                    placeSpriteOnMainStage(b);
-                    WorkspaceClauseContainer.addClause(b.getClause()); 
-                } 
-            }
-        };
-
-/* Event handler for adding a new clause box to WIP staging area
-    TO DO: Prevent user from attempting to add same object to same stage twice.
-    i.e. if focus is on clause WIP stage, then either copy, or disallow.
-    TO DO: Make this a generic add "SpriteBox", then vary the internal clause (incl category, colour) based on calling button
-    */
-
-    EventHandler<ActionEvent> addNewClauseBox = 
-    new EventHandler<ActionEvent>() {
-
-        @Override 
-        public void handle(ActionEvent event) {
-            SpriteBox b;
-            String label = "New Clause"; //unused
-            String text = "replace with clause text";
-            String heading = "replace with clause heading";
-            String category = "clause";
-            Clause myClause = new Clause(label,heading,text,category); 
-            //b = new SpriteBox(label, "blue"); //default clause colour is blue
-            //everthing after here is common to new clauses and definitions
-            b = new SpriteBox(); 
-            b.setClause(myClause);
-            //event handler
-            b.setOnMousePressed(PressBoxEventHandler); 
-            b.setOnMouseDragged(DragBoxEventHandler);
-            if (DocumentStage.isShowing()==true) {
-                    placeInDocumentStage(b);
-                    DocumentClauseContainer.addClause(myClause);
-                }
-                else {
-                    placeSpriteOnMainStage(b);
-                    WorkspaceClauseContainer.addClause(myClause); 
-                } 
-            }
-        };
-
-    //addNewDocCont
-    /* Event handler for adding a new Document Container to Collection area */
-
-    EventHandler<ActionEvent> addNewDocCont = 
-    new EventHandler<ActionEvent>() {
-
-        @Override 
-        public void handle(ActionEvent event) {
-            System.out.println ("Called New Document function");
-            //Create SpriteBox as icon
-            SpriteBox b;
-            String label = "New Clause for Document"; //for the label on box
-            String text = "replace with some text";
-            String heading = "replace with a heading";
-            String category = "clause"; //for now - check it later
-            Clause myClause = new Clause(label,heading,text,category); 
-            b = new SpriteBox(myClause); //leave default settings to the 'setClause' method in SpriteBox
-            //create clause container
-            ClauseContainer tempContainer = new ClauseContainer();
-            loaddocnum++;
-            tempContainer.setDocName("CraigsDocument"+Integer.toString(loaddocnum));
-            tempContainer.setType("document");
-            tempContainer.addClause(myClause); //default clause for new container to work with
-            //
-            b.setBoxContent(tempContainer);
-            b.setOnMousePressed(PressBoxEventHandler); 
-            b.setOnMouseDragged(DragBoxEventHandler);
-            //place icon in Collection Stage (contents visible on double-click)
-            if (CollectionStage.isShowing()==true) {
-                //CollectionStage.show();
-                placeInCollectionStage(b);
-                myCollection.addCC(tempContainer);  
-            }
-            else {
-                placeSpriteOnMainStage(b);
-                wsCollection.addCC(tempContainer);
-            }
-            //check
-            ArrayList<ClauseContainer> testData = new ArrayList<ClauseContainer>();
-            testData = myCollection.getCollectionItems();
-            System.out.println("Finished NewDocCont. \nTesting current Collection : "+testData.toString());
-            }
-        };
-
-    EventHandler<ActionEvent> addNewEventBox = 
-    new EventHandler<ActionEvent>() {
-
-        @Override 
-        public void handle(ActionEvent event) {
-            SpriteBox b;
-            String label = "New Event"; //TO DO: Sprite Manager to increment # unused.
-            String text = "replace with event text";
-            String category = "definition";
-            //Event myEvent = new Event(label,heading,text,category); 
-            Event myEvent = new Event(label,text);
-            //common
-            b = new SpriteBox(); //leave default settings to the 'setClause' method in SpriteBox
-            b.setClause(myEvent);
-             //add clause from sprite to clauses container
-            b.setOnMousePressed(PressBoxEventHandler); 
-            b.setOnMouseDragged(DragBoxEventHandler);
-            if (DocumentStage.isShowing()==true) {
-                placeInDocumentStage(b);
-                DocumentClauseContainer.addClause(b.getClause());
-            }
-            else {
-                placeSpriteOnMainStage(b); 
-                WorkspaceClauseContainer.addClause(b.getClause());
-            }
-            }
-        };
-
     //printClauseList
         EventHandler<ActionEvent> printClauseList = 
         new EventHandler<ActionEvent>() {
         @Override 
         public void handle(ActionEvent event) {
              //textmakerTextArea.setText("This is where list of clauses will appear");
-             WorkspaceClauseContainer.doPrintIteration();
-             String output=WorkspaceClauseContainer.getClauseAndText();
-             textmakerTextArea.setText(output);
+             WorkspaceNode.doPrintIteration();
+             String output=WorkspaceNode.getClauseAndText();
+             Stage_Output.setOutputText(output);
 
              /* TO DO: Have a separate "Output/Preview" Window to show clause output.  
              //Maybe HTMLview?
@@ -2456,368 +1886,43 @@ public void deleteSprite(SpriteBox mySprite) {
             }
         };
 
+    //Make boxes for imported definitions
 
-    /* 
-
-    Event handlers for each SpriteBox added, so that they can handle mouse events inside the Window they've been added to 
-    
-    */
-
-    EventHandler<ActionEvent> makeDefIcons = 
+    EventHandler<ActionEvent> makeDefBoxesFromText = 
     new EventHandler<ActionEvent>() {
-
         @Override 
         public void handle(ActionEvent event) {
-        //obtain data to display
-        ClauseContainer myContainer = extractDefinitionsFromSampleString(textArea1.getText());
-        System.out.println("Get DefIcons Button was pressed!");
-        displaySpritesInNewStage(myContainer, "Imported Definitions");
+            openNodeInNewStage(NodeFromDefinitionsSampleText(textArea1.getText()));
         }
     };
 
-    /* 
-    Event handlers for each clause block added, so that they can handle mouse events inside the Window they've been added to 
-    */
+     //Make boxes for imported clauses
 
-    EventHandler<ActionEvent> makeClauseIcons = 
+    EventHandler<ActionEvent> makeClauseBoxesFromText = 
     new EventHandler<ActionEvent>() {
         @Override 
 
         public void handle(ActionEvent event) {
-        //TO DO: get source of data
-        ClauseContainer myContainer = extractClausesFromSampleText(textArea1.getText());
-        System.out.println("Clause Icons Button was pressed!");
-        displaySpritesInNewStage(myContainer, "Imported Clauses");
+        
+        openNodeInNewStage(NodeFromClausesSampleText(textArea1.getText()));
         }
     };
     
 
-    /* 
-    Event handlers for each for importing statute clauses 
-    */
+     //Make boxes for imported statute clauses
 
-
-    EventHandler<ActionEvent> importStatuteClauses = 
+    EventHandler<ActionEvent> makeBoxesFromStatuteText = 
     new EventHandler<ActionEvent>() {
         @Override 
 
         public void handle(ActionEvent event) {
         //TO DO: get source of data
-        ClauseContainer myContainer = extractStatuteSectionsFromSampleText(textArea1.getText());
-        System.out.println("Clause Icons Button was pressed!");
-        displaySpritesInNewStage(myContainer, "Imported Clauses");
+        openNodeInNewStage(NodeFromStatuteSampleText(textArea1.getText()));
         }
     };
     
-    /* Add this Clause Container to main workspace */
-
-    //Create adHoc Stage but return root (Group) so that it can be stored if significant e.g. Library
-
-    public void displaySpritesOnWorkspace(ClauseContainer wsContainer) {
-        ClauseContainer myContainer = wsContainer;
-        //Use ParentStage and WorkspaceGroup (node) 
-        //remove the old workspace
-        //refresh
-        //update the Workspace 
-        WorkspaceClauseContainer=wsContainer;
-
-        ParentStage.show();
-        //use updated workspace for display
-        ArrayList<Clause> myDList = WorkspaceClauseContainer.getClauseArray();
-        Iterator<Clause> myiterator = myDList.iterator();
-
-        int offX=50;
-        int offY=50;
-        while (myiterator.hasNext()) {
-            Clause thisClause = myiterator.next();
-            if (isLegalRoleWord(thisClause.getLabel())==true) {
-                thisClause.setCategory("legalrole");
-            }
-            if (thisClause instanceof Event) {
-                System.out.println("Displaying clause on workspace that is Event:"+thisClause.toString());
-            }
-            SpriteBox b = new SpriteBox(thisClause);
-            //location
-            b.setTranslateX(offX);         
-            b.setTranslateY(offY);
-            //event handlers
-            b.setOnMousePressed(PressBoxEventHandler); 
-            b.setOnMouseDragged(DragBoxEventHandler);
-            WorkspaceGroup.getChildren().add(b);
-            b.setOnStage(true);
-            if (offX>440) {
-                offY=offY+65;
-                offX=0;
-            }
-            else {
-                offX = offX+160;
-            }
-        }
-        
-        //return defGroup_root;
-        }
-
-    /* 
-    Display Sprites in existing Library Stage. nb mySpriteManager.resetLibXY();
-    */
-
-    public void displaySpritesInLibraryStage(ClauseContainer inputContainer, String myTitle) {
-        if (LibraryStage==null) {
-            System.out.println("Problem with Library Stage setup");
-        }
-
-        ScrollPane outerScroll = new ScrollPane();
-        LibraryGroup = new Group(); //clean the existing stage (no archive)
-        outerScroll.setContent(LibraryGroup); //add myGroup as child of scrollpane
-        //add scrollpane as root node for Scene of set size
-        LibraryScene = new Scene (outerScroll,650,400); //default width x height (px)
-        //add event handler for mouse event
-        LibraryScene.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
-         @Override
-         public void handle(MouseEvent mouseEvent) {
-         System.out.println("Mouse click on scene detected! " + mouseEvent.getSource());
-         mySpriteManager.setStageFocus("library");
-             }
-        });
-
-        LibraryStage.setScene(LibraryScene); //this selects this stage as current scene
-        //DocumentStage.setTitle(myTitle);
-        LibraryStage.setTitle(inputContainer.getDocName());
-        
-        //process
-        ArrayList<Clause> myDList = inputContainer.getClauseArray();
-        Iterator<Clause> myiterator = myDList.iterator();
-
-        mySpriteManager.resetLibXY();
-        while (myiterator.hasNext()) {
-            Clause thisClause = myiterator.next();
-            if (isLegalRoleWord(thisClause.getLabel())==true) {
-                thisClause.setCategory("legalrole");
-            }
-            SpriteBox b = new SpriteBox(thisClause);
-            //event handlers
-            b.setOnMousePressed(PressBoxEventHandler); 
-            b.setOnMouseDragged(DragBoxEventHandler);
-            //add to Library Group
-            placeInLibraryStage(b);
-        }
-        LibraryStage.show();
-        //return Library;
-        } 
-
-/*
-
-Create new scene from Clause Containers that updates the Collection Stage.
-
-*/
-    public void displaySpritesInCollectionStage(Collection inputCollection, String myTitle) {
-        //like a general blockswindow setup
-        System.out.println("Displaying Collection:"+inputCollection.toString());
-        ScrollPane outerScroll = new ScrollPane();
-        CollectionGroup = new Group(); //refresh
-        outerScroll.setContent(CollectionGroup); //add myGroup as child of scrollpane
-        //add a new scrollpane as root node for Scene of set size
-        CollectionScene = new Scene (outerScroll,650,400); //default width x height (px)
-        //add event handler for mouse event
-        CollectionScene.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
-         @Override
-         public void handle(MouseEvent mouseEvent) {
-         System.out.println("Mouse click on Collection scene detected! " + mouseEvent.getSource());
-         mySpriteManager.setStageFocus("collection");
-             }
-        });
-
-        CollectionStage.setScene(CollectionScene); //this selects this stage as current scene
-        CollectionStage.setTitle(myTitle);
-        
-        myStageManager.setPosition(CollectionStage,"collection");
-
-        //process
-        ArrayList<ClauseContainer> myCCList = inputCollection.getCollectionItems();
-        System.out.println("Items:"+inputCollection.getCount());
-        Iterator<ClauseContainer> myiterator = myCCList.iterator();
-
-        mySpriteManager.resetCollXY();
-        while (myiterator.hasNext()) {
-            ClauseContainer myCC = myiterator.next();
-            String tempType = myCC.getType();
-            SpriteBox b = new SpriteBox();
-            b.setBoxContent(myCC); //insert the relevant container
-            
-            //event handlers
-            b.setOnMouseDragged(DragBoxEventHandler);
-            if (tempType.equals("library")) {
-                b.setOnMousePressed(PressLibBoxEventHandler);
-            }
-            else {
-                b.setOnMousePressed(PressDocBoxEventHandler); 
-            }
-            placeInCollectionStage(b);
-        }
-        CollectionStage.show();
-        }    
-
-/*
-
-Create new scene from input Clause Container that updates the Document Stage.
-
-*/
-    public void displaySpritesInDocumentStage(ClauseContainer inputContainer, String myTitle) {
-        
-        //Use Pane as root Node for Scene
-        ScrollPane outerScroll = new ScrollPane();
-        DocumentGroup = new Group(); //clean the existing stage (no archive)
-        outerScroll.setContent(DocumentGroup); //add myGroup as child of scrollpane
-        //add scrollpane as root node for Scene of set size
-        DocumentScene = new Scene (outerScroll,650,400); //default width x height (px)
-        //add event handler for mouse event
-        DocumentScene.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
-         @Override
-         public void handle(MouseEvent mouseEvent) {
-         System.out.println("Mouse click on scene detected! " + mouseEvent.getSource());
-         mySpriteManager.setStageFocus("document");
-             }
-        });
-
-        DocumentStage.setScene(DocumentScene); //this selects this stage as current scene
-        //DocumentStage.setTitle(myTitle);
-        DocumentStage.setTitle(inputContainer.getDocName());
-        
-        myStageManager.setPosition(DocumentStage,"document");
-        //process Container clauses
-        ArrayList<Clause> myDList = inputContainer.getClauseArray();
-        Iterator<Clause> myiterator = myDList.iterator();
-
-        mySpriteManager.resetDocXY();
-        while (myiterator.hasNext()) {
-            Clause thisClause = myiterator.next();
-            if (isLegalRoleWord(thisClause.getLabel())==true) {
-                thisClause.setCategory("legalrole");
-            }
-            //create a sprite for this Definition
-            SpriteBox b = new SpriteBox(thisClause);
-            //event handlers
-            b.setOnMousePressed(PressBoxEventHandler); 
-            b.setOnMouseDragged(DragBoxEventHandler);
-            
-            placeInDocumentStage(b);
-        }
-        DocumentStage.show();
-        }    
-  
-
-
-/*Create adHoc Stage designed to hold Spriteboxes (rectangles etc)
-Return Stage because it is the top level Java FX container.
-THe Scene is a container of nodes that is added to the Stage.
-Scene nodes include scrollpanes, rectangles etc.
-The root node should be a node that can have children e.g. Group, Scrollpane.
-
-TO DO/OPTION:
-Have a single stage for WIP document.  Then change the scene displayed
-(where each scene is a collection of clauses displayed as rectangle boxes)
-Event handlers will apply to new scene added to that stage.
-
-*/
-    public Stage displaySpritesInNewStage(ClauseContainer inputContainer, String myTitle) {
-        Stage myStage = new Stage();
-        //Scene contents: a Group within Scrollpane (Scrollpane is the Scene's root node)
-        ScrollPane outerScroll = new ScrollPane();
-        Group myGroup = new Group();
-        outerScroll.setContent(myGroup); 
-        //now give the root node its Scene, then add event listeners
-        Scene myScene = new Scene (outerScroll,650,400); //default width x height (px)
-        myScene.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
-         @Override
-         public void handle(MouseEvent mouseEvent) {
-         System.out.println("Mouse click on scene detected! " + mouseEvent.getSource());
-         mySpriteManager.setStageFocus("blocks");
-             }
-        });
-        
-        //Stage settings, including title
-        myStage.setScene(myScene); //this selects this stage as current scene
-        myStage.setTitle(myTitle);
-        myStage.setY(600);
-        myStageManager.setPosition(myStage, "icons");
-        myStage.show();
-
-        //------process blocks for display
-        ArrayList<Clause> myDList = inputContainer.getClauseArray();
-        Iterator<Clause> myiterator = myDList.iterator();
-
-        mySpriteManager.resetOtherXY();
-        while (myiterator.hasNext()) {
-            Clause thisClause = myiterator.next();
-            if (isLegalRoleWord(thisClause.getLabel())==true) {
-                thisClause.setCategory("legalrole");
-            }
-            SpriteBox b = new SpriteBox(thisClause);
-            //event handlers
-            b.setOnMousePressed(PressBoxEventHandler); 
-            b.setOnMouseDragged(DragBoxEventHandler);
-            
-            //add Spriteboxes (rectangles) to the Group in the Scrollpane in Scene
-            placeInOtherStage(myStage,myGroup,b);
-        }
-        myStage.show();
-        //return defGroup;
-        return myStage;
-        }    
-     
-    /* Method to load up a library from serialized disk data
-    Uses the Main instance variable for library name.
-    Currrently loads icon (sprite) to Workspace.
-    */
-
-        public void libraryLoader() {
-            FileInputStream fis = null;
-            ObjectInputStream in = null;
-            String libraryFName = "library.ser";
-            ClauseContainer myLibraryIn = new ClauseContainer();
-            try {
-                fis = new FileInputStream(libraryFName);
-                in = new ObjectInputStream(fis);
-                myLibraryIn = (ClauseContainer)in.readObject();
-                in.close();
-            }
-            catch(IOException ex) {
-                ex.printStackTrace();
-            }
-            catch(ClassNotFoundException ex)
-            {
-                 ex.printStackTrace();
-            }
-            System.out.println("Library Load Success!");
-            System.out.println(myLibraryIn.toString());
-            //
-            //tempContainer.addClause(myClause); //default clause for new container to work with
-            SpriteBox b = new SpriteBox(); //leave default settings to the 'setClause' method in SpriteBox
-            b.setBoxContent(myLibraryIn);
-            b.setOnMousePressed(PressLibBoxEventHandler); 
-            b.setOnMouseDragged(DragBoxEventHandler);
-            //place icon in Collection Stage (contents visible on double-click)
-            if (CollectionStage.isShowing()==true) {
-                placeInCollectionStage(b);
-                myCollection.addCC(myLibraryIn);
-            }
-            else {
-                placeSpriteOnMainStage(b);
-                wsCollection.addCC(myLibraryIn);
-            }
-        }
 
         //---- MORE EVENT HANDLERS ----
-          
-        //handle library open request.   Keeps library name for project as state variable 
-        //To do: see if filename can be passed to this Object
-        EventHandler<ActionEvent> LoadLibraryFile = 
-        new EventHandler<ActionEvent>() {
-        @Override 
-        public void handle(ActionEvent t) {
-                libraryLoader();
-            }
-        }; 
 
         EventHandler<ActionEvent> OpenInputFile = 
         new EventHandler<ActionEvent>() {
@@ -2832,81 +1937,87 @@ Event handlers will apply to new scene added to that stage.
         new EventHandler<ActionEvent>() {
         @Override 
         public void handle(ActionEvent event) {
-                System.out.println("Word Count Button was pressed!");
-                //Outer class method class
-                String gotcha = Main.this.textArea1.getText();
-                String newTA = Main.this.getCommonWordsNow(gotcha);
-                Main.this.textArea2.setText(newTA);
-                //new stage
-                Stage myStage = new Stage();
-               
-                //Root node is Scrollpane containing a group
-                ScrollPane outerScroll = new ScrollPane();
-                Group CountGroup_root = new Group();
-                outerScroll.setContent(CountGroup_root); 
-                //now give the root node its Scene, then add event listeners
-                Scene myScene = new Scene (outerScroll,650,600); //default width x height (px)
-                myScene.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
-                     @Override
-                     public void handle(MouseEvent mouseEvent) {
-                     System.out.println("Mouse click on scene detected! " + mouseEvent.getSource());
-                     mySpriteManager.setStageFocus("blocks");
-                         }
-                    });
-                
-                //Stage settings, including title
-                myStage.setScene(myScene); //this selects this stage as current scene
-                myStage.setTitle("Common Words Window");
-                myStage.setY(600);
-                myStageManager.setPosition(myStage, "icons");
-                myStage.show();
+            System.out.println("Word Count Button was pressed!");
 
-                //Spriteboxes holding common words
-                WordTool myHelper = new WordTool();
-                ArrayList<String> boxList = new ArrayList<String>();
-                try {
-                boxList = myHelper.commonBoxSet(gotcha);
-                }
-                catch (Exception e) {
-                           e.printStackTrace();
-                          } 
-                Iterator<String> i = boxList.iterator();
-                int offX = 0;
-                while (i.hasNext()) {
-                    //create 'clause' from the word, not just an empty spritebox
-                    String newlabel = i.next();
-                    Clause cword = new Clause (newlabel,newlabel,"","default");
-                    if (isLegalRoleWord(newlabel)==true) {
-                        cword.setCategory("legalrole");
-                    }
-                    //new Spritebox to hold new clause
-                    SpriteBox b = new SpriteBox(cword);
-                    offX=offX+50;  //increments offset each time
-                    b.setTranslateX(offX); 
-                    b.setTranslateY(offX);
-                    b.setOnMousePressed(PressBoxEventHandler); 
-                    b.setOnMouseDragged(DragBoxEventHandler);      
-                    CountGroup_root.getChildren().add(b);
-                }
+            //Update the import stage common words count text area
+            String gotcha = Main.this.textArea1.getText();
+            String newTA = Main.this.getCommonWordsNow(gotcha);
+            Stage_Import.setOutputText(newTA);
+            Main.this.textArea2.setText(newTA);
+            
+           
+            //new stage with scroll window to hold boxes created for common wods
+            StageManager myStageManager = new StageManager();
+            Stage myStage = new Stage();
+            ScrollPane outerScroll = new ScrollPane();
+            Group CountGroup_root = new Group();
+            outerScroll.setContent(CountGroup_root); 
+            //now give the root node its Scene, then add event listeners
+            Scene myScene = new Scene (outerScroll,650,600); //default width x height (px)
+            myScene.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
+                 @Override
+                 public void handle(MouseEvent mouseEvent) {
+                 System.out.println("Mouse click on scene detected! " + mouseEvent.getSource());
+                 mySpriteManager.setStageFocus("blocks");
+                     }
+                });
+            
+            //Stage settings, including title
+            myStage.setScene(myScene); //this selects this stage as current scene
+            myStage.setTitle("Common Words Window");
+            myStage.setY(600);
+            myStageManager.setStageParent(Stage_WS);
+            myStageManager.setPosition();
+            myStage.show();
+
+            //Spriteboxes holding common words
+            WordTool myHelper = new WordTool();
+            ArrayList<String> boxList = new ArrayList<String>();
+            try {
+            boxList = myHelper.commonBoxSet(gotcha);
             }
-        };
+            catch (Exception e) {
+                       e.printStackTrace();
+                      } 
+            Iterator<String> i = boxList.iterator();
+            int offX = 0;
+            while (i.hasNext()) {
+                //create 'clause' from the word, not just an empty spritebox
+                String newlabel = i.next();
+                Clause cword = new Clause (newlabel,newlabel,"","default");
+                if (isLegalRoleWord(newlabel)==true) {
+                    cword.setCategory("legalrole");
+                }
+                //new Spritebox to hold new clause
+                SpriteBox b = new SpriteBox(cword);
+                offX=offX+50;  //increments offset each time
+                b.setTranslateX(offX); 
+                b.setTranslateY(offX);
+                b.setOnMousePressed(PressBoxEventHandler); 
+                b.setOnMouseDragged(DragBoxEventHandler);      
+                CountGroup_root.getChildren().add(b);
+            }
+        }
+    };
     
         EventHandler<ActionEvent> extractDefinitions = 
         new EventHandler<ActionEvent>() {
         @Override 
         public void handle(ActionEvent event) {
-            //make a new stage
-            defsTextStage_root = Main.this.setupDefinitionsWindow();
+            System.out.println("Get Defs Button was pressed!");
+            //temp StageManager
+            Main.this.setupTextOutputWindow(Stage_Definitions,"Definitions Imported");
             //Outer class method class to obtain text from analysis area
             String gotcha = Main.this.textArea1.getText();
             String newDefs = Main.this.getMatched(gotcha);
+            
             //now set the content of text area inside scrollpane to our extracted text
-            textArea3.setText(newDefs);
-            System.out.println("Get Defs Button was pressed!");
+            Stage_Definitions.setOutputText(newDefs);
+            
             }
         };
         
-        /* Update Container in Container Editor */
+        /* Update Container or Collectoin in Container Editor */
         
         EventHandler<ActionEvent> UpdateContainerEditor = 
         new EventHandler<ActionEvent>() {
@@ -2918,35 +2029,31 @@ Event handlers will apply to new scene added to that stage.
             myEditCC.setDate(CCdateEdit.getText());
             System.out.println("Container updated!");
             //update the SpriteBox content with updated CC, which will update GUI
-            SpriteBox focusSprite = mySpriteManager.getCurrentSprite();
-            focusSprite.setBoxContent(myEditCC);
+            SpriteBox focusSprite = getCurrentSprite();
+            focusSprite.setBoxNode(myEditCC);
             }
         };
 
         /* Update Clause in Editor */
         
-        EventHandler<ActionEvent> UpdateEditor = 
+        EventHandler<ActionEvent> UpdateClauseInEditor = 
         new EventHandler<ActionEvent>() {
         @Override 
         public void handle(ActionEvent event) {
-            //make a new stage with scrollpane
-            
-            //editClause = focusSprite.getClause();
-            //editClause.setClauselabel(labelEdit.getText());
-            //For now: set label as for heading
-            //if (editClause.getCategory().equals("event")) {
+           
             if (editClause instanceof Event) {
                 ((Event)editClause).setDate(dateEdit.getText());
                 System.out.println("Event updated!");
             }
             editClause.setClauselabel(headingEdit.getText());
             editClause.setHeading(headingEdit.getText());
-            editClause.setClausetext(textEdit.getText());
+            editClause.setClauseText(textEdit.getText());
             editClause.setCategory(categoryEdit.getText());
             System.out.println("Clause updated!");
             //update the SpriteBox on the GUI
-            SpriteBox focusSprite = mySpriteManager.getCurrentSprite();
-            focusSprite.setClause(editClause);
+            SpriteBox focusSprite = getCurrentSprite();
+            ClauseContainer tempCC = focusSprite.getBoxNode();
+            tempCC.addNodeClause(editClause);
             }
         };
 }

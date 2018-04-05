@@ -9,15 +9,43 @@ This will store Clause objects, not the 'SpriteBox' that may enclose specific Cl
 You can use a ClauseContainer to quickly read of Clauses and then create SpriteBoxes for them in GUI.
 Or create empty SpriteBoxes and populate with Clauses from a list?
 
+3.4.18
+Design notes:
+GUI effectively allows copying of nodes at any level = branch cut/copy
+i.e. node inspection in GUI or copy to WS is like temporary node detachment.
+although GUI Stages may closely match Node levels, they are independent of one another
+i.e. Stages can be made for ease of collecting Nodes at same level.
+GUI also allows setting of Node level in background. ("New" = a  node level setter).
+
+GUINodes so far have been the 'nodes' that hold stage contents.
+These can either hold Boxes (if serializable) or a copy of the data Nodes that are in the boxes on a stage.
+It comes down to data separation.
+So far I've enforced 'levels' by allowing nodes to move acoss stages and thereby acquire a 'level'
+
+My first design had: data levels were associated with what the GUI displayed:
+i.e. level 2 was whatever the 'CollectionNode' for CollectionStage displayed.
+However the Workspace was always intended to hold Nodes at any level
+(in the GUI, it became a separate Node repository).
+The solution is to have Collections of the Data held in the Stages,
+and the GUI will display that Node on a particular stage when needed.
+However, we can still enforce Stages only showing certain levels of objects if Nodes record level
+(but relax this in the case of the Workspace) 
+
+However, if each Node stores a 'level' then it will allow some search and save for particular kinds of nodes later, regadless of where they are located in the GUI.
+
+
 */
 
-public class ClauseContainer implements java.io.Serializable {
+public class ClauseContainer extends Collection implements java.io.Serializable {
 
 //mark this class this to allow for changes to variables in class (refactoring)
 private static final long serialVersionUID = -64702044414208496L;
-//setup declare instance variables. shared in class if preceded by static.	
-//TO DO: Make this generic i.e. will hold different objects, even if not subclasses?
-ArrayList<Clause> myClauses = new ArrayList<Clause>(); 
+
+//Graph nodes along edges:
+ClauseContainer myParentNode; 
+ArrayList<ClauseContainer> myChildNodes = new ArrayList<ClauseContainer>();
+
+//This node's metadata
 String ContainerType=""; 
 int numClauses=0; //this will hold number of clauses
 String docname=""; //to hold the container name or filename
@@ -25,14 +53,26 @@ String docauthor=""; //to hold author name
 String docnotes=""; //to hold Document notes
 String date="";
 
-//Stage ContainerStage = new Stage(); //to hold Stage associated with this container?
+//This node's data and level in tree:
+Clause dataClause = new Clause(); 
+String nodecategory = "";
+int nodelevel = 0; //start at root 0 (project) allows future tree expansion
+int nodeGUIloc = 0; //to store Stage or GUI element where the node is located
+//(nodelocation can match Stage?)
+
 
 //empty constructor no arguments
 public ClauseContainer() {
 
 }
 
-//CONTAINER TYPE
+//constructor with category
+public ClauseContainer(String category) {
+	setNodeCategory(category);
+
+}
+
+//META
 public void setType(String myString) {
 	this.ContainerType=myString;
 }
@@ -41,67 +81,109 @@ public String getType() {
 	return this.ContainerType;
 }
 
-//CLONING
-public void setNumClauses(int myNum) {
-	this.numClauses=myNum;
-}
-
-public void setAuthorName(String myString) {
-	this.docauthor=myString;
-}
-
-public void setNotes(String myString) {
-	this.docnotes=myString;
-}
-
-public void setDate(String myString) {
-	this.date=myString;
-}
-
-//FILE FUNCTIONS
-public void setDocName(String myString) {
-	this.docname=myString;
-}
-
-//GETTERS
 public String getDocName() {
 	return this.docname;
 }
 
-public String getAuthorName() {
-	return this.docauthor;
+//---PARENT NODE ---
+public void setParentNode(ClauseContainer node) {
+	this.myParentNode = node;
 }
 
-public String getNotes() {
-	return this.docnotes;
+public void unsetParentNode() {
+	this.myParentNode = null;
 }
 
-public String getDate() {
-	return this.date;
+public ClauseContainer getParentNode() {
+	return this.myParentNode;
 }
 
+//---CHILD NODES---
 
-/* STAGE SYNC
-public void setStage(Stage myStage) {
-	this.ContainerStage=myStage;
+public void addChildNode(ClauseContainer node) {
+	this.myChildNodes.add(node);
 }
 
-public String getStage() {
-	return this.ContainerStage;
+public void removeChildNode(ClauseContainer node) {
+	this.myChildNodes.remove(node);
 }
-*/
-//CLAUSE OPS
+
+public ArrayList<ClauseContainer> getChildNodes() {
+	return this.myChildNodes;
+}
+
+public Boolean NodeIsLeaf() {
+	return this.myChildNodes.isEmpty();
+}
+
+//TRANSITION METHODS
+
+//replace function name with 'addChildClause' i.e. Child node with clause
 public void addClause(Clause newClause) {
-	this.myClauses.add(newClause);
+	//new Container with the clause as data
+	ClauseContainer newContainer = new ClauseContainer();
+	newContainer.addNodeClause(newClause);
+	//add Clause Container as child node
+	this.myChildNodes.add(newContainer);
 }
 
-/* TO DO: remove clause 
-Java ArrayList remove
-"Removes the first occurrence of the specified element from this list, if it is present."
-*/
-
+//replace function name with 'addChildClause' i.e. Child node with clause
 public void removeClause(Clause oldClause) {
-	this.myClauses.remove(oldClause);
+	this.myChildNodes.remove(oldClause);
+}
+
+//rename this function - it returns all child nodes, but not data
+public ArrayList<ClauseContainer> getClauseArray() {
+	return this.myChildNodes;
+}
+
+/*Method to set ClauseContainer's array by copying each entry
+Rename this */
+
+public void setAllChildNodes(ArrayList<ClauseContainer> myArray) {
+	ArrayList<ClauseContainer> tempArray = new ArrayList<ClauseContainer>(); 
+	Iterator<ClauseContainer> myIterator = myArray.iterator(); 
+	while (myIterator.hasNext()) {
+		ClauseContainer tempNode = myIterator.next();
+		tempArray.add(tempNode);
+	}
+	this.myChildNodes=tempArray;
+}
+
+
+
+//THIS NODE'S DATA
+
+public void addNodeClause(Clause thisClause) {
+	this.dataClause = thisClause;
+}
+
+public Clause getNodeClause() {
+	return this.dataClause;
+}
+
+public String getNodeCategory() {
+	return this.nodecategory;
+}
+
+public void setNodeCategory(String myCat) {
+	this.nodecategory=myCat;
+}
+
+public int getNodeLevel() {
+	return this.nodelevel;
+}
+
+public void setNodeLevel(int myLevel) {
+	this.nodelevel=myLevel;
+}
+
+public int getNodeLocation() {
+	return this.nodeGUIloc;
+}
+
+public void setNodeLocation(int myLoc) {
+	this.nodeGUIloc=myLoc;
 }
 
 
@@ -110,142 +192,55 @@ public void removeClause(Clause oldClause) {
 
 public void doPrintIteration() {
 	//Do first iteration to print out only Definitions in sequence
-	Iterator<Clause> myDefiterator = this.myClauses.iterator();
-	while (myDefiterator.hasNext()) {
-		Clause myclause = myDefiterator.next();
-		String category =myclause.getCategory();
-		if (category.equals("definition")) {
-			String mylabel = myclause.getLabel();
-			String myheading = myclause.getHeading();
-			String mytext = myclause.getClause();
-			//System.out.println(mylabel+"(label) "+myheading+"("+category+")"+" : "+mytext);
-			System.out.println("\\\""+myheading+"\\\""+" means "+mytext+"\n");
-		}
+	if (NodeIsLeaf()==false) {
+		return;
 	}
-	//everthing else
-	Iterator<Clause> myiterator = this.myClauses.iterator();
-	while (myiterator.hasNext()) {
-		Clause myclause = myiterator.next();
-		String category =myclause.getCategory();
-		if (!category.equals("definition")) {
-			String mylabel = myclause.getLabel();
-			String myheading = myclause.getHeading();
-			String mytext = myclause.getClause();
-			System.out.println(mylabel+"(label) "+myheading+"("+category+")"+" : "+mytext);
-		}
-	}
+	//TO DO
 }
 
-
-
-/* 
-This method returns both labels and text.  It uses the instance container. 
-TO DO: store Clauses that aren't definitions on first pass, then print them in second run
-(small time saver)
-*/
-
-public String getClauseAndText() {
-	
-	//Do first iteration to print out only Definitions
-	Iterator<Clause> myDefiterator = this.myClauses.iterator();
+//method to print clause category
+private String printClauseCategory(String testCat) {
+	Iterator<ClauseContainer> myNodeIt = this.myChildNodes.iterator();
 	String output="";
-	output=output+"\nLegal Roles\n\n";
-	while (myDefiterator.hasNext()) {
-		Clause myclause = myDefiterator.next();
-		String category = myclause.getCategory();
-		if (category.equals("legalrole")) {
+	output=output+"\n "+testCat+" \n\n";
+	printClauseCategory(testCat);
+	while (myNodeIt.hasNext()) {
+		ClauseContainer myNode = myNodeIt.next();
+		String category = myNode.getNodeCategory();
+		Clause myclause = myNode.getNodeClause();
+		if (category.equals(testCat)) {
 			String mylabel = myclause.getLabel();
 			String myheading = myclause.getHeading();
-			String mytext = myclause.getClause();
+			String mytext = myclause.getClauseText();
 			//output=output+myheading+" ("+category+")"+":\n----------\n"+mytext+"\n\n";
 			output=output+"\""+myheading+"\""+" means "+mytext+"\n";
-		}
-	}
-	output=output+"\nDefinitions\n\n";
-	myDefiterator = this.myClauses.iterator();
-	while (myDefiterator.hasNext()) {
-		Clause myclause = myDefiterator.next();
-		String category = myclause.getCategory();
-		if (category.equals("definition")) {
-			String mylabel = myclause.getLabel();
-			String myheading = myclause.getHeading();
-			String mytext = myclause.getClause();
-			//output=output+myheading+" ("+category+")"+":\n----------\n"+mytext+"\n\n";
-			output=output+"\""+myheading+"\""+" means "+mytext+"\n";
-		}
-	}
-	output=output+"\nOperative Provisions\n\n";
-	myDefiterator = this.myClauses.iterator();
-	while (myDefiterator.hasNext()) {
-		Clause myclause = myDefiterator.next();
-		String category = myclause.getCategory();
-		if (category.equals("clause")) {
-			String mylabel = myclause.getLabel();
-			String myheading = myclause.getHeading();
-			String mytext = myclause.getClause();
-			//output=output+myheading+" ("+ocategory+")"+":\n----------\n"+mytext+"\n\n";
-			output=output+myheading+"\n"+mytext+"\n";
-		}
-	}
-	output=output+"\nEvents\n\n";
-	myDefiterator = this.myClauses.iterator();
-	while (myDefiterator.hasNext()) {
-		Clause myclause = myDefiterator.next();
-		String category = myclause.getCategory();
-		//if (category.equals("event")) {
-		if (myclause instanceof Event) {
-			String mylabel = myclause.getLabel();
-			String mydate = ((Event)myclause).getDate();
-			String eventheading = myclause.getHeading();
-			String mytext = myclause.getClause();
-			//output=output+myheading+" ("+ocategory+")"+":\n----------\n"+mytext+"\n\n";
-			output=output+mydate+" - "+eventheading+"\n"+mytext+"\n";
-		}
-	}
-	output=output+"\nOthers:\n\n";
-	//everthing else
-	//Iterator<Clause> myiterator = this.myClauses.iterator();
-	myDefiterator = this.myClauses.iterator();
-	while (myDefiterator.hasNext()) {
-		Clause myclause = myDefiterator.next();
-		String category = myclause.getCategory();
-		if (!category.equals("definition")&&!category.equals("event")&&!category.equals("clause")&&!category.equals("legalrole")) {
-			String mylabel = myclause.getLabel();
-			String myheading = myclause.getHeading();
-			String mytext = myclause.getClause();
-			//output=output+myheading+" ("+ocategory+")"+":\n----------\n"+mytext+"\n\n";
-			output=output+myheading+"\n"+mytext+"\n";
 		}
 	}
 	return output;
 }
 
-/*Method to set ClauseContainer's array by copying each entry
-Should it be Object or clause ? */
 
-public void setClauseArray(ArrayList<Clause> myArray) {
-	this.myClauses = new ArrayList<Clause>(); 
-	Iterator<Clause> myIterator = myArray.iterator(); 
-	while (myIterator.hasNext()) {
-		Clause tempClause = myIterator.next();
-		this.myClauses.add(tempClause);
-	}
-}
+/* Method to summarily output different categories of Clause in this Node.
+*/
 
-public ArrayList<Clause> getClauseArray() {
-	return this.myClauses;
+public String getClauseAndText() {
+	
+	String outText = printClauseCategory("legalrole");
+	outText=outText+printClauseCategory("definition");
+	outText=outText+printClauseCategory("clause");
+	outText=outText+printClauseCategory("event");
+	return outText;
 }
 
 /* method to return number of clauses in this Container */
 
 public int getNumClauses() {
-	return this.myClauses.size();
+	return this.myChildNodes.size();
 }
 
 public ClauseContainer cloneContainer() {
 	ClauseContainer clone = new ClauseContainer();
-	clone.setClauseArray(this.myClauses); 
-	clone.setDocName(this.ContainerType); 
+	clone.setAllChildNodes(this.myChildNodes);  
 	clone.setNumClauses(this.numClauses); //this will hold number of clauses
 	clone.setDocName(this.docname); //to hold the container name or filename
 	clone.setAuthorName(this.docauthor); //to hold author name

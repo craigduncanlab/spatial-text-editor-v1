@@ -17,6 +17,8 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.Cursor;
 //Serializable
 import java.io.Serializable;
+//For storing current Stage location
+import javafx.stage.Stage;
 
 /* This class started Nov 2017 
 
@@ -42,28 +44,43 @@ Query if stage and library status should also be in Clause instances
 
 27.3.18 Consider if SpriteBox can also hold a Document (ClauseContainer)
 
+3.4.18 By passing in the node GUI location, the SpriteBox can retrieve the appropriate StageManager
+If we make the location an object, then the GUILocation object 
+can also have the StageManager for that Location already packaged by the Node?.
+
 */
 
 public class SpriteBox extends StackPane implements java.io.Serializable {         
     //instance variables are contained Nodes/Objects.
     //Not class variables as they are not 'static'
     ColBox myBox;
-    Object BoxContent; //generic holder of content
+    ClauseContainer BoxNode; //generic holder of content
     Clause myClause;
     ClauseContainer myDocument;
     String Category=""; //will be Clause, Definition etc
-    Text boxtext = new Text ("empty box");//Default label text for every SpriteBox
+    Text boxlabel = new Text ("new box");//Default label text for every SpriteBox
     String contents;  // Text for the SpriteBox outside of Clause objects.  Currently unused.
     double Xpos = 0;
     double Ypos = 0;
     Boolean isAlert=false;
     Boolean OnStage=false;
+    Boolean InProject=false;
+    Boolean InProjectLib=false;
     Boolean InLibrary=false;
     Boolean InCollection=false;
     Boolean InDocumentStage=false;
     Boolean OtherStage=false;
     String defaultColour="";
     String alertColour="red";
+    StageManager StageLocation = new StageManager();
+    //using alternate states representation for open window
+    int location = 0;
+    //mouse
+    double orgSceneX, orgSceneY;
+    double orgTranslateX, orgTranslateY;
+    //
+    String boxcategory="";
+
 
 
     //basic default constructor
@@ -71,43 +88,109 @@ public class SpriteBox extends StackPane implements java.io.Serializable {
         this.setup();
     }
 
+    //Box constructor with Node .  To do.  Pass in info for event handlers needed.
+
+    public SpriteBox(ClauseContainer node, StageManager mySM) {
+    
+    this.setup();
+    location = node.getNodeLocation();
+    String myCat = node.getNodeCategory();
+    SpriteBox.this.setStageLocation(mySM);
+    //SpriteBox.this.setOnMousePressed(PressBoxEventHandler);  // JavaFX - inherited from Rectangle 
+    //SpriteBox.this.setOnMouseDragged(DragBoxEventHandler);   //ditto
+    SpriteBox.this.setBoxCategory(myCat); 
+    SpriteBox.this.setBoxNode(node); //sets and updates appearance
+    //return b;
+}
+
+
+
     //default constructor with initial Clause included
     public SpriteBox(Clause inputClause) {
         this.setup();
-        this.setClause(inputClause);
+        this.setClauseInLeafNode(inputClause);
     }
 
     //default constructor with label
     public SpriteBox(String startLabel) {
     	this.setup();
-        this.boxtext = new Text (startLabel);//myBox.getLabel();
+        this.boxlabel = new Text (startLabel);//myBox.getLabel();
         
      }  
     // constructor with colour
     public SpriteBox(String startLabel, String mycolour) {
         this.setup();
         this.myBox = new ColBox(mycolour);
-        this.boxtext = new Text (startLabel);//myBox.getLabel();
+        this.boxlabel = new Text (startLabel);//myBox.getLabel();
      }
     
-     /*Place an Object inside (e.g. handles subclasses Clause or ClauseContainer) */
+     //EVENT HANDLERS THAT PROVIDE CONTEXT
 
-    public void setBoxContent (Object myObject) {
-        this.BoxContent = myObject;
+     EventHandler<MouseEvent> PressBoxEventHandler = 
+        new EventHandler<MouseEvent>() {
+ 
+        @Override
+        public void handle(MouseEvent t) {
+         //current position of mouse
+        orgSceneX = t.getSceneX();
+        orgSceneY = t.getSceneY();
+
+        //update the origin point to this click/press
+        orgTranslateX = SpriteBox.this.getTranslateX(); //references this instance at Runtime
+        orgTranslateY = SpriteBox.this.getTranslateY();
+        t.consume();
+
+        }
+    };
+
+    EventHandler<MouseEvent> DragBoxEventHandler = 
+        new EventHandler<MouseEvent>() {
+ 
+        @Override
+        public void handle(MouseEvent t) {
+            //TO DO: tell stage manager etc this box is active
+            double offsetX = t.getSceneX() - orgSceneX;
+            double offsetY = t.getSceneY() - orgSceneY;
+            double newTranslateX = orgTranslateX + offsetX;
+            double newTranslateY = orgTranslateY + offsetY;
+            System.out.println("The local Box handler for drag box is acting");
+            //updates to sprite that triggered event
+            SpriteBox.this.setTranslateX(newTranslateX);
+            SpriteBox.this.setTranslateY(newTranslateY);
+            SpriteBox.this.doAlert(); //in case single click event doesn't detect
+            t.consume();//check
+        }
+    };
+
+
+    /* GETTERS AND SETTERS FOR BOX ITSELF */
+
+    public void setBoxCategory(String category) {
+        this.boxcategory = category;
+    }
+
+    public String getBoxCategory() {
+        return this.boxcategory;
+    }
+
+     /*Place an ClauseContainer inside (e.g. handles subclasses Clause or ClauseContainer) */
+
+    public void setBoxNode (ClauseContainer myNode) {
+        this.BoxNode = myNode;
         this.updateAppearance();
     }
 
-     /*Return the Object inside (e.g. handles subclasses Clause or ClauseContainer) */
+     /*Return the ClauseContainer inside (e.g. handles subclasses Clause or ClauseContainer) */
 
-    public Object getBoxContent() {
-        return this.BoxContent;
+    public ClauseContainer getBoxNode() {
+        return this.BoxNode;
     }
 
-    /*Return the Object inside (if ClauseContainer) */
+    /*Return the ClauseContainer inside (if ClauseContainer) REDUNDANT */
 
     public ClauseContainer getCC() {
-        if(this.BoxContent instanceof ClauseContainer) {
-            return (ClauseContainer)this.BoxContent;
+        if(this.BoxNode instanceof ClauseContainer) {
+            return (ClauseContainer)this.BoxNode;
         }
         else {
             return new ClauseContainer(); //error?
@@ -118,12 +201,12 @@ public class SpriteBox extends StackPane implements java.io.Serializable {
 
     public void setup() {
         myBox = new ColBox();   //Uses defaults.
-        myClause = new Clause(); //no details in clause yet; Null.
+        myClause = new Clause(); //TO DO: remove this data item
         Font boxfont=Font.font ("Verdana", 10);
-        boxtext.setFont(boxfont);
-        boxtext.setWrappingWidth(130);
+        boxlabel.setFont(boxfont);
+        boxlabel.setWrappingWidth(130);
         this.setCursor(Cursor.HAND);
-        this.getChildren().addAll(myBox,boxtext); 
+        this.getChildren().addAll(myBox,boxlabel); 
     }
 
      /* SUPERFICIAL SPRITE APPEARANCE */
@@ -146,12 +229,12 @@ public class SpriteBox extends StackPane implements java.io.Serializable {
     }
      
     public Text getLabel() {
-        return boxtext;
+        return boxlabel;
     }
 
     public void setLabel(String myString) {
         if (!myString.equals("")) {
-            this.boxtext.setText(myString);
+            this.boxlabel.setText(myString);
         }
     }
 
@@ -165,65 +248,61 @@ public class SpriteBox extends StackPane implements java.io.Serializable {
 
     public void SetColour(String mycol) {
         myBox.setColour(mycol);
-        this.defaultColour=myBox.getColour();
+    }
+
+    public void SetDefaultColour (String mycol) {
+        this.defaultColour=mycol;
     }
 
     public String getColour() {
         return myBox.getColour();
     }
 
-    /* Status in workspace at any time */
+    //--- LOCATION SETTING/TESTING ---//
 
-    public Boolean isOnStage() {
-        return this.OnStage;
+    public void setStageLocation(StageManager currentSM) {
+        this.StageLocation = currentSM;
     }
 
-    /* Status in library at any time */
-    //To do: make this generic windows?
-
-    public Boolean isInLibrary() {
-        return this.InLibrary;
+    public StageManager getStageLocation() {
+        return this.StageLocation;
     }
 
-    public Boolean isInCollection() {
-        return this.InCollection;
+     /* Set index for location of spritebox (i.e. an open window or workspace) */
+    public void resetLocation() {
+        this.StageLocation = null;
+        //
+        this.location=0;
+        //delete these when no longer needed:
+        this.OnStage=false;
+        this.InProject=false;
+        this.InLibrary=false;
+        this.InCollection=false;
+        this.InDocumentStage=false;
+        this.OtherStage=false;
     }
 
-    public Boolean isInDocumentStage() {
-        return this.InDocumentStage;
+
+    public SpriteBox clone() {
+        SpriteBox clone = new SpriteBox();
+        clone.setup();
+        clone.setStageID(getStageID());
+        //do not use setClause first - will update BoxNode
+        clone.setBoxNode(this.getBoxNode());
+        return clone;
+    } 
+
+    //LOCATION SETTERS
+     /* Simple setter to store stageID */
+    public void setStageID(int myLoc) {
+        this.location = myLoc;
     }
 
-    public Boolean isInOtherStage() {
-        return this.OtherStage;
+     /* Get currentStageID for this box */
+    public int getStageID() {
+        return this.location;
     }
 
-    /* This is set to true when Sprite/Clause is on Main Stage */ 
-
-    public void setOnStage(Boolean myBool) {
-        this.OnStage = myBool;
-    }
-
-    /* This is set to true when Sprite/Clause is in Library Window */ 
-
-    public void setInLibrary(Boolean myBool) {
-        this.InLibrary = myBool;
-    }
-
-    /* This is set to true when Sprite/Clause is in Collection Window */ 
-
-    public void setInCollection(Boolean myBool) {
-        this.InCollection = myBool;
-    }
-
-    /* This is set to true when Sprite/Clause is in Document Window */ 
-
-    public void setInDocumentStage(Boolean myBool) {
-        this.InDocumentStage = myBool;
-    }
-
-     public void setInOtherStage(Boolean myBool) {
-        this.OtherStage = myBool;
-    }
 
     public Boolean isAlert() {
         return this.isAlert;
@@ -238,90 +317,97 @@ public class SpriteBox extends StackPane implements java.io.Serializable {
         myBox.setColour(defaultColour);
     }
 
+    private void updateboxlabel(ClauseContainer thisNode) {
+    
+        String thisboxlabel=thisNode.getDocName();
+         //set label with Node DocName?
+        if (thisboxlabel=="") {
+            thisboxlabel="newobject";
+        }
+        this.setLabel(thisboxlabel); 
+        
+    }
+
+    private String getNodeCategory(ClauseContainer thisNode) {
+        return thisNode.getNodeCategory();
+    }
+
     /*
     Appearance based on Clause properties/contents 
     */
 
     private void updateAppearance() {
         
-        //if it happens to hold a ClauseContainer set it to dark blue
-        Object testContent = this.getBoxContent();
-        if (testContent instanceof ClauseContainer) {
-            String cctype = ((ClauseContainer)testContent).getType();
-            if (cctype.equals("library")) {
-                this.SetColour("lemon");
-            }
-            else {
-                this.SetColour("darkblue");
-            }
-            this.setLabel(((ClauseContainer)testContent).getDocName());
-            /* TO DO: change shape for docs
-            myBox.setWidth(90);
-            myBox.setHeight(100);
-            this.boxtext.setWrappingWidth(130);
-            this.boxtext.setTextAlignment(TextAlignment.JUSTIFY);
-            */
-            return;
-        }   
-        else {
-        //set Sprite label to Clause label
-        this.boxtext.setText(this.myClause.getLabel());
+        ClauseContainer thisNode = this.getBoxNode();
+        updateboxlabel(thisNode);
+        String category = getNodeCategory(thisNode);
 
-        //otherwise, for now, set colour of SpriteBox based on Clause category
-        // TO DO: Make this use 'instanceof' as the case
-        switch(this.myClause.getCategory()){
+        //if it is a leaf node, should be holding clause data
+        //if(cc.NodeIsLeaf()==true) {
+            /*
+            String category = cc.getNodeCategory();
+            this.setCategory(category); //box category mirrors node 
+         
+            String category = getBoxCategory();
+            //update label
+            Clause leafClause = cc.getNodeClause(); //get clause data (i.e. node text)
+            String myLabel = leafClause.getLabel();
+            this.boxlabel.setText(myLabel);
+            String FreqCnt = Integer.toString(myClause.getFreq());
+                this.boxlabel.setText(this.myClause.getLabel()+"("+FreqCnt+")");
+                */
+        String thisboxcol="";
+        switch(category){
             case "definition":
-                this.SetColour("green");
-                //
-                //box setup to show freq of definitions as well
-                String FreqCnt = Integer.toString(myClause.getFreq());
-                this.boxtext.setText(this.myClause.getLabel()+"("+FreqCnt+")");
+                thisboxcol="green";
                 break;
             case "clause":
-                this.SetColour("yellow");
+                thisboxcol="blue";
+                break;
+            case "library":
+                thisboxcol="lemon";
                 break;
             case "legalrole":
-                this.SetColour("orange");
+                thisboxcol="orange";
                 break;
             case "event":
-                this.SetColour("lightblue");
+                thisboxcol="lightblue";
                 break;
             default:
-                this.SetColour("blue");
+                thisboxcol="darkblue";
                 break;
             }
+        this.SetColour(thisboxcol);
+        this.SetDefaultColour(thisboxcol);
         //to do : set shape based on category too
         }
-    }
 
     /* ----  INTERNAL OBJECT DATA --- */
 
     /** Method to set individual parameters of internal Clause in SpriteBox */
 
     public void setInternalClause(String myLabel, String myHeading, String myText, String myCategory){
-        this.myClause.setClausetext(myText);
+        Clause tempClause = new Clause();
+        this.myClause.setClauseText(myText);
         this.myClause.setClauselabel(myLabel);
         this.myClause.setHeading(myHeading);
         this.myClause.setCategory(myCategory);
-        this.setBoxContent(myClause);
 
-        //sync relevant Spritebox appearance based on Clause variables
-        this.setContent(myText);
-        this.setCategory(myCategory);
-        this.boxtext.setText(myLabel);
+        setClauseInLeafNode(tempClause);
     }
 
-    /* Add or remove internal Clause object 
-    I could use the 'Category' property of this to make settings for the appearance of the SpriteBox.
-    If categories of Clauses change, I can make a single change here.
+    /* Add or remove internal Clause of contained node.
+    TO DO: remove duplicate clause object that is also in this SpriteBox.
 
     */
-    public void setClause(Clause inputClause){
+    public void setClauseInLeafNode(Clause inputClause){
         this.myClause = inputClause;
         if (inputClause.getLabel().length()>=50) {
             myClause.setClauselabel(inputClause.getLabel().substring(0,47)+"...");
         }
-        this.setBoxContent(inputClause);
+        ClauseContainer thisNode = this.getBoxNode();
+        thisNode.addNodeClause(this.myClause);
+        this.setBoxNode(thisNode);
         this.updateAppearance();
         }
 
@@ -332,13 +418,13 @@ public class SpriteBox extends StackPane implements java.io.Serializable {
     /* Sync or obtain text from internal clause container */    
 
     public String getClauseText() {
-        return this.myClause.getClause();
+        return this.myClause.getClauseText();
     }
 
     /* Sync internal clause container text with external data */  
 
     public void setClauseText(String myString) {
-        this.myClause.setClausetext(myString);
+        this.myClause.setClauseText(myString);
         //sync the content of this spritebox too i.e. displayed in inspector
         //TO DO: inspector should look straight to clause text?  mirror for definitions? defs are stripped down clauses?
         this.setContent(myString);

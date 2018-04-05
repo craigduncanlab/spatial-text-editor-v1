@@ -342,7 +342,7 @@ TO DO 15.1.18 : utilise my classes from regex search API for data mining
              String text = matcher.group(2);
              matchCount++; 
              myDef = new Clause(label,label,text,"definition");
-             myContainer.addClause(myDef);
+             myContainer.addNodeClause(myDef);
           }
         }
       this.updateClauseFreq(myContainer,mydata);
@@ -358,10 +358,11 @@ TO DO 15.1.18 : utilise my classes from regex search API for data mining
   public ClauseContainer updateClauseFreq(ClauseContainer myContainer, String mydata) {
     //iterate again and update the frequency of use of Defs
     //TO DO : Make a hash map instead of arraylist with the definition label and the def object?
-    ArrayList<Clause> myDList = myContainer.getClauseArray();
-    Iterator<Clause> myiterator = myDList.iterator();
-      while (myiterator.hasNext()) {
-        Clause mydefinition = myiterator.next();
+    ArrayList<ClauseContainer> myNodeList = myContainer.getChildNodes();
+    Iterator<ClauseContainer> myiterator = myNodeList.iterator();
+    while (myiterator.hasNext()) {
+        ClauseContainer myNode = myiterator.next();
+        Clause mydefinition = myNode.getNodeClause();
         String myLabel = mydefinition.getLabel(); //not needed now
         String myHeading = mydefinition.getHeading();
         //String mytext = mydefinition.getDef();
@@ -576,7 +577,7 @@ TO DO: Check whether Clause headings include the most common words etc and repor
 
 */
 public Boolean checkHeadingExtraction(ClauseContainer myContainer) {
-    ArrayList<Clause> myCList = myContainer.getClauseArray();
+    ArrayList<ClauseContainer> myCList = myContainer.getChildNodes();
     if (myCList.size()<2) {
       return false;
     }
@@ -594,8 +595,8 @@ public Boolean checkHeadingExtraction(ClauseContainer myContainer) {
 
     public ClauseContainer StatuteTextExtract(ClauseContainer myContainer, String mydata) {
     System.out.println("Statute text extract");
-    ArrayList<Clause> myCList = myContainer.getClauseArray();
-    Iterator<Clause> myiterator = myCList.iterator();
+    ArrayList<ClauseContainer> myCList = myContainer.getChildNodes();
+    Iterator<ClauseContainer> myiterator = myCList.iterator();
     System.out.println("Array Size: "+myCList.size()); //conveniently, ArrayList is in Collections with a size method
     if (myiterator!=null) {
     String[] indexedList = new String[150];
@@ -624,7 +625,8 @@ public Boolean checkHeadingExtraction(ClauseContainer myContainer) {
     Clause LowerClause=null;
     if (myiterator.hasNext()) {
       System.out.println("First has next");
-      FirstClause=myiterator.next();
+      ClauseContainer myNode = myiterator.next();
+      FirstClause = myNode.getNodeClause();
       UpperClause = FirstClause;
       LowerClause = FirstClause;
     }
@@ -633,7 +635,8 @@ public Boolean checkHeadingExtraction(ClauseContainer myContainer) {
         if (indexWindow>0) {
          UpperClause = LowerClause;
         }
-        LowerClause = myiterator.next();
+        ClauseContainer myNode = myiterator.next();
+        LowerClause = myNode.getNodeClause();
         String UpperWord = UpperClause.getHeading();
         LowerWord = LowerClause.getHeading();
         //u2010-u201F is a good range for UTF8
@@ -646,7 +649,7 @@ public Boolean checkHeadingExtraction(ClauseContainer myContainer) {
           while (clauseCaptcha.find())
           {
             System.out.println("Pattern: "+myRegEx+" # Group + " + clauseCaptcha.group(0));
-            UpperClause.setClausetext(clauseCaptcha.group(0));
+            UpperClause.setClauseText(clauseCaptcha.group(0));
           }
           indexWindow++;  
         } 
@@ -659,7 +662,7 @@ public Boolean checkHeadingExtraction(ClauseContainer myContainer) {
           while (clauseCaptcha.find())
           {
             System.out.println("Pattern: "+myRegEx+" # Group + " + clauseCaptcha.group(0));
-            LowerClause.setClausetext(clauseCaptcha.group(0));
+            LowerClause.setClauseText(clauseCaptcha.group(0));
           } 
         } 
       return myContainer;
@@ -669,8 +672,8 @@ public Boolean checkHeadingExtraction(ClauseContainer myContainer) {
     
     public ClauseContainer ClauseTextExtract(ClauseContainer myContainer, String mydata) {
     System.out.println("Clause text extract");
-    ArrayList<Clause> myCList = myContainer.getClauseArray();
-    Iterator<Clause> myiterator = myCList.iterator();
+    ArrayList<ClauseContainer> myCList = myContainer.getChildNodes();
+    Iterator<ClauseContainer> myiterator = myCList.iterator();
     System.out.println("Array Size: "+myCList.size()); //conveniently, ArrayList is in Collections with a size method
     if (myiterator!=null) {
     String[] indexedList = new String[150];
@@ -688,14 +691,16 @@ public Boolean checkHeadingExtraction(ClauseContainer myContainer) {
     String LooseRegEx="[\\w\\d\\s\\(\\)\\:\\-\\;,\\/\\’'\\<\\>\\[\\]"+all_breaks+Uni_dbl_qt+Uni_single_qt+Uni_dashes+Uni_NonBreakspace+" ]*";
     /*
     String LooseRegEx="([\\w\\d\\s\\(\\)\\:\\-\\;\\,\\.\\/\\’'\\<\\>\\[\\]\\u201c\\u201d\\u2013\\u2019\\x0d\\x0a\\\" ]*)";
-    */String LowerWord="lorem ipsum";
+    */
+    String LowerWord="lorem ipsum";
     int indexWindow=0;
     Clause FirstClause=null;
     Clause UpperClause=null;
     Clause LowerClause=null;
     if (myiterator.hasNext()) {
       System.out.println("First has next");
-      FirstClause=myiterator.next();
+      ClauseContainer myNode = myiterator.next();
+      FirstClause = myNode.getNodeClause();
       UpperClause = FirstClause;
       LowerClause = FirstClause;
     }
@@ -704,7 +709,8 @@ public Boolean checkHeadingExtraction(ClauseContainer myContainer) {
         if (indexWindow>0) {
          UpperClause = LowerClause;
         }
-        LowerClause = myiterator.next();
+        ClauseContainer myNode = myiterator.next();
+        LowerClause = myNode.getNodeClause();
         String UpperWord = UpperClause.getHeading();
         LowerWord = LowerClause.getHeading();
         //u2010-u201F is a good range for UTF8
@@ -717,7 +723,7 @@ public Boolean checkHeadingExtraction(ClauseContainer myContainer) {
           while (clauseCaptcha.find())
           {
             System.out.println("Pattern: "+myRegEx+" # Group + " + clauseCaptcha.group(0));
-            UpperClause.setClausetext(clauseCaptcha.group(0));
+            UpperClause.setClauseText(clauseCaptcha.group(0));
           }
           indexWindow++;  
         } 
@@ -730,7 +736,7 @@ public Boolean checkHeadingExtraction(ClauseContainer myContainer) {
           while (clauseCaptcha.find())
           {
             System.out.println("Pattern: "+myRegEx+" # Group + " + clauseCaptcha.group(0));
-            LowerClause.setClausetext(clauseCaptcha.group(0));
+            LowerClause.setClauseText(clauseCaptcha.group(0));
           } 
         } 
       return myContainer;

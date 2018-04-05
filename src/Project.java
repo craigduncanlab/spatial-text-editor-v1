@@ -6,7 +6,7 @@ import java.util.*;
 /* By Craig Duncan 29.3.18
 */
 
-public class Project implements java.io.Serializable {
+public class Project extends Collection implements java.io.Serializable {
 
 //mark this class this to allow for changes to variables in class (refactoring)
 private static final long serialVersionUID = -243113331412532L;
@@ -17,8 +17,9 @@ int numItems=0; //this will hold number of clauses
 String docname=""; //to hold the container name or filename
 String docauthor=""; //to hold author name
 String docnotes=""; //to hold Document notes
-//Stage ContainerStage = new Stage(); //to hold Stage associated with this container?
-
+int numClauses=0; //this will hold number of clauses
+String date="";
+String ProjectType=""; 
 //empty constructor no arguments
 public Project() {
 
@@ -54,7 +55,7 @@ public ArrayList<Collection> getProjectItems() {
 	return this.myCollections;
 }
 
-public void setCollectionItems(ArrayList<Collection> myItems) {
+public void setProjectItems(ArrayList<Collection> myItems) {
 	this.myCollections = myItems;
 	//TO DO: iteration? 
 }

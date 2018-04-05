@@ -62,11 +62,11 @@ public String getCategory() {
 
 //Main clause text for this clause object
 
-public void setClausetext(String mytext) {
+public void setClauseText(String mytext) {
 	this.clausetext=mytext;
 }
 
-public String getClause() {
+public String getClauseText() {
 	return this.clausetext;
 }
 
@@ -108,23 +108,14 @@ public void incFreq() {
 	this.frequency++;
 }
 
-/*
-public void setEventDate(String mytext) {
-	this.eventDate=mytext;
+public Clause clone(Clause myClause) {
+    Clause anotherClause = new Clause();
+    anotherClause.setClauselabel(myClause.getLabel());
+    anotherClause.setClauseText(myClause.getClauseText());
+    anotherClause.setHeading(myClause.getHeading());
+    anotherClause.setCategory(myClause.getCategory());
+    anotherClause.setFreq(myClause.getFreq());
+    return anotherClause;
 }
 
-public String getEventDate() {
-	return this.eventDate;
-}
-
-//Main clause text for this clause object
-
-public void setEventDesc(String mytext) {
-	this.eventDesc=mytext;
-}
-
-public String getEventDesc() {
-	return this.eventDesc;
-}
-*/
 }
