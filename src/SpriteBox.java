@@ -96,8 +96,8 @@ public class SpriteBox extends StackPane implements java.io.Serializable {
     location = node.getNodeLocation();
     String myCat = node.getNodeCategory();
     SpriteBox.this.setStageLocation(mySM);
-    //SpriteBox.this.setOnMousePressed(PressBoxEventHandler);  // JavaFX - inherited from Rectangle 
-    //SpriteBox.this.setOnMouseDragged(DragBoxEventHandler);   //ditto
+    SpriteBox.this.setOnMousePressed(PressBoxEventHandler);  // JavaFX - inherited from Rectangle 
+    SpriteBox.this.setOnMouseDragged(DragBoxEventHandler);   //ditto
     SpriteBox.this.setBoxCategory(myCat); 
     SpriteBox.this.setBoxNode(node); //sets and updates appearance
     //return b;
@@ -153,7 +153,7 @@ public class SpriteBox extends StackPane implements java.io.Serializable {
             double offsetY = t.getSceneY() - orgSceneY;
             double newTranslateX = orgTranslateX + offsetX;
             double newTranslateY = orgTranslateY + offsetY;
-            System.out.println("The local Box handler for drag box is acting");
+            System.out.println("The local (#) Box handler for drag box is acting");
             //updates to sprite that triggered event
             SpriteBox.this.setTranslateX(newTranslateX);
             SpriteBox.this.setTranslateY(newTranslateY);

@@ -358,7 +358,8 @@ private void LoadNode(String filename, StageManager mySM) {
                     targetNode.setDocName("LoadedNode"+Integer.toString(loaddocnum));
                 }
                 //create spritebox
-                SpriteBox b = new SpriteBox(targetNode, mySM);
+                //SpriteBox b = new SpriteBox(targetNode, mySM);
+                SpriteBox b = boxNodeForStage(targetNode,mySM);
                 placeSpriteOnTargetStage(b, mySM);
             }
 
