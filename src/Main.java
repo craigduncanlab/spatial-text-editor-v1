@@ -1515,7 +1515,7 @@ public StageManager newStageConst(StageManager mySM, String myFileLabel, ClauseC
     mySM.setDisplayNode(defaultNode); //default Node
     mySM.setPressBox(PressBoxEventHandler);
     mySM.setDragBox(DragBoxEventHandler);
-    mySM.showStage();
+    mySM.hideStage(); //set default as hidden for now
     return mySM;
 }
 
