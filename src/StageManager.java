@@ -84,6 +84,7 @@ int location = 0;
 String category="";
 //Displayed ClauseContainer (i.e. Node).  Will be updated through GUI.
 ClauseContainer displayNode = new ClauseContainer();
+int doccount=0; //document counter for this stage
 
 
 //For storing main text input area for this Stage (if any)
@@ -136,6 +137,18 @@ public String getFilename() {
 
 public void setFilename(String myFile) {
     this.filename = myFile;
+}
+
+public int getDocCount() {
+    return this.doccount;
+}
+
+public void resetDocCount() {
+    this.doccount=0;
+}
+
+public int advanceDocCount() {
+    return this.doccount++;
 }
 
 //JAVAFX SCROLLERS FOR TEXT OUTPUT - DEFAULT
@@ -596,6 +609,7 @@ public void positionSpriteOnStage(SpriteBox mySprite) {
                 mySprite.endAlert();
         }
         advanceSpritePosition();
+        System.out.println("advanced pos on sprite:"+mySprite.toString());
         mySprite.setTranslateX(spriteX);
         mySprite.setTranslateY(spriteY); 
         mySprite.setStageLocation(StageManager.this); //needed?

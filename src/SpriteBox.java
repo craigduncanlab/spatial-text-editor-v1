@@ -94,12 +94,28 @@ public class SpriteBox extends StackPane implements java.io.Serializable {
     
     this.setup();
     location = node.getNodeLocation();
-    String myCat = node.getNodeCategory();
+    String myCat = node.getNodeCategory(); //works with clausecontainer method
     SpriteBox.this.setStageLocation(mySM);
     SpriteBox.this.setOnMousePressed(PressBoxEventHandler);  // JavaFX - inherited from Rectangle 
     SpriteBox.this.setOnMouseDragged(DragBoxEventHandler);   //ditto
     SpriteBox.this.setBoxCategory(myCat); 
     SpriteBox.this.setBoxNode(node); //sets and updates appearance
+    //return b;
+}
+
+//Box constructor that takes just Node
+
+    public SpriteBox(ClauseContainer node) {
+    
+    this.setup();
+    location = node.getNodeLocation();
+    String myCat = node.getNodeCategory(); 
+    SpriteBox.this.setBoxNode(node); //sets and updates appearance//works with clausecontainer method
+    //SpriteBox.this.setStageLocation(mySM);
+    SpriteBox.this.setOnMousePressed(PressBoxEventHandler);  // JavaFX - inherited from Rectangle 
+    SpriteBox.this.setOnMouseDragged(DragBoxEventHandler);   //ditto
+    SpriteBox.this.setBoxCategory(myCat); 
+    
     //return b;
 }
 
@@ -328,8 +344,16 @@ public class SpriteBox extends StackPane implements java.io.Serializable {
         
     }
 
-    private String getNodeCategory(ClauseContainer thisNode) {
+    //get category from enclosed node
+    private String getNodeCategory() {
+        ClauseContainer thisNode = this.getBoxNode();
         return thisNode.getNodeCategory();
+    }
+
+    //get colour from enclosed nodecat instance in node
+     private String getNodeColour() {
+        ClauseContainer thisNode = this.getBoxNode();
+        return thisNode.getNodeColour();
     }
 
     /*
@@ -340,22 +364,13 @@ public class SpriteBox extends StackPane implements java.io.Serializable {
         
         ClauseContainer thisNode = this.getBoxNode();
         updateboxlabel(thisNode);
-        String category = getNodeCategory(thisNode);
+        //String colour = getNodeCategory(thisNode);
+        String thisboxcol = getNodeColour();
+        this.SetColour(thisboxcol);
+        this.SetDefaultColour(thisboxcol);
+        //to do : set shape based on category too
 
-        //if it is a leaf node, should be holding clause data
-        //if(cc.NodeIsLeaf()==true) {
-            /*
-            String category = cc.getNodeCategory();
-            this.setCategory(category); //box category mirrors node 
-         
-            String category = getBoxCategory();
-            //update label
-            Clause leafClause = cc.getNodeClause(); //get clause data (i.e. node text)
-            String myLabel = leafClause.getLabel();
-            this.boxlabel.setText(myLabel);
-            String FreqCnt = Integer.toString(myClause.getFreq());
-                this.boxlabel.setText(this.myClause.getLabel()+"("+FreqCnt+")");
-                */
+        /*
         String thisboxcol="";
         switch(category){
             case "definition":
@@ -377,9 +392,8 @@ public class SpriteBox extends StackPane implements java.io.Serializable {
                 thisboxcol="darkblue";
                 break;
             }
-        this.SetColour(thisboxcol);
-        this.SetDefaultColour(thisboxcol);
-        //to do : set shape based on category too
+            */
+        
         }
 
     /* ----  INTERNAL OBJECT DATA --- */
@@ -434,6 +448,12 @@ public class SpriteBox extends StackPane implements java.io.Serializable {
 
     public void setClauseLabel(String myString) {
         this.myClause.setClauselabel(myString);
+        //this.setLabel(myString);  //in case you want box to have freq count on face of it etc leave off
+    }
+
+    public void setBoxLabel(String myString) {
+        this.setLabel(myString); 
+        //this.myClause.setClauselabel(myString);
         //this.setLabel(myString);  //in case you want box to have freq count on face of it etc leave off
     }
 

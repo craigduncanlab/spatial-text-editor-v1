@@ -107,7 +107,7 @@ public class Main extends Application {
     StageManager Stage_WS;
     Stage WorkspaceStage;
     Group WorkspaceGroup;
-    ClauseContainer WorkspaceNode = null;
+    ClauseContainer WorkspaceNode = new ClauseContainer();
     BoxContainer WorkspaceBoxes; //A serializable top-level container (optional)
     ClauseContainer wsCollection = new ClauseContainer(); //for holding workspace contents (inside boxes)
     //Opus = project collection.  Display Projects as Icons, as in a library.
@@ -196,6 +196,17 @@ public class Main extends Application {
     SpriteTracker myTracker = new SpriteTracker();
     //STAGE IDS
     int location = 0;
+    //node config
+    //nodecategories
+
+    NodeCategory NC_clause = new NodeCategory ("clause",0,"blue");
+    NodeCategory NC_def = new NodeCategory ("definition",0,"green");
+    NodeCategory NC_event = new NodeCategory ("event",0,"lightblue");
+    NodeCategory NC_library = new NodeCategory ("library",1,"lemon");
+    NodeCategory NC_document = new NodeCategory ("document",1,"darkblue");
+    NodeCategory NC_project = new NodeCategory ("collection",2,"orange");
+    NodeCategory NC_collection = new NodeCategory ("project",3,"salmon");
+        //see line 690 above
 
 /*The main method uses the launch method of the Application class.
 https://docs.oracle.com/javase/8/javafx/api/javafx/application/Application.html
@@ -267,12 +278,13 @@ private Clause getDefaultNodeData() {
     return myClause;
 }
 
-private ClauseContainer getNewNodeWithData(int nodelevel) {
+private ClauseContainer getNewNodeWithData(NodeCategory nodecat, int docNum) {
     ClauseContainer clauseNode = new ClauseContainer();
-    clauseNode.setDocName("Node with Data"+Integer.toString(libdocnum));
-    clauseNode.setNodeCategory("clause");
-    clauseNode.setNodeLevel(nodelevel);
-    clauseNode.setType("document");
+    clauseNode.setDocName(nodecat.getCategory()+docNum);
+    clauseNode.setNC(nodecat);
+    //clauseNode.setNodeCategory(nodecat.getCategory());
+    //clauseNode.setNodeLevel(nodecat.getLevel());
+    clauseNode.setType(nodecat.getCategory());
     clauseNode.setAuthorName("Craig");
     clauseNode.addNodeClause(getDefaultNodeData());
     return clauseNode;
@@ -304,31 +316,6 @@ private SpriteBox boxNodeForStage(ClauseContainer node, StageManager mySM) {
     b.setOnMouseDragged(DragBoxEventHandler);
     return b;
 }
-
-private ClauseContainer makeProjectTree() {
-
-    ClauseContainer firstClause = getNewNodeWithData(1);
-    ClauseContainer tempDoc = new ClauseContainer();
-    tempDoc.addChildNode(firstClause); //some metadata?
-    ClauseContainer tempCollection = new ClauseContainer();
-    tempCollection.addChildNode(tempDoc);
-    ClauseContainer tempProject = new ClauseContainer();
-    tempProject.addChildNode(tempCollection);
-    return tempProject;
-}
-
-private SpriteBox makeProjectBox() {
-
-    ClauseContainer proj = makeProjectTree();
-    SpriteBox box = makeBoxWithNode(proj);
-    return box;
-}
-
-private void addNewBoxWithClause() {
-
-    SpriteBox b = new SpriteBox(getNewNodeWithData(3),Stage_DOC);
-    placeSpriteOnTargetStage(b, Stage_DOC);
-    }
 
 //LOAD, SAVE AND NEW FOR NODES - EVENT HANDLERS
 
@@ -399,9 +386,11 @@ private void unsetParentChild(SpriteBox mySprite) {
 
 
 //Adds a container that is not holding a specific clause (could be anything)
-private void NewNodeForStage(StageManager targetStage, int nodelevel) {
+private void NewNodeForStage(StageManager targetStage, NodeCategory nodecat) {
 
-    SpriteBox b = new SpriteBox(getNewNodeWithData(nodelevel),targetStage);
+    
+    int docnum=targetStage.advanceDocCount();
+    SpriteBox b = new SpriteBox(getNewNodeWithData(nodecat,docnum));
     b.setOnMousePressed(PressBoxEventHandler); 
     b.setOnMouseDragged(DragBoxEventHandler);
     if (targetStage.getStage().isShowing()==true) {
@@ -418,7 +407,8 @@ private void NewNodeForStage(StageManager targetStage, int nodelevel) {
 //place Sprite on Target stage if open otherwise workspace
 
 private void placeSpriteOnTargetStage(SpriteBox mySprite, StageManager targetStage) {
-    if (targetStage.getStage().isShowing()==true) {
+        //show stage always
+        if (targetStage.getStage().isShowing()==true) {
             placeSpriteOnStage(mySprite, targetStage);
             System.out.println("New sprite :"+mySprite.toString()+"on target stage:"+targetStage.toString());
         }
@@ -712,7 +702,7 @@ private void makeMenuBarGroup(Group myGroup) {
 
         NewProject.setOnAction(new EventHandler<ActionEvent>() {
         public void handle(ActionEvent t) {
-                NewNodeForStage(Stage_PROJLIB,2);
+                NewNodeForStage(Stage_PROJLIB,NC_project);
             }
         }); 
 
@@ -739,7 +729,7 @@ private void makeMenuBarGroup(Group myGroup) {
 
         NewCollection.setOnAction(new EventHandler<ActionEvent>() {
         public void handle(ActionEvent t) {
-                NewNodeForStage(Stage_COLL,1);
+                NewNodeForStage(Stage_COLL,NC_collection);
             }
         }); 
 
@@ -804,21 +794,21 @@ private void makeMenuBarGroup(Group myGroup) {
         NewDef.setOnAction(new EventHandler<ActionEvent>() {
         public void handle(ActionEvent t) {
                 System.out.println("New Def button - called from Main");
-                NewNodeForStage(Stage_DOC,0);
+                NewNodeForStage(Stage_DOC,NC_def);
             }
         });
 
         NewClause.setOnAction(new EventHandler<ActionEvent>() {
         public void handle(ActionEvent t) {
                 System.out.println("New Clause button - called from Main");
-                NewNodeForStage(Stage_DOC,0);
+                NewNodeForStage(Stage_DOC,NC_clause);
             }
         });
 
         NewEvent.setOnAction(new EventHandler<ActionEvent>() {
         public void handle(ActionEvent t) {
                 System.out.println("New Event button - called from Main");
-                NewNodeForStage(Stage_DOC,0);
+                NewNodeForStage(Stage_DOC,NC_event);
             }
         });
 
@@ -828,7 +818,7 @@ private void makeMenuBarGroup(Group myGroup) {
         NewDoc.setOnAction(new EventHandler<ActionEvent>() {
         public void handle(ActionEvent t) {
                 System.out.println("Event handler in main detected - newdoc button");
-                NewNodeForStage(Stage_COLL,1);
+                NewNodeForStage(Stage_COLL,NC_document);
             }
         });
 
@@ -867,7 +857,7 @@ private void makeMenuBarGroup(Group myGroup) {
 
         NewLibrary.setOnAction(new EventHandler<ActionEvent>() {
         public void handle(ActionEvent t) {
-                NewNodeForStage(Stage_PROJLIB,1);
+                NewNodeForStage(Stage_PROJLIB,NC_project);
             }
         }); 
 
@@ -1579,6 +1569,7 @@ public void identifyStages (StageManager mySM, Stage myStage, Group myGroup) {
         Stage_DOC=newStageConst(Stage_DOC,"document", documentNode);
         Stage_PROJ=newStageConst(Stage_PROJ,"project", projectNode);
         Stage_PROJLIB=newStageConst(Stage_PROJLIB,"projlib", projectLibNode);
+
 
         /*
         Stage_COLL = new StageManager("collection"); //category

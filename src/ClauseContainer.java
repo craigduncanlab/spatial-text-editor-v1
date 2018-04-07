@@ -55,6 +55,7 @@ String date="";
 
 //This node's data and level in tree:
 Clause dataClause = new Clause(); 
+NodeCategory nodeCat = new NodeCategory();
 String nodecategory = "";
 int nodelevel = 0; //start at root 0 (project) allows future tree expansion
 int nodeGUIloc = 0; //to store Stage or GUI element where the node is located
@@ -83,6 +84,10 @@ public String getType() {
 
 public String getDocName() {
 	return this.docname;
+}
+
+public void setDocName(String doc) {
+	this.docname = doc;
 }
 
 //---PARENT NODE ---
@@ -114,6 +119,15 @@ public ArrayList<ClauseContainer> getChildNodes() {
 
 public Boolean NodeIsLeaf() {
 	return this.myChildNodes.isEmpty();
+}
+
+//CATEGORY DATA
+public NodeCategory getNC() {
+	return this.nodeCat;
+}
+
+public void setNC(NodeCategory myNC) {
+	this.nodeCat=myNC;
 }
 
 //TRANSITION METHODS
@@ -163,19 +177,19 @@ public Clause getNodeClause() {
 }
 
 public String getNodeCategory() {
-	return this.nodecategory;
+	return this.nodeCat.getCategory();
 }
 
 public void setNodeCategory(String myCat) {
-	this.nodecategory=myCat;
+	this.nodeCat.setCategory(myCat);
 }
 
 public int getNodeLevel() {
-	return this.nodelevel;
+	return this.nodeCat.getLevel();
 }
 
 public void setNodeLevel(int myLevel) {
-	this.nodelevel=myLevel;
+	this.nodeCat.setLevel(myLevel);
 }
 
 public int getNodeLocation() {
@@ -186,6 +200,13 @@ public void setNodeLocation(int myLoc) {
 	this.nodeGUIloc=myLoc;
 }
 
+public String getNodeColour() {
+	return this.nodeCat.getColour();
+}
+
+public void setNodeColour(String myCol) {
+	this.nodeCat.setColour(myCol);
+}
 
 /* This method makes use of the fact that an ArrayList is part of Java's collections, and as such, we can call a method that creates an iterator object, and use it.
 */
