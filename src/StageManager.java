@@ -5,11 +5,12 @@ Until now, Stage Manager class was used as a singleton.
 However, by creating a 'StageManager' object for each stage, it can keep Stage-specific information
 and enormously reduce the complexity of stage position, current sprite location etc.
 
-This is required because the Stage object in JavaFX is for GUI, so this is the equivalent repository for custom data
-about the data/content of the specific Stages I am creating.
+This is required because the Stage object in JavaFX defined for the GUI.
+This class is a conceptual object that will hold not only the javaFX Stage object, but associated data
 
 Requires stageID to be set at start of app.
-The Group for adding sprites to on the Stage can be stored here too.
+The Group that is part of the JavaFX node tree to which SpriteBoxes are to be added can be stored here.
+(i.e. this saves having to navigate through the GUI node instances to find it each time)
 
 */
 

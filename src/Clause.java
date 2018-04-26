@@ -4,7 +4,13 @@ import java.util.*;
 
 /*This is a (super)class for a single paragraph object, not a collection.
 Implements serializable for save functions.
-Order of encapsulation is BoxContainer-->SpriteBox-->Clause
+Order of encapsulation is BoxContainer-->SpriteBox-->ClauseContainer(Node)-->Clause/Child nodes
+
+26.4.18 This originally held data structures for the clause, like heading, footnote etc.
+However, it makes more sense to have objects for these (e.g. a notes object) which can be added as child nodes to the ClauseContainer node as required.
+The ClauseContainer can provide a function to check whether its child nodes are a particular category.
+The text and heading within a 'Clause' object should be able to be duplicated by having these properties added to 
+the ClauseContainer.   Add an edit function button to each stage which simply saves any updates to the relevant objects (e.g. the text)
 */
 
 //TO DO: Rename this class as 'Contents' or 'DataObject' etc.  Equivalent to a scene?
