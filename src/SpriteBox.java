@@ -152,7 +152,6 @@ public class SpriteBox extends StackPane implements java.io.Serializable {
         this.viewingNode=true;
      }
     
-    /*
      public StageManager getChildStage() {
         return this.childStage;
      }
@@ -160,7 +159,6 @@ public class SpriteBox extends StackPane implements java.io.Serializable {
      public void setChildStage(StageManager myCSM) {
         this.childStage = myCSM;
      }
-     */
 
      //EVENT HANDLERS THAT PROVIDE CONTEXT
 
@@ -353,6 +351,11 @@ public class SpriteBox extends StackPane implements java.io.Serializable {
      public void endAlert() {
         this.isAlert=false;
         myBox.setColour(defaultColour);
+    }
+
+    public String getBoxDocName() {
+        ClauseContainer thisNode = this.getBoxNode();
+        return thisNode.getDocName();
     }
 
     private void updateboxlabel(ClauseContainer thisNode) {

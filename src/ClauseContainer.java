@@ -51,6 +51,8 @@ int numClauses=0; //this will hold number of clauses
 String docname=""; //to hold the container name or filename
 String docauthor=""; //to hold author name
 String docnotes=""; //to hold Document notes
+String shortname="";
+String heading="";
 String date="";
 
 //This node's data and level in tree:
@@ -179,8 +181,24 @@ public String getDocName () {
 	return this.docname;
 }
 
+//set the text that will be the main text for identifying this node
+public void setHeading (String myString) {
+	this.heading = myString;
+}
 
-//THIS NODE'S DATA
+public String getHeading () {
+	return this.heading;
+}
+
+public void setShortname (String myString) {
+	this.shortname = myString;
+}
+
+public String getShortname () {
+	return this.shortname;
+}
+
+//THIS NODE'S CLAUSE DATA (OBSOLETE)
 
 public void addNodeClause(Clause thisClause) {
 	this.dataClause = thisClause;
@@ -189,6 +207,9 @@ public void addNodeClause(Clause thisClause) {
 public Clause getNodeClause() {
 	return this.dataClause;
 }
+
+//THIS NODE'S CATEGORY
+
 
 public String getNodeCategory() {
 	return this.nodeCat.getCategory();

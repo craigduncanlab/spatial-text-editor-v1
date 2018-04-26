@@ -103,6 +103,8 @@ Group spriteGroup = new Group();
 Scene spriteScene;
 SpriteBox focusbox; //for holding active sprite in this scene.  Pass to app.
 //SpriteTracker globalTracker;
+SpriteBox parentBox;//to hold the calling box for this viewer.  
+//Do not create new object here or circular constructors! Do in constructor
 
 String filename = ""; //current filename for saving this stage's contents
 //STAGE IDS
@@ -118,8 +120,11 @@ int doccount=0; //document counter for this stage
 //For storing main text output area for this Stage (if any)
 //As of 26.4.2018: make this the default area to hold the node's own text (for stages that display a frame that is also an open node).  Always editable.
 //This TextAre is the GUI display object for the nodes' docnotes String.  Edit button will update the node's (ClauseContainer) actual data
+TextArea shortnameTextArea = new TextArea();
+TextArea headingTextArea = new TextArea();
 TextArea inputTextArea = new TextArea();
 TextArea outputTextArea = new TextArea();
+Text parentBoxText;
 //Store the common event handlers here for use
 EventHandler<MouseEvent> PressBox;
 EventHandler<MouseEvent> DragBox;
@@ -134,9 +139,6 @@ Consider if subclasses of StageManager could deal with flavours of StageManager 
 */
 ArrayList<Object> BoxContentsArray = new ArrayList<Object>(); //generic store of contents of boxes
 
-//
-SpriteBox parentBox;//to hold the calling box for this viewer.  
-//Do not create new object here or circular constructors! Do in constructor
 
 //Track current stage that is open.
 static StageManager currentFocus; //any StageManager can set this to itself
@@ -145,7 +147,6 @@ static StageManager currentFocus; //any StageManager can set this to itself
 public StageManager() {
     this.outputTextArea.setWrapText(true);
     this.inputTextArea.setWrapText(true);  //default
-    this.parentBox = new SpriteBox();
 }
 
 //constructor with category etc
@@ -252,6 +253,12 @@ private void configDefaultScroller(ScrollPane myScroll) {
 }
 
 //JAVA FX TEXT AREAS - GETTERS AND SETTERS
+public void setTextAreaLayout() {
+    headingTextArea.setPrefRowCount(1);
+    shortnameTextArea.setPrefRowCount(1);
+    //inputTextArea  = makeTextArea();
+}
+
 public void setOutputText(String myText) {
     outputTextArea.setText(myText);
 }
@@ -329,8 +336,33 @@ public String getCategory() {
 public void updateView() {
     makeSceneForNodeEdit();
     resetSpriteOrigin();
+    //title bar
+    setTitle(displayNode.getType());
+    //path
+    //Set text to identify Stage containing parent box
+    SpriteBox parBX = getParentBox();
+    String parentSTR="";
+    if (parBX==null) {
+        parentSTR="[WS]";
+    }
+    else {
+        if (parBX.getStageLocation()!=null) {
+            parentSTR=parBX.getStageLocation().getTitle();
+        }
+        /*
+        if(parBX.getBoxDocName()!=null) {
+            parentSTR=parBX.getBoxDocName();
+
+        }
+        */
+    }
+    String pathText = parentSTR+"-->"+displayNode.getDocName()+"(contents)"; 
+    parentBoxText.setText(pathText);
+    //main node contents (text)
+    shortnameTextArea.setText(displayNode.getDocName());
+    headingTextArea.setText(displayNode.getHeading());
     inputTextArea.setText(displayNode.getNotes());
-    setTitle(displayNode.getDocName());
+    //child nodes
     displayBoxesOnStage();
 }
 
@@ -373,6 +405,16 @@ public ClauseContainer getRefParentNode() {
 }
 
 /* GUI FUNCTIONS FOR WORKING WITH BOXES, NODES */
+
+public void setParentBox (SpriteBox myPB) {
+    this.parentBox = myPB;
+    ClauseContainer myNode = myPB.getBoxNode();
+    setDisplayNode(myNode);
+}
+
+public SpriteBox getParentBox () {
+    return this.parentBox;
+}
 
 public void openBoxesOnStage(ClauseContainer myNode) {
 
@@ -475,7 +517,14 @@ public void setCurrentXY(double x, double y) {
     this.latestY=y;
 }
 
-/*Method to set parents.  Call this before showing stage*/
+/*Method to set parent stage.  Call this before showing stage 
+
+This is for GUI relationships, not data tree relationships.
+
+nb If the stage has been called from a SpriteBox, the tree parent is the box, but
+that box lies within a stage that can be used as parent stage here
+(or make all stages the child of Stage_WS)
+*/
 public void setStageParent(StageManager ParentSM) {
     Stage myStage = getStage(); 
     Stage Parent = ParentSM.getStage();
@@ -498,38 +547,38 @@ public void setPosition() {
 
     switch(this.stageName){
 
-            case "Workspace":
+            case "workspace":
                 setStagePosition(0,0);
                 stageBack();
                 break;
 
-            case "Editor":
+            case "editor":
                 //myStage.initOwner(Parent);  //this must be called before '.show()' on child
                 setStagePosition(850,0);
                 stageFront();
                 break;
 
-            case "Project":
+            case "project":
                 setStagePosition(800,300);
                 stageFront();
                 break;
 
-            case "Project Library":
+            case "project library":
                 setStagePosition(800,300);
                 stageFront();
                 break;
 
-            case "Library":
+            case "library":
                 setStagePosition(1000,300);
                 stageFront();
                 break;
 
-            case "Collection":
+            case "collection":
                 setStagePosition(800,100);
                 stageFront();
                 break;
                 
-            case "Document":
+            case "document":
                 setStagePosition(400,200);
                 stageFront();
                 break;
@@ -638,7 +687,7 @@ private Scene makeSceneForBoxes(ScrollPane myPane) {
 private void makeSceneForNodeEdit() {
         
         ScrollPane tempPane = makeScrollGroup();
-        TextArea tempTextArea  = makeTextArea();
+        setTextAreaLayout();
         //Button for saving clauses
         Button btnUpdate = new Button();
         btnUpdate.setText("Update");
@@ -651,7 +700,9 @@ private void makeSceneForNodeEdit() {
         //TO DO: set on action
       
         HBox hboxButtons = new HBox(0,btnUpdate,btnEditCancel);
-        VBox allContent = new VBox(0,tempTextArea,hboxButtons,tempPane);
+        //
+        parentBoxText = new Text();
+        VBox allContent = new VBox(0,parentBoxText,shortnameTextArea,headingTextArea,inputTextArea,hboxButtons,tempPane);
         //vboxAll.setPrefWidth(200);
         //
         Pane largePane = new Pane();
@@ -677,9 +728,18 @@ EventHandler<ActionEvent> UpdateContainerEditor =
         new EventHandler<ActionEvent>() {
         @Override 
         public void handle(ActionEvent event) {
-            //TO DO: rewrite so that it updates the node text only
+            //main node contents (text)
+            String editedName=shortnameTextArea.getText();
+            String editedHeading=headingTextArea.getText();
             String editedText=inputTextArea.getText();
+            //
+            displayNode.setDocName(editedName);
+            //parentBox
+            SpriteBox pntBox = getParentBox();
+            pntBox.setLabel(editedName);
+            displayNode.setHeading(editedHeading);
             displayNode.setNotes(editedText);
+            //
             System.out.println("Text in the update:"+editedText);
             System.out.println("Node updated!");
             System.out.println("Check update:"+displayNode.getNotes());
