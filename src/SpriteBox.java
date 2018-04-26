@@ -72,14 +72,17 @@ public class SpriteBox extends StackPane implements java.io.Serializable {
     Boolean OtherStage=false;
     String defaultColour="";
     String alertColour="red";
-    StageManager StageLocation = new StageManager();
+    StageManager StageLocation;
+    StageManager childStage; //i.e. the nodeviewer stage
     //using alternate states representation for open window
     int location = 0;
     //mouse
     double orgSceneX, orgSceneY;
     double orgTranslateX, orgTranslateY;
     //
-    String boxcategory="";
+    String boxcategory=""; 
+    //Track if this box has been opened to edit node or not.
+    Boolean viewingNode=false;
 
 
 
@@ -121,7 +124,7 @@ public class SpriteBox extends StackPane implements java.io.Serializable {
 
 
 
-    //default constructor with initial Clause included
+    //default constructor with initial Clause included _ DEPRECATE
     public SpriteBox(Clause inputClause) {
         this.setup();
         this.setClauseInLeafNode(inputClause);
@@ -139,7 +142,26 @@ public class SpriteBox extends StackPane implements java.io.Serializable {
         this.myBox = new ColBox(mycolour);
         this.boxlabel = new Text (startLabel);//myBox.getLabel();
      }
+
+     //SPRITEBOX STATUS: NODE OPEN OR NOT
+     public Boolean isOpen() {
+        return this.viewingNode;
+     }
+
+     public void setOpen() {
+        this.viewingNode=true;
+     }
     
+    /*
+     public StageManager getChildStage() {
+        return this.childStage;
+     }
+
+     public void setChildStage(StageManager myCSM) {
+        this.childStage = myCSM;
+     }
+     */
+
      //EVENT HANDLERS THAT PROVIDE CONTEXT
 
      EventHandler<MouseEvent> PressBoxEventHandler = 

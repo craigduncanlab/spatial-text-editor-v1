@@ -12,6 +12,20 @@ Requires stageID to be set at start of app.
 The Group that is part of the JavaFX node tree to which SpriteBoxes are to be added can be stored here.
 (i.e. this saves having to navigate through the GUI node instances to find it each time)
 
+26.4.18
+Most of the functions are intended to be used with a stage that displays a 'node'.
+In effect, this class helps make a GUI: to create a Stage that will display a node, its text and its child nodes, and allow editing
+It also performs tracking of the stage (open node window) with current focus.
+The Workspace is an instance of this class but uses far fewer helper functions.
+
+The stages are iterative: in creating new child node boxes, each box can open a new node editing window
+Therefore, the StageManager is like a visual tree navigator for the node data.
+A node or Stage does not require opening up a separate 'edit' window because each node viewer's design is informative and functional.
+(To do: Consider if "NodeViewer" is a better class name.  Nodes represent abstract 'frames'
+A display option is to have background colour of node editor change for different types/levels)
+
+The stage manager will provide its own GUI functions for updating the node's text.
+
 */
 
 //import utilities needed for Arrays lists etc
@@ -103,7 +117,7 @@ int doccount=0; //document counter for this stage
 
 //For storing main text output area for this Stage (if any)
 //As of 26.4.2018: make this the default area to hold the node's own text (for stages that display a frame that is also an open node).  Always editable.
-//This is a GUI object, that happens to contain text.  Edit button will update the node's (ClauseContainer) actual data
+//This TextAre is the GUI display object for the nodes' docnotes String.  Edit button will update the node's (ClauseContainer) actual data
 TextArea inputTextArea = new TextArea();
 TextArea outputTextArea = new TextArea();
 //Store the common event handlers here for use
@@ -121,22 +135,27 @@ Consider if subclasses of StageManager could deal with flavours of StageManager 
 ArrayList<Object> BoxContentsArray = new ArrayList<Object>(); //generic store of contents of boxes
 
 //
-static StageManager currentFocus; //any StageManager can set this to itself?
+SpriteBox parentBox;//to hold the calling box for this viewer.  
+//Do not create new object here or circular constructors! Do in constructor
 
+//Track current stage that is open.
+static StageManager currentFocus; //any StageManager can set this to itself
 
 //constructor
 public StageManager() {
     this.outputTextArea.setWrapText(true);
     this.inputTextArea.setWrapText(true);  //default
+    this.parentBox = new SpriteBox();
 }
 
 //constructor with category etc
-public StageManager(String category) {
+/*public StageManager(String category) {
     //this.globalTracker=tracker;
     this.outputTextArea.setWrapText(true);
     this.inputTextArea.setWrapText(true);  //default
     setCategory(category);
 }
+*/
 
 //any instance can return the global variable with focus stage
 public StageManager getCurrentFocus() {
@@ -306,10 +325,38 @@ public String getCategory() {
     return this.category;
 }
 
+/* --- BASIC GUI SETUP --- */
+public void updateView() {
+    makeSceneForNodeEdit();
+    resetSpriteOrigin();
+    inputTextArea.setText(displayNode.getNotes());
+    setTitle(displayNode.getDocName());
+    displayBoxesOnStage();
+}
+
 /* ----- DATA NODE FUNCTIONS ----- */
 
-public void setDisplayNode(ClauseContainer myNode) {
+/* 
+This method sets the node that is used for the display in this stage.
+All other nodes added to this node are considered child nodes of this node:
+they are added as child nodes to the data node; they are display in the section of the stage for this
+
+*/
+
+private void setDisplayNode(ClauseContainer myNode) {
     this.displayNode = myNode;
+    String myFileLabel = myNode.getDocName();
+    setFilename(myFileLabel+".ser"); //default
+    updateView();
+}
+
+//specific method for creating initial workspace view
+public void setWSNode(ClauseContainer myNode) {
+    this.displayNode = myNode;
+    //String myFileLabel = myNode.getDocName();
+    String myFileLabel = "workspace";
+    setFilename(myFileLabel+".ser"); //default
+    //updateView();
 }
 
 public ClauseContainer getDisplayNode() {
@@ -327,18 +374,13 @@ public ClauseContainer getRefParentNode() {
 
 /* GUI FUNCTIONS FOR WORKING WITH BOXES, NODES */
 
-public SpriteBox openBoxesOnStage(ClauseContainer myNode) {
+public void openBoxesOnStage(ClauseContainer myNode) {
 
-    resetSpriteOrigin();
-    defaultConfigStage();
-    setTitle(myNode.getDocName());
     setDisplayNode(myNode);
-    SpriteBox b = displayBoxesOnStage(myNode);
-    return b;
 }
 
 /* Altenative: open default Node that is stored here */
-
+/*
 public SpriteBox openDisplayNodeOnStage() {
 
     ClauseContainer myNode = getDisplayNode();
@@ -349,12 +391,13 @@ public SpriteBox openDisplayNodeOnStage() {
     SpriteBox b = displayBoxesOnStage(myNode);
     return b;
 }
-
+*/
 /* Box up a container of Sprites and place on Stage */
 
- public SpriteBox displayBoxesOnStage(ClauseContainer myNode) {
+ private void displayBoxesOnStage() {
     
-        SpriteBox lastBox = new SpriteBox();
+        ClauseContainer myNode = displayNode;
+        //SpriteBox lastBox = new SpriteBox();
         ArrayList<ClauseContainer> myNodes = myNode.getChildNodes();
         Iterator<ClauseContainer> myiterator = myNodes.iterator();
 
@@ -365,7 +408,7 @@ public SpriteBox openDisplayNodeOnStage() {
             setFocusBox(b); 
         }
         showStage();
-        return getFocusBox();
+        //return getFocusBox();
         }
 
 private SpriteBox makeBoxWithNode(ClauseContainer node) {
@@ -552,9 +595,9 @@ public void setInitStage(StageManager myParentSM, Stage myStage, Group myGroup, 
 
 //method replaces scene in current stage with the default node editing screen
 //does not create the stage in this method as the localStage is a StageManager instance variable
-public void defaultConfigStage() {
+private void defaultConfigStage() {
     //Scene myScene = makeSceneForBoxes(makeScrollGroup());
-    Scene myScene = makeSceneForNodeEdit();
+    
     //Stage myStage = setupNewSpriteStage(myScene);
 }
 
@@ -592,7 +635,7 @@ private Scene makeSceneForBoxes(ScrollPane myPane) {
 
 //The scene contains a text area, a pane to display sprite boxes and an Edit/Update button
 
-private Scene makeSceneForNodeEdit() {
+private void makeSceneForNodeEdit() {
         
         ScrollPane tempPane = makeScrollGroup();
         TextArea tempTextArea  = makeTextArea();
@@ -608,7 +651,7 @@ private Scene makeSceneForNodeEdit() {
         //TO DO: set on action
       
         HBox hboxButtons = new HBox(0,btnUpdate,btnEditCancel);
-        VBox allContent = new VBox(0,tempTextArea,tempPane,hboxButtons);
+        VBox allContent = new VBox(0,tempTextArea,hboxButtons,tempPane);
         //vboxAll.setPrefWidth(200);
         //
         Pane largePane = new Pane();
@@ -618,13 +661,14 @@ private Scene makeSceneForNodeEdit() {
         tempScene.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
          @Override
          public void handle(MouseEvent mouseEvent) {
-         System.out.println("Mouse click on SM NE scene detected! " + mouseEvent.getSource());
+         System.out.println("Mouse click on a node (StageManager scene) detected! " + mouseEvent.getSource());
          //setStageFocus("document");
          currentFocus=StageManager.this;
          }
         });
-        setSceneInStage(tempScene);
-        return tempScene;
+        addSceneToStage(tempScene);
+        //setSceneInStage(tempScene);
+        //return tempScene;
 }
 
 //Create Eventhandler to use with stages that allow edit button
@@ -634,7 +678,11 @@ EventHandler<ActionEvent> UpdateContainerEditor =
         @Override 
         public void handle(ActionEvent event) {
             //TO DO: rewrite so that it updates the node text only
-
+            String editedText=inputTextArea.getText();
+            displayNode.setNotes(editedText);
+            System.out.println("Text in the update:"+editedText);
+            System.out.println("Node updated!");
+            System.out.println("Check update:"+displayNode.getNotes());
             /* myEditCC.setDocName(docnameEdit.getText());
             myEditCC.setAuthorName(authorEdit.getText());
             myEditCC.setNotes(notesEdit.getText());
@@ -685,14 +733,14 @@ public Stage makeWorkspaceStage(Scene myScene) {
 //Method to add sprite to the Group fo this Stage, and position it
 public void addSpriteToStage(SpriteBox mySprite) {
     getSpriteGroup().getChildren().add(mySprite); 
-    addNodeToDisplayNode(mySprite);
+    addChildNodeToDisplayNode(mySprite);
     positionSpriteOnStage(mySprite);
     setFocusBox(mySprite); //local information
     //TO DO: add Node as child to Parent
     mySprite.setStageLocation(StageManager.this); //give Sprite the object for use later.
 }
 
-public void addNodeToDisplayNode(SpriteBox mySprite) {
+public void addChildNodeToDisplayNode(SpriteBox mySprite) {
     getDisplayNode().addChildNode(mySprite.getBoxNode());
 }
 
@@ -719,7 +767,7 @@ public void positionSpriteOnStage(SpriteBox mySprite) {
         System.out.println("advanced pos on sprite:"+mySprite.toString());
         mySprite.setTranslateX(spriteX);
         mySprite.setTranslateY(spriteY); 
-        mySprite.setStageLocation(StageManager.this); //needed?
+        mySprite.setStageLocation(StageManager.this); //needed if stage is not o/w tracked
 }
 
 public void resetSpriteOrigin() {

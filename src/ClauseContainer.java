@@ -85,15 +85,7 @@ public String getType() {
 	return this.ContainerType;
 }
 
-public String getDocName() {
-	return this.docname;
-}
-
-public void setDocName(String doc) {
-	this.docname = doc;
-}
-
-//---PARENT NODE ---
+//---PARENT NODE DATA ---
 public void setParentNode(ClauseContainer node) {
 	this.myParentNode = node;
 }
@@ -154,6 +146,8 @@ public ArrayList<ClauseContainer> getClauseArray() {
 	return this.myChildNodes;
 }
 
+//METHODS FOR INTERNAL AND EXTERNAL UPDATES TO NODE
+
 /*Method to set ClauseContainer's array by copying each entry
 Rename this */
 
@@ -167,6 +161,23 @@ public void setAllChildNodes(ArrayList<ClauseContainer> myArray) {
 	this.myChildNodes=tempArray;
 }
 
+//set the text that will be the main descriptive or clause text in this node
+public void setNotes (String myString) {
+	this.docnotes = myString;
+}
+
+public String getNotes () {
+	return this.docnotes;
+}
+
+//set the text that will be the main text for identifying this node
+public void setDocName (String myString) {
+	this.docname = myString;
+}
+
+public String getDocName () {
+	return this.docname;
+}
 
 
 //THIS NODE'S DATA

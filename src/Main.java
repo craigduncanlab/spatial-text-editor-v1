@@ -148,7 +148,7 @@ public class Main extends Application {
     Scene LibraryScene;
     Group LibraryGroup;
     String LibFilename="library.ser";
-    ClauseContainer libraryNode = null; //library import/save
+    ClauseContainer libraryNode = new ClauseContainer(); //library import/save
     //ImportStage
     StageManager Stage_Import;
     Stage ImportStage;
@@ -204,8 +204,9 @@ public class Main extends Application {
     NodeCategory NC_event = new NodeCategory ("event",0,"lightblue");
     NodeCategory NC_library = new NodeCategory ("library",1,"lemon");
     NodeCategory NC_document = new NodeCategory ("document",1,"darkblue");
-    NodeCategory NC_project = new NodeCategory ("collection",2,"orange");
-    NodeCategory NC_collection = new NodeCategory ("project",3,"salmon");
+    NodeCategory NC_collection = new NodeCategory ("collection",2,"orange");
+    NodeCategory NC_project = new NodeCategory ("project",3,"salmon");
+    NodeCategory NC_WS = new NodeCategory ("workspace",99,"beige");
         //see line 690 above
     //To hold Stage with open node that is current
     StageManager OpenNodeStage = new StageManager();
@@ -497,24 +498,22 @@ switch(clickcount) {
         
         //Dbl Click action options depending on box type
         ClauseContainer myNode = currentSprite.getBoxNode();
-        /*  Choice of stage
-
-        if (mySM == Stage_EDITNODEPROP && (myNode.NodeIsLeaf()==false)) {
-            editGroup_root = Main.this.setupNodePropertyEditor(mySM, editorStage);
-            }
-        if (mySM == Stage_EDITNODEPROP && (myNode.NodeIsLeaf()==true)) {
-            editGroup_root = Main.this.setupClauseEditorPanel(mySM, editorStage);
+        OpenNodeStage=currentSprite.getStageLocation();
+        //only open if not already open (TO DO: reset when all children closed)
+        //prevent closing until all children closed
+        //close all children when node closed.
+        /*
+        if (currentSprite.getChildStage()==null) {
+            StageManager childSM = new StageManager();
+            childSM = openNodeInNewStage(myNode);
+            currentSprite.setChildStage(childSM);
         }
+        //make node viewer visible if still open but not showing
         else {
-            openBoxesOnStage(mySM,myNode);
+            StageManager tempStage = currentSprite.getChildStage();
+            tempStage.showStage();
         }
         */
-        //OpenNodeStage = mySM;
-        //openBoxesOnStage(mySM,myNode);
-        //ignore the mySM and get Stage from the location of the nodebox itself
-        OpenNodeStage=currentSprite.getStageLocation();
-        openNodeInNewStage(myNode); //generic stage
-
         break;
     case 3:
         System.out.println("Three clicks");
@@ -902,7 +901,7 @@ private void makeMenuBarGroup(Group myGroup) {
         NewLibrary.setOnAction(new EventHandler<ActionEvent>() {
         public void handle(ActionEvent t) {
              //NewNodeForStage(Stage_PROJLIB,NC_project);
-             NewNodeForOpenStage(NC_project);
+             NewNodeForOpenStage(NC_library);
             }
         }); 
 
@@ -1434,14 +1433,14 @@ public Boolean isLegalRoleWord (String myWord) {
 /* Method to open the node in a new Stage window 
 nb Do not change the opennode until a sprite is opened*/
 
-private void openNodeInNewStage(ClauseContainer myNode) {
+private StageManager openNodeInNewStage(ClauseContainer myNode) {
         StageManager myStageManager = new StageManager();
-        String nodename = myNode.getDocName();
         //general stage construction function
-        myStageManager=newStageConst(myStageManager,nodename,myNode); //uses defaultconfig
-        myStageManager.showStage();
+        myStageManager=newStageConst(myNode,1); //uses defaultconfig
+        //myStageManager.showStage();
         //open any child nodes as boxes
         openBoxesOnStage(myStageManager, myNode); //<--this also updates some stage info (default)
+        return myStageManager;
     }
 
 /* Method to open the child nodes as boxes in current Stage  
@@ -1464,7 +1463,7 @@ public void openBoxesOnStage(StageManager mySM, ClauseContainer myNode) {
 }
 
 /* Box up a container of Sprites and place on Stage */
-
+/*
  public void displayBoxesOnStage(StageManager myStageManager, ClauseContainer myNode) {
     
         ArrayList<ClauseContainer> myNodes = myNode.getChildNodes();
@@ -1480,6 +1479,7 @@ public void openBoxesOnStage(StageManager mySM, ClauseContainer myNode) {
         myStageManager.getStage().show();
         }
 
+*/
 //general method to store currentSprite
 
 private void setCurrentSprite(SpriteBox mySprite) {
@@ -1560,19 +1560,20 @@ new Stage constructor.  If useful, move to StageManager constructor
 Set current open stage to this one when called.
 
 */
-public StageManager newStageConst(StageManager mySM, String myFileLabel, ClauseContainer defaultNode) {
-    mySM = new StageManager(myFileLabel); //category
+public StageManager newStageConst(ClauseContainer defaultNode, int hidden) {
+    StageManager mySM = new StageManager(); //category
     mySM.setStageParent(Stage_WS);
-    mySM.defaultConfigStage(); //sets the scene only
-    mySM.setTitle(myFileLabel);
-    mySM.setFilename(myFileLabel+".ser"); //default
-    mySM.setDisplayNode(defaultNode); //default Node
     mySM.setPressBox(PressBoxEventHandler);
     mySM.setDragBox(DragBoxEventHandler);
-    //mySM.hideStage(); //set default as hidden for now
+    mySM.openBoxesOnStage(defaultNode); //default Node
     OpenNodeStage=mySM;
     Stage_WS.setCurrentFocus(mySM); //use Stage_WS to set class variable
-    mySM.showStage();
+    if (hidden==0) {
+        mySM.hideStage();
+    }
+    else {
+        mySM.showStage();
+    }
     return mySM;
 }
 
@@ -1607,12 +1608,12 @@ public void identifyStages (StageManager mySM, Stage myStage, Group myGroup) {
 
         //
     
-        Stage_WS = new StageManager("workspace"); //category
+        Stage_WS = new StageManager(); //category
         Stage_WS.setTitle("Workspace");
         Stage_WS.setFilename("workspace.ser");
         Stage_WS.setPressBox(PressBoxEventHandler);
         Stage_WS.setDragBox(DragBoxEventHandler);
-        Stage_WS.setDisplayNode(WorkspaceNode); //default Node
+        Stage_WS.setWSNode(WorkspaceNode); //default Node
         WorkspaceGroup=makeWorkspaceGroups();
         WorkspaceStage = newWorkstageFromGroup(WorkspaceGroup);        
        
@@ -1631,15 +1632,11 @@ public void identifyStages (StageManager mySM, Stage myStage, Group myGroup) {
 
         //configStageMan(Stage_COLL,CollectionStage,CollectionScene,CollectionGroup,"Collection");
         
-        Stage_COLL=newStageConst(Stage_COLL,"collection", collectionNode);
-        Stage_COLL.hideStage(); 
-        Stage_LIB=newStageConst(Stage_LIB,"library", libraryNode);
-        Stage_LIB.hideStage(); 
-        Stage_DOC=newStageConst(Stage_DOC,"document", documentNode);
-        Stage_DOC.hideStage(); 
-        Stage_PROJ=newStageConst(Stage_PROJ,"project", projectNode);
-        Stage_PROJ.hideStage(); 
-        Stage_PROJLIB=newStageConst(Stage_PROJLIB,"projlib", projectLibNode);
+        Stage_COLL=newStageConst(collectionNode,0);
+        Stage_LIB=newStageConst(libraryNode,0);
+        Stage_DOC=newStageConst(documentNode,0);
+        Stage_PROJ=newStageConst(projectNode,0);
+        Stage_PROJLIB=newStageConst(projectLibNode,1);
         //last opened stage is default stage
         
 
