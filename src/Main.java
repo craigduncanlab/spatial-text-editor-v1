@@ -207,6 +207,8 @@ public class Main extends Application {
     NodeCategory NC_project = new NodeCategory ("collection",2,"orange");
     NodeCategory NC_collection = new NodeCategory ("project",3,"salmon");
         //see line 690 above
+    //To hold Stage with open node that is current
+    StageManager OpenNodeStage = new StageManager();
 
 /*The main method uses the launch method of the Application class.
 https://docs.oracle.com/javase/8/javafx/api/javafx/application/Application.html
@@ -404,6 +406,33 @@ private void NewNodeForStage(StageManager targetStage, NodeCategory nodecat) {
     }
 }
 
+//Adds a container that is not holding a specific clause (could be anything)
+private void NewNodeForOpenStage(NodeCategory nodecat) {
+
+    //use the persistent Stage_WS instance to get the current stage (class variable)
+    OpenNodeStage = Stage_WS.getCurrentFocus();
+    StageManager targetStage = OpenNodeStage;
+    int docnum=targetStage.advanceDocCount();
+    SpriteBox b = new SpriteBox(getNewNodeWithData(nodecat,docnum));
+    b.setOnMousePressed(PressBoxEventHandler); 
+    b.setOnMouseDragged(DragBoxEventHandler);
+     /*
+     if (targetStage.getStage().isShowing()==true) {
+        placeSpriteOnTargetStage(b, targetStage);
+        System.out.println("New node for stage - target is:"+targetStage.toString());
+    }
+    else {
+        System.out.println(b.toString()+Stage_WS.toString());
+            placeSpriteOnStage(b, Stage_WS);
+            System.out.println("New sprite on Stage_WS called from main new node:"+b.toString());
+    }
+    */
+    placeSpriteOnTargetStage(b, targetStage);
+    System.out.println("New node for stage - target is:"+targetStage.toString());
+    System.out.println("New sprite on stage is:"+b.toString());
+}
+
+
 //place Sprite on Target stage if open otherwise workspace
 
 private void placeSpriteOnTargetStage(SpriteBox mySprite, StageManager targetStage) {
@@ -424,6 +453,7 @@ private void placeSpriteOnTargetStage(SpriteBox mySprite, StageManager targetSta
 private void toggleView(StageManager mySM) {
              
     mySM.toggleStage();
+    OpenNodeStage=mySM;
 }
 
 //end alert status for current sprite and reassign
@@ -467,6 +497,8 @@ switch(clickcount) {
         
         //Dbl Click action options depending on box type
         ClauseContainer myNode = currentSprite.getBoxNode();
+        /*  Choice of stage
+
         if (mySM == Stage_EDITNODEPROP && (myNode.NodeIsLeaf()==false)) {
             editGroup_root = Main.this.setupNodePropertyEditor(mySM, editorStage);
             }
@@ -476,6 +508,12 @@ switch(clickcount) {
         else {
             openBoxesOnStage(mySM,myNode);
         }
+        */
+        //OpenNodeStage = mySM;
+        //openBoxesOnStage(mySM,myNode);
+        //ignore the mySM and get Stage from the location of the nodebox itself
+        OpenNodeStage=currentSprite.getStageLocation();
+        openNodeInNewStage(myNode); //generic stage
 
         break;
     case 3:
@@ -605,7 +643,7 @@ public Scene updateWorkSpaceScene(Group myGroup) {
     
 public Stage newWorkstageFromGroup(Group myGroup) {
         Scene myScene = updateWorkSpaceScene(myGroup);
-        Stage myStage = Stage_WS.makeNewSpriteStage(myScene); 
+        Stage myStage = Stage_WS.makeWorkspaceStage(myScene); 
         //Stage_WS.setSpriteGroup(myGroup);
         return myStage; 
 }
@@ -702,7 +740,8 @@ private void makeMenuBarGroup(Group myGroup) {
 
         NewProject.setOnAction(new EventHandler<ActionEvent>() {
         public void handle(ActionEvent t) {
-                NewNodeForStage(Stage_PROJLIB,NC_project);
+            //NewNodeForStage(Stage_PROJLIB,NC_project);
+            NewNodeForOpenStage(NC_project);
             }
         }); 
 
@@ -729,7 +768,8 @@ private void makeMenuBarGroup(Group myGroup) {
 
         NewCollection.setOnAction(new EventHandler<ActionEvent>() {
         public void handle(ActionEvent t) {
-                NewNodeForStage(Stage_COLL,NC_collection);
+            //NewNodeForStage(Stage_COLL,NC_collection);
+            NewNodeForOpenStage(NC_collection);
             }
         }); 
 
@@ -794,21 +834,24 @@ private void makeMenuBarGroup(Group myGroup) {
         NewDef.setOnAction(new EventHandler<ActionEvent>() {
         public void handle(ActionEvent t) {
                 System.out.println("New Def button - called from Main");
-                NewNodeForStage(Stage_DOC,NC_def);
+                //NewNodeForStage(Stage_DOC,NC_def);
+                NewNodeForOpenStage(NC_def);
             }
         });
 
         NewClause.setOnAction(new EventHandler<ActionEvent>() {
         public void handle(ActionEvent t) {
                 System.out.println("New Clause button - called from Main");
-                NewNodeForStage(Stage_DOC,NC_clause);
+                //NewNodeForStage(Stage_DOC,NC_clause);
+                 NewNodeForOpenStage(NC_clause);
             }
         });
 
         NewEvent.setOnAction(new EventHandler<ActionEvent>() {
         public void handle(ActionEvent t) {
                 System.out.println("New Event button - called from Main");
-                NewNodeForStage(Stage_DOC,NC_event);
+                //NewNodeForStage(Stage_DOC,NC_event);
+                NewNodeForOpenStage(NC_event);
             }
         });
 
@@ -818,7 +861,8 @@ private void makeMenuBarGroup(Group myGroup) {
         NewDoc.setOnAction(new EventHandler<ActionEvent>() {
         public void handle(ActionEvent t) {
                 System.out.println("Event handler in main detected - newdoc button");
-                NewNodeForStage(Stage_COLL,NC_document);
+                //NewNodeForStage(Stage_COLL,NC_document);
+                 NewNodeForOpenStage(NC_document);
             }
         });
 
@@ -857,7 +901,8 @@ private void makeMenuBarGroup(Group myGroup) {
 
         NewLibrary.setOnAction(new EventHandler<ActionEvent>() {
         public void handle(ActionEvent t) {
-                NewNodeForStage(Stage_PROJLIB,NC_project);
+             //NewNodeForStage(Stage_PROJLIB,NC_project);
+             NewNodeForOpenStage(NC_project);
             }
         }); 
 
@@ -1386,20 +1431,29 @@ public Boolean isLegalRoleWord (String myWord) {
     return false;
 }
 
-/* Method to open the node in a new Stage window */
+/* Method to open the node in a new Stage window 
+nb Do not change the opennode until a sprite is opened*/
 
-private void openNodeInNewStage(ClauseContainer myContainer) {
+private void openNodeInNewStage(ClauseContainer myNode) {
         StageManager myStageManager = new StageManager();
-        myStageManager.defaultConfigStage();
-        openBoxesOnStage(myStageManager, myContainer);
+        String nodename = myNode.getDocName();
+        //general stage construction function
+        myStageManager=newStageConst(myStageManager,nodename,myNode); //uses defaultconfig
+        myStageManager.showStage();
+        //open any child nodes as boxes
+        openBoxesOnStage(myStageManager, myNode); //<--this also updates some stage info (default)
     }
 
-/* Method to open the node in existing Stage  */
+/* Method to open the child nodes as boxes in current Stage  
+Check that there are child nodes
+Check for null or length zero?  */
 
 public void openBoxesOnStage(StageManager mySM, ClauseContainer myNode) {
 
-    mySM.openBoxesOnStage(myNode);
-    setCurrentSprite(mySM.getFocusBox());
+    if (myNode.getChildNodes().size()>0) {
+        mySM.openBoxesOnStage(myNode);
+        setCurrentSprite(mySM.getFocusBox());
+    }
     /*
     mySM.resetSpriteOrigin();
     mySM.defaultConfigStage();
@@ -1422,6 +1476,7 @@ public void openBoxesOnStage(StageManager mySM, ClauseContainer myNode) {
             placeSpriteOnStage(b, myStageManager);
         }
         setCurrentSprite(myStageManager.getFocusBox());
+        OpenNodeStage=myStageManager;
         myStageManager.getStage().show();
         }
 
@@ -1494,18 +1549,30 @@ public void deleteSprite(SpriteBox mySprite) {
     unsetParentChild(mySprite);
 }
 
+public void setFocusOpenStage(StageManager thisSM) {
+    OpenNodeStage = thisSM;
+}
 
-//new Stage constructor.  If useful, move to StageManager constructor
+
+/*
+new Stage constructor.  If useful, move to StageManager constructor
+
+Set current open stage to this one when called.
+
+*/
 public StageManager newStageConst(StageManager mySM, String myFileLabel, ClauseContainer defaultNode) {
     mySM = new StageManager(myFileLabel); //category
     mySM.setStageParent(Stage_WS);
-    mySM.defaultConfigStage(); //empty
+    mySM.defaultConfigStage(); //sets the scene only
     mySM.setTitle(myFileLabel);
     mySM.setFilename(myFileLabel+".ser"); //default
     mySM.setDisplayNode(defaultNode); //default Node
     mySM.setPressBox(PressBoxEventHandler);
     mySM.setDragBox(DragBoxEventHandler);
-    mySM.hideStage(); //set default as hidden for now
+    //mySM.hideStage(); //set default as hidden for now
+    OpenNodeStage=mySM;
+    Stage_WS.setCurrentFocus(mySM); //use Stage_WS to set class variable
+    mySM.showStage();
     return mySM;
 }
 
@@ -1565,10 +1632,16 @@ public void identifyStages (StageManager mySM, Stage myStage, Group myGroup) {
         //configStageMan(Stage_COLL,CollectionStage,CollectionScene,CollectionGroup,"Collection");
         
         Stage_COLL=newStageConst(Stage_COLL,"collection", collectionNode);
+        Stage_COLL.hideStage(); 
         Stage_LIB=newStageConst(Stage_LIB,"library", libraryNode);
+        Stage_LIB.hideStage(); 
         Stage_DOC=newStageConst(Stage_DOC,"document", documentNode);
+        Stage_DOC.hideStage(); 
         Stage_PROJ=newStageConst(Stage_PROJ,"project", projectNode);
+        Stage_PROJ.hideStage(); 
         Stage_PROJLIB=newStageConst(Stage_PROJLIB,"projlib", projectLibNode);
+        //last opened stage is default stage
+        
 
 
         /*

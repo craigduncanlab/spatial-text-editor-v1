@@ -39,6 +39,17 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
+//Scene - general appearance & layout of Background Fills, Stages, nodes
+import javafx.scene.layout.Region;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane; //these still have individual positions (like Sprites)
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.VBox;
+import javafx.scene.layout.HBox;
 // event handlers
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -91,6 +102,8 @@ int doccount=0; //document counter for this stage
 //For storing main text input area for this Stage (if any)
 
 //For storing main text output area for this Stage (if any)
+//As of 26.4.2018: make this the default area to hold the node's own text (for stages that display a frame that is also an open node).  Always editable.
+//This is a GUI object, that happens to contain text.  Edit button will update the node's (ClauseContainer) actual data
 TextArea inputTextArea = new TextArea();
 TextArea outputTextArea = new TextArea();
 //Store the common event handlers here for use
@@ -107,6 +120,10 @@ Consider if subclasses of StageManager could deal with flavours of StageManager 
 */
 ArrayList<Object> BoxContentsArray = new ArrayList<Object>(); //generic store of contents of boxes
 
+//
+static StageManager currentFocus; //any StageManager can set this to itself?
+
+
 //constructor
 public StageManager() {
     this.outputTextArea.setWrapText(true);
@@ -119,6 +136,16 @@ public StageManager(String category) {
     this.outputTextArea.setWrapText(true);
     this.inputTextArea.setWrapText(true);  //default
     setCategory(category);
+}
+
+//any instance can return the global variable with focus stage
+public StageManager getCurrentFocus() {
+    return currentFocus; //notice not a 'this' as not an instance
+}
+
+//any instance can return the global variable with focus stage
+public void setCurrentFocus(StageManager mySM) {
+    currentFocus = mySM; //notice not a 'this' as not an instance
 }
 
 //JAVAFX SCENE GRAPH GUI INFO (THIS IS NOT THE DATA NODE!)
@@ -226,6 +253,11 @@ public void setInputText(String myText) {
 
 public String getInputText() {
     return inputTextArea.getText();
+}
+
+//set the identified JavaFX object (TextArea) for the Stage
+public void setStageTextArea(TextArea myTA) {
+    this.inputTextArea = myTA;
 }
 
 //Return the JavaFX object (Node) 
@@ -507,22 +539,23 @@ public void toggleStage() {
     }
 }
 
-//public interface setter helper
+//public interface setter helper - currently not used
+
 public void setInitStage(StageManager myParentSM, Stage myStage, Group myGroup, String myTitle) {
    setStageName(myTitle);
-   setPosition();
    setStage(myStage);
    setStageParent(myParentSM);
+   setPosition(); 
    setSpriteGroup(myGroup);
    setTitle(myTitle);
 }
 
-//
+//method replaces scene in current stage with the default node editing screen
+//does not create the stage in this method as the localStage is a StageManager instance variable
 public void defaultConfigStage() {
-    Scene myScene = makeSceneForBoxes(makeScrollGroup());
-    setupNewSpriteStage(myScene);
-    setPosition();
-    //tempStage.setTitle(getTitle());
+    //Scene myScene = makeSceneForBoxes(makeScrollGroup());
+    Scene myScene = makeSceneForNodeEdit();
+    //Stage myStage = setupNewSpriteStage(myScene);
 }
 
 /* Method to make new Scene with known Group for Sprite display */
@@ -534,6 +567,14 @@ public ScrollPane makeScrollGroup () {
     return outerScroll;
 }
 
+/* Method to make new TextArea that has associated functions in this class */
+public TextArea makeTextArea() {
+    TextArea tempTextArea = new TextArea();
+    setStageTextArea(tempTextArea); 
+    return tempTextArea;
+}
+
+//The scene only contains a pane to display sprite boxes
 private Scene makeSceneForBoxes(ScrollPane myPane) {
         
         Scene tempScene = new Scene (myPane,650,400); //default width x height (px)
@@ -541,7 +582,7 @@ private Scene makeSceneForBoxes(ScrollPane myPane) {
         tempScene.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
          @Override
          public void handle(MouseEvent mouseEvent) {
-         System.out.println("Mouse click on scene detected! " + mouseEvent.getSource());
+         System.out.println("Mouse click on SM scene detected! " + mouseEvent.getSource());
          //setStageFocus("document");
              }
         });
@@ -549,8 +590,66 @@ private Scene makeSceneForBoxes(ScrollPane myPane) {
         return tempScene;
 }
 
+//The scene contains a text area, a pane to display sprite boxes and an Edit/Update button
+
+private Scene makeSceneForNodeEdit() {
+        
+        ScrollPane tempPane = makeScrollGroup();
+        TextArea tempTextArea  = makeTextArea();
+        //Button for saving clauses
+        Button btnUpdate = new Button();
+        btnUpdate.setText("Update");
+        btnUpdate.setTooltip(new Tooltip ("Press to Save current edits"));
+        btnUpdate.setOnAction(UpdateContainerEditor);
+        //Button for cancel
+        Button btnEditCancel = new Button();
+        btnEditCancel.setText("Cancel Edits");
+        btnEditCancel.setTooltip(new Tooltip ("Press to Cancel current edits"));
+        //TO DO: set on action
+      
+        HBox hboxButtons = new HBox(0,btnUpdate,btnEditCancel);
+        VBox allContent = new VBox(0,tempTextArea,tempPane,hboxButtons);
+        //vboxAll.setPrefWidth(200);
+        //
+        Pane largePane = new Pane();
+        largePane.getChildren().add(allContent); 
+        Scene tempScene = new Scene (largePane,650,400); //default width x height (px)
+        //add event handler for mouse event
+        tempScene.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
+         @Override
+         public void handle(MouseEvent mouseEvent) {
+         System.out.println("Mouse click on SM NE scene detected! " + mouseEvent.getSource());
+         //setStageFocus("document");
+         currentFocus=StageManager.this;
+         }
+        });
+        setSceneInStage(tempScene);
+        return tempScene;
+}
+
+//Create Eventhandler to use with stages that allow edit button
+
+EventHandler<ActionEvent> UpdateContainerEditor = 
+        new EventHandler<ActionEvent>() {
+        @Override 
+        public void handle(ActionEvent event) {
+            //TO DO: rewrite so that it updates the node text only
+
+            /* myEditCC.setDocName(docnameEdit.getText());
+            myEditCC.setAuthorName(authorEdit.getText());
+            myEditCC.setNotes(notesEdit.getText());
+            myEditCC.setDate(CCdateEdit.getText());
+            System.out.println("Container updated!");
+            //update the SpriteBox content with updated CC, which will update GUI
+            SpriteBox focusSprite = getCurrentSprite();
+            focusSprite.setBoxNode(myEditCC);
+            */
+            }
+        };
+
 /*
-Method to setup single stage using Scene and Group
+Method to setup single stage using Scene and Group - currently not used internally
+obsolete external call
 */
 
 
@@ -558,11 +657,18 @@ public void setupNewSpriteStage(Scene myScene) {
 
     //Configure the Stage and its position/visibility
     Stage tempStage = new Stage();
+    setStage(tempStage);
+    //setStageParent(myParentSM);
     setSceneInStage(myScene);
     setPosition();
+    tempStage.show();
 }
 
-public Stage makeNewSpriteStage(Scene myScene) {
+/*
+Method to setup single stage using Scene and Group - used only by WS stage
+*/
+
+public Stage makeWorkspaceStage(Scene myScene) {
 
     Stage tempStage = new Stage();
     tempStage.setScene(myScene); //JavaFX: set current scene for the Stage

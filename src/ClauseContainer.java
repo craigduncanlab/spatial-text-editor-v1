@@ -61,8 +61,9 @@ int nodelevel = 0; //start at root 0 (project) allows future tree expansion
 int nodeGUIloc = 0; //to store Stage or GUI element where the node is located
 //(nodelocation can match Stage?)
 
-//As of 26.4.18 - Make this node hold its own text, title (not docnotes but node text)
-
+//As of 26.4.18 - Make this node hold its own text, title (for now use docnotes as node text)
+//consequences: the concept of a 'clause' can be replaced by 
+//a) nodeCat to hold node category b) docnotes here to hold the text itself. 
 
 //empty constructor no arguments
 public ClauseContainer() {
