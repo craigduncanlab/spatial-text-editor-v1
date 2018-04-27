@@ -505,9 +505,6 @@ switch(clickcount) {
         if (currentSprite.getChildStage()==null) {
             StageManager childSM = new StageManager();
             childSM = openNodeInNewStage(currentSprite);
-             //ClauseContainer myNode = currentSprite.getBoxNode();
-             //currentSprite.setChildStage(childSM);
-            //childSM.setParentBox(currentSprite);
         }
         //make node viewer visible if still open but not showing
         else {
@@ -594,38 +591,6 @@ public void setupImportStage(StageManager myStageManager, Stage textStage, Strin
         myStageManager.setSceneRoot(import_rootnode_scroll);
         textStage.show();
     }
-
-//fine tuning of region objects.   Not needed if working directly with Pane etc
-public Region setWorkSpaceRegion(Node inputNode) {
-    Region myRegion = new Region();
-    return myRegion;
-    //Paint myPaint = new Paint(Color.BEIGE);
-    //BackgroundFill myBF = new BackgroundFill(myPaint); 
-    /*
-    BackgroundFill myBF = new BackgroundFill(Color.BEIGE,null,null); //cnr radii, inset
-    Background myBG = new Background(myBF);
-    Region myRegion = new Region ();
-    myRegion.setBackground(myBG);
-    Rectangle2D ScreenBounds = Screen.getPrimary().getVisualBounds();
-    double myBigX = ScreenBounds.getWidth();
-    double myBigY = ScreenBounds.getHeight()-100.00;
-    myRegion.setPrefSize(myBigX,myBigY); //Node property
-    
-    //
-    Region myRegion = setWorkSpaceRegion();
-    //set layout of node in region...
-        double zero = 0.0;
-        double rw = 600;
-        double rh = 600;
-        double baseOff = 40;
-        boolean fillWidth=true;
-        boolean fillHeight=true;
-        boolean snap=false;
-        myRegion.layoutInArea(inputNode, zero,zero,rw,rh,baseOff,new Insets (40,40,40,40),fillWidth,fillHeight,HPos.LEFT,VPos.TOP,snap);
-      
-    return myRegion;
-    */
-}
 
 public Scene updateWorkSpaceScene(Group myGroup) {
         
