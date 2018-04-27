@@ -114,12 +114,15 @@ String category="";
 ClauseContainer displayNode = new ClauseContainer();
 int doccount=0; //document counter for this stage
 
+//NODE VIEWER DIMENSIONS
+int nodeViewWidth = 600;
+int nodeViewHeight = 600;
 
-//For storing main text input area for this Stage (if any)
-
+//NODE'S TEXT CONTENT
 //For storing main text output area for this Stage (if any)
 //As of 26.4.2018: make this the default area to hold the node's own text (for stages that display a frame that is also an open node).  Always editable.
-//This TextAre is the GUI display object for the nodes' docnotes String.  Edit button will update the node's (ClauseContainer) actual data
+
+//This TextArea is the GUI display object for the nodes' docnotes String.  Edit button will update the node's (ClauseContainer) actual data
 TextArea shortnameTextArea = new TextArea();
 TextArea headingTextArea = new TextArea();
 TextArea inputTextArea = new TextArea();
@@ -362,6 +365,8 @@ public void updateView() {
     shortnameTextArea.setText(displayNode.getDocName());
     headingTextArea.setText(displayNode.getHeading());
     inputTextArea.setText(displayNode.getNotes());
+    //output node contents
+    outputTextArea.setText(displayNode.getOutputText());
     //child nodes
     displayBoxesOnStage();
 }
@@ -692,7 +697,7 @@ private void makeSceneForNodeEdit() {
         Button btnUpdate = new Button();
         btnUpdate.setText("Update");
         btnUpdate.setTooltip(new Tooltip ("Press to Save current edits"));
-        btnUpdate.setOnAction(UpdateContainerEditor);
+        btnUpdate.setOnAction(UpdateNodeText);
         //Button for cancel
         Button btnEditCancel = new Button();
         btnEditCancel.setText("Cancel Edits");
@@ -702,12 +707,12 @@ private void makeSceneForNodeEdit() {
         HBox hboxButtons = new HBox(0,btnUpdate,btnEditCancel);
         //
         parentBoxText = new Text();
-        VBox allContent = new VBox(0,parentBoxText,shortnameTextArea,headingTextArea,inputTextArea,hboxButtons,tempPane);
+        VBox allContent = new VBox(0,parentBoxText,shortnameTextArea,headingTextArea,inputTextArea,hboxButtons,tempPane,outputTextArea);
         //vboxAll.setPrefWidth(200);
         //
         Pane largePane = new Pane();
         largePane.getChildren().add(allContent); 
-        Scene tempScene = new Scene (largePane,650,400); //default width x height (px)
+        Scene tempScene = new Scene (largePane,nodeViewWidth,nodeViewHeight); //default width x height (px)
         //add event handler for mouse event
         tempScene.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
          @Override
@@ -724,7 +729,7 @@ private void makeSceneForNodeEdit() {
 
 //Create Eventhandler to use with stages that allow edit button
 
-EventHandler<ActionEvent> UpdateContainerEditor = 
+EventHandler<ActionEvent> UpdateNodeText = 
         new EventHandler<ActionEvent>() {
         @Override 
         public void handle(ActionEvent event) {
@@ -732,6 +737,7 @@ EventHandler<ActionEvent> UpdateContainerEditor =
             String editedName=shortnameTextArea.getText();
             String editedHeading=headingTextArea.getText();
             String editedText=inputTextArea.getText();
+            String editedOutput=outputTextArea.getText();
             //
             displayNode.setDocName(editedName);
             //parentBox
@@ -739,6 +745,7 @@ EventHandler<ActionEvent> UpdateContainerEditor =
             pntBox.setLabel(editedName);
             displayNode.setHeading(editedHeading);
             displayNode.setNotes(editedText);
+            displayNode.setOutputText(editedOutput);
             //
             System.out.println("Text in the update:"+editedText);
             System.out.println("Node updated!");

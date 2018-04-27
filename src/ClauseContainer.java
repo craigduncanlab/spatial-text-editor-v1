@@ -33,6 +33,13 @@ However, we can still enforce Stages only showing certain levels of objects if N
 
 However, if each Node stores a 'level' then it will allow some search and save for particular kinds of nodes later, regadless of where they are located in the GUI.
 
+27.4.18
+Testing the idea that every node is a functional workspace.
+i.e. it has input (text data) and output (text) areas, both can be display in GUI.
+The GUI can then apply any of the general operations on text to any node (do not need a specific importer window - just use the current node text area).
+This repurposes any space, makes the environment flexible and nodes are functional
+--> everything is local (a kind of OO design?).  
+The fact that a node can be added as a child makes this scaleable.
 
 */
 
@@ -41,23 +48,30 @@ public class ClauseContainer extends Collection implements java.io.Serializable 
 //mark this class this to allow for changes to variables in class (refactoring)
 private static final long serialVersionUID = -64702044414208496L;
 
-//Graph nodes along edges:
-ClauseContainer myParentNode; 
-ArrayList<ClauseContainer> myChildNodes = new ArrayList<ClauseContainer>();
 
 //This node's metadata
 String ContainerType=""; 
 int numClauses=0; //this will hold number of clauses
+//NODE INPUT FIELDS
 String docname=""; //to hold the container name or filename
 String docauthor=""; //to hold author name
 String docnotes=""; //to hold Document notes
 String shortname="";
 String heading="";
 String date="";
+//NODE OUTPUT FIELDS
+String output="";
+
+//NODE CATEGORY
+NodeCategory nodeCat = new NodeCategory();
+
+//NODE ASSOCIATIONS: i.e. Graph nodes along edges:
+ClauseContainer myParentNode; 
+ArrayList<ClauseContainer> myChildNodes = new ArrayList<ClauseContainer>();
 
 //This node's data and level in tree:
 Clause dataClause = new Clause(); 
-NodeCategory nodeCat = new NodeCategory();
+
 String nodecategory = "";
 int nodelevel = 0; //start at root 0 (project) allows future tree expansion
 int nodeGUIloc = 0; //to store Stage or GUI element where the node is located
@@ -198,6 +212,15 @@ public String getShortname () {
 	return this.shortname;
 }
 
+//NODE'S OUTPUT TEXT FIELD
+public String getOutputText() {
+	return this.output;
+}
+
+public void setOutputText(String myString) {
+	this.output = myString;
+}
+
 //THIS NODE'S CLAUSE DATA (OBSOLETE)
 
 public void addNodeClause(Clause thisClause) {
@@ -256,18 +279,22 @@ public void doPrintIteration() {
 
 //method to print clause category
 private String printClauseCategory(String testCat) {
+	if (this.myChildNodes.size()==0) {
+		System.out.println("No child nodes to print");
+		return "";
+	}
 	Iterator<ClauseContainer> myNodeIt = this.myChildNodes.iterator();
 	String output="";
 	output=output+"\n "+testCat+" \n\n";
-	printClauseCategory(testCat);
+	//printClauseCategory(testCat);
 	while (myNodeIt.hasNext()) {
 		ClauseContainer myNode = myNodeIt.next();
 		String category = myNode.getNodeCategory();
-		Clause myclause = myNode.getNodeClause();
+		//Clause myclause = myNode.getNodeClause();
 		if (category.equals(testCat)) {
-			String mylabel = myclause.getLabel();
-			String myheading = myclause.getHeading();
-			String mytext = myclause.getClauseText();
+			String mylabel = myNode.getDocName();
+			String myheading = myNode.getHeading();
+			String mytext = myNode.getNotes();
 			//output=output+myheading+" ("+category+")"+":\n----------\n"+mytext+"\n\n";
 			output=output+"\""+myheading+"\""+" means "+mytext+"\n";
 		}

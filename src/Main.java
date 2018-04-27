@@ -283,6 +283,7 @@ private ClauseContainer getNewNodeWithData(NodeCategory nodecat, int docNum) {
     clauseNode.setNC(nodecat);
     clauseNode.setHeading("heading");
     clauseNode.setShortname(nodecat.getCategory()+docNum);
+    clauseNode.setOutputText("output");
     //clauseNode.setNodeCategory(nodecat.getCategory());
     //clauseNode.setNodeLevel(nodecat.getLevel());
     clauseNode.setType(nodecat.getCategory());
@@ -2031,19 +2032,28 @@ public StageManager openBoxesOnStage(StageManager mySM, ClauseContainer myNode, 
         }
     };
     
+        /* Process the text in the input area of the current Node viewer 
+        (whether saved or not)
+        */
+
         EventHandler<ActionEvent> extractDefinitions = 
         new EventHandler<ActionEvent>() {
         @Override 
         public void handle(ActionEvent event) {
-            System.out.println("Get Defs Button was pressed!");
+            System.out.println("Get Defs Text Button was pressed!");
             //temp StageManager
-            Main.this.setupTextOutputWindow(Stage_Definitions,"Definitions Imported");
+            //Main.this.setupTextOutputWindow(Stage_Definitions,"Definitions Imported");
             //Outer class method class to obtain text from analysis area
-            String gotcha = Main.this.textArea1.getText();
+            //String gotcha = Main.this.textArea1.getText();
+            String gotcha = OpenNodeStage.getInputText();
+            System.out.println("Current input text:"+gotcha);
             String newDefs = Main.this.getMatched(gotcha);
             
-            //now set the content of text area inside scrollpane to our extracted text
-            Stage_Definitions.setOutputText(newDefs);
+            //output to output area in current node viewer
+            OpenNodeStage.setOutputText(newDefs);
+
+            //OLD: set the content of text area inside scrollpane to our extracted text
+            //Stage_Definitions.setOutputText(newDefs);
             
             }
         };

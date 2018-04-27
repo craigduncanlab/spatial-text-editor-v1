@@ -34,7 +34,7 @@ public WordTool () {
   
 }
 
-/* unusued ?? 15.1.18
+/* unused ?? 15.1.18
 
 private TreeMap<Integer, String> makeMapFromDefinitions (DefContainer myContainer, String inputMe) {
     //map structure for counting
@@ -293,14 +293,12 @@ TO DO 15.1.18 : utilise my classes from regex search API for data mining
     return patternString;
   }
 
-  public ClauseContainer doDefTextSearch(String mydata) {
-    ClauseContainer myResults = new ClauseContainer(); 
+  public ClauseContainer doDefTextSearch(String mydata) { 
     String myPattern = makeDefsRegexPatterns("quoted");
-    myResults = getDefsMatches(mydata, myPattern); 
-    if (myResults.getNumClauses()<4) {
-      System.out.println ("def text search had less than 4 matches");
-    }
-    return myResults;
+    ClauseContainer resultsNode = getDefsMatches(mydata, myPattern); 
+    ArrayList<ClauseContainer> resultsArray = resultsNode.getChildNodes();
+    System.out.println ("Definition search results had "+resultsArray.size()+" matches");
+    return resultsNode;
   }
 
     /* 
@@ -331,25 +329,43 @@ TO DO 15.1.18 : utilise my classes from regex search API for data mining
         {
          //System.out.println(matcher.group(1)+" group 2:"+matcher.group(2)+" group 3:"+matcher.group(3));
             for (int i = 1; i <= groupCount; i++) {
-                // Group i substring
+                // Group i substring is the match
                 System.out.println("Group " + i + ": " + matcher.group(i));
           }
-         Clause myDef;  //scope
          String label="";
          label=matcher.group(1);
          //capture text, always group 2, if we find a definition label
          if (!label.equals("") && !label.equals(" ")) {
              String text = matcher.group(2);
              matchCount++; 
-             myDef = new Clause(label,label,text,"definition");
-             myContainer.addNodeClause(myDef);
+             //this should be new ClauseContainer now: 27.4.18
+             ClauseContainer myDef = makeNewDefinitionNode(label,text);
+             myContainer.addChildNode(myDef);
           }
         }
-      this.updateClauseFreq(myContainer,mydata);
+      //this.updateClauseFreq(myContainer,mydata);
       return myContainer;
     }
 
-    /* Method to update the frequency count of the current set of definitions for the given String 
+  //Make new node to be a child node of node returned.
+
+  private ClauseContainer makeNewDefinitionNode(String label, String definition) {
+    NodeCategory nodecat = new NodeCategory("definition",0,"green"); //mirror Main.java
+    ClauseContainer clauseNode = new ClauseContainer();
+    clauseNode.setDocName(label);
+    clauseNode.setNC(nodecat);
+    clauseNode.setHeading(label);
+    clauseNode.setNotes(definition);
+    clauseNode.setShortname(label);
+    clauseNode.setOutputText("output");
+    //clauseNode.setNodeCategory(nodecat.getCategory());
+    //clauseNode.setNodeLevel(nodecat.getLevel());
+    clauseNode.setType(nodecat.getCategory());
+    clauseNode.setAuthorName("Craig");
+    return clauseNode;
+  }
+
+  /* Method to update the frequency count of the current set of definitions for the given String 
     This will search on the Clause "Label", but it should probably search on Heading, which is specific to the clause;
     the Label is for GUI purposes.
     
