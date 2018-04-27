@@ -387,6 +387,10 @@ private void setDisplayNode(ClauseContainer myNode) {
     updateView();
 }
 
+public ClauseContainer getDisplayNode() {
+    return this.displayNode;
+}
+
 //specific method for creating initial workspace view
 public void setWSNode(ClauseContainer myNode) {
     this.displayNode = myNode;
@@ -396,7 +400,7 @@ public void setWSNode(ClauseContainer myNode) {
     //updateView();
 }
 
-public ClauseContainer getDisplayNode() {
+public ClauseContainer Node() {
     return this.displayNode;
 }
 
@@ -443,16 +447,19 @@ public SpriteBox openDisplayNodeOnStage() {
 
  private void displayBoxesOnStage() {
     
-        ClauseContainer myNode = displayNode;
+        ClauseContainer parentNode = displayNode;
         //SpriteBox lastBox = new SpriteBox();
-        ArrayList<ClauseContainer> myNodes = myNode.getChildNodes();
-        Iterator<ClauseContainer> myiterator = myNodes.iterator();
+        ArrayList<ClauseContainer> childNodes = parentNode.getChildNodes();
+        Iterator<ClauseContainer> myiterator = childNodes.iterator();
 
         while (myiterator.hasNext()) {
             ClauseContainer thisNode = myiterator.next(); 
+            System.out.println("Current child node to be added: "+thisNode.toString());
+            //TO DO: check for duplication
             SpriteBox b = makeBoxWithNode(thisNode); //relies on Main, event handlers x
             addSpriteToStage(b); //differs from Main 
             setFocusBox(b); 
+
         }
         showStage();
         //return getFocusBox();
@@ -797,24 +804,37 @@ public Stage makeWorkspaceStage(Scene myScene) {
 
 //SPRITE BOX ASSIST FUNCTIONS
 
-//Method to add sprite to the Group fo this Stage, and position it
-public void addSpriteToStage(SpriteBox mySprite) {
-    getSpriteGroup().getChildren().add(mySprite); 
-    addChildNodeToDisplayNode(mySprite);
+/* public function to add a box to this Viewer.
+It requires adding the contents of the box as a child node.
+The sprite is created through the normal addspritetostage function
+*/
+public void addNewSpriteToStage(SpriteBox mySprite) {
+        addChildNodeToDisplayNode(mySprite); //data
+        addSpriteToStage(mySprite); //view
+    }
+
+/*
+Internal method to add sprite to the Group/Pane of this Node Viewer 
+This is to add an existing GUI 'box/node' to the Child Node section of this Viewer.
+i.e. this adds a specific object, rather than updating the view from whole underlying data set.
+*/
+
+private void addSpriteToStage(SpriteBox mySprite) {
+    getSpriteGroup().getChildren().add(mySprite);   
     positionSpriteOnStage(mySprite);
     setFocusBox(mySprite); //local information
-    //TO DO: add Node as child to Parent
     mySprite.setStageLocation(StageManager.this); //give Sprite the object for use later.
 }
 
+//Method to add child node based on the contents of an identified NodeBox in GUI.
 public void addChildNodeToDisplayNode(SpriteBox mySprite) {
     getDisplayNode().addChildNode(mySprite.getBoxNode());
 }
 
 public void removeSpriteFromStage(SpriteBox thisSprite) {
-    this.spriteGroup.getChildren().remove(thisSprite); 
+    this.spriteGroup.getChildren().remove(thisSprite); //view/GUI
     thisSprite.resetLocation();
-     //TO DO: remove Node
+     //TO DO: remove Node (data)
 }
 
 public void setContentsArray(ArrayList<Object> inputObject) {

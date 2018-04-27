@@ -371,6 +371,7 @@ private void SaveNode (StageManager mySM) {
     }
 
 //method to set parent node based on stage for child node on stage
+//TO DO: Rewrite so that nodes handle this internally
 private void setParentChild(StageManager targetSM, SpriteBox mySprite) {
     ClauseContainer parentNode = targetSM.getRefParentNode();
     ClauseContainer thisNode = mySprite.getBoxNode();
@@ -378,37 +379,38 @@ private void setParentChild(StageManager targetSM, SpriteBox mySprite) {
     parentNode.addChildNode(thisNode);
 }
 
-//method to set parent node based on stage for child node on stage
+//method to remove links between Child node in this Box (closed node) and its parent.
+
 private void unsetParentChild(SpriteBox mySprite) {
     ClauseContainer thisNode = mySprite.getBoxNode();
-    ClauseContainer parentNode=thisNode.getParentNode();
-    thisNode.unsetParentNode();
-    parentNode.removeChildNode(thisNode);
-}
-
-
-//Adds a container that is not holding a specific clause (could be anything)
-//DEPRECATED NOW
-private void NewNodeForStage(StageManager targetStage, NodeCategory nodecat) {
-
-    
-    int docnum=targetStage.advanceDocCount();
-    SpriteBox b = new SpriteBox(getNewNodeWithData(nodecat,docnum));
-    b.setOnMousePressed(PressBoxEventHandler); 
-    b.setOnMouseDragged(DragBoxEventHandler);
-    if (targetStage.getStage().isShowing()==true) {
-        placeSpriteOnTargetStage(b, targetStage);
-        System.out.println("New node for stage - target is:"+targetStage.toString());
+    if (thisNode==null) {
+        System.out.println("No node to unset");
+        return;
     }
-    else {
-        System.out.println(b.toString()+Stage_WS.toString());
-            placeSpriteOnStage(b, Stage_WS);
-            System.out.println("New sprite on Stage_WS called from main new node:"+b.toString());
+    else
+        { 
+        ClauseContainer parentNode=thisNode.getParentNode();
+        if (parentNode==null) {
+            System.out.println("No parent node to unset");
+            return;
+        }
+        thisNode.unsetParentNode();
+        parentNode.removeChildNode(thisNode);
     }
 }
 
-//Adds a container that is not holding a specific clause (could be anything)
-private void NewNodeForOpenStage(NodeCategory nodecat) {
+/*
+Adds a box with generic data for a category of node.
+The node is added as a child node of the currently open node viewer.
+TO DO:
+Query whether the boxes needs to be 'made' and added, or whether the NodeViewer
+can take care of the display.
+i.e. add the data and let the viewer/context display it
+(currently, the external objects create and pass the box/node i.e. mix data and box view)
+A spritebox is an object, but it is also just 1 possible graphic representation of data.
+*/
+
+private void NewChildNodeForOpenNode(NodeCategory nodecat) {
 
     //use the persistent Stage_WS instance to get the current stage (class variable)
     OpenNodeStage = Stage_WS.getCurrentFocus();
@@ -417,19 +419,8 @@ private void NewNodeForOpenStage(NodeCategory nodecat) {
     SpriteBox b = new SpriteBox(getNewNodeWithData(nodecat,docnum));
     b.setOnMousePressed(PressBoxEventHandler); 
     b.setOnMouseDragged(DragBoxEventHandler);
-     /*
-     if (targetStage.getStage().isShowing()==true) {
-        placeSpriteOnTargetStage(b, targetStage);
-        System.out.println("New node for stage - target is:"+targetStage.toString());
-    }
-    else {
-        System.out.println(b.toString()+Stage_WS.toString());
-            placeSpriteOnStage(b, Stage_WS);
-            System.out.println("New sprite on Stage_WS called from main new node:"+b.toString());
-    }
-    */
     placeSpriteOnTargetStage(b, targetStage);
-    System.out.println("New node for stage - target is:"+targetStage.toString());
+    System.out.println("New node for target viewer :"+targetStage.toString());
     System.out.println("New sprite on stage is:"+b.toString());
 }
 
@@ -457,7 +448,10 @@ private void toggleView(StageManager mySM) {
     OpenNodeStage=mySM;
 }
 
-//end alert status for current sprite and reassign
+/*
+Method to end alert status for current sprite and reassign
+Currently this looks at all Sprite Boxes globally (regardless of viewer/location)
+*/
 private void moveAlertFromBoxtoBox(SpriteBox hadFocus, SpriteBox mySprite) {
     hadFocus = getCurrentSprite();
     if (hadFocus!=null) {
@@ -714,8 +708,7 @@ private void makeMenuBarGroup(Group myGroup) {
 
         NewProject.setOnAction(new EventHandler<ActionEvent>() {
         public void handle(ActionEvent t) {
-            //NewNodeForStage(Stage_PROJLIB,NC_project);
-            NewNodeForOpenStage(NC_project);
+            NewChildNodeForOpenNode(NC_project);
             }
         }); 
 
@@ -742,8 +735,7 @@ private void makeMenuBarGroup(Group myGroup) {
 
         NewCollection.setOnAction(new EventHandler<ActionEvent>() {
         public void handle(ActionEvent t) {
-            //NewNodeForStage(Stage_COLL,NC_collection);
-            NewNodeForOpenStage(NC_collection);
+            NewChildNodeForOpenNode(NC_collection);
             }
         }); 
 
@@ -808,72 +800,63 @@ private void makeMenuBarGroup(Group myGroup) {
         NewDef.setOnAction(new EventHandler<ActionEvent>() {
         public void handle(ActionEvent t) {
                 System.out.println("New Def button - called from Main");
-                //NewNodeForStage(Stage_DOC,NC_def);
-                NewNodeForOpenStage(NC_def);
+                NewChildNodeForOpenNode(NC_def);
             }
         });
 
         NewClause.setOnAction(new EventHandler<ActionEvent>() {
         public void handle(ActionEvent t) {
                 System.out.println("New Clause button - called from Main");
-                //NewNodeForStage(Stage_DOC,NC_clause);
-                 NewNodeForOpenStage(NC_clause);
+                NewChildNodeForOpenNode(NC_clause);
             }
         });
 
         NewNote.setOnAction(new EventHandler<ActionEvent>() {
         public void handle(ActionEvent t) {
                 System.out.println("New Note button - called from Main");
-                //NewNodeForStage(Stage_DOC,NC_def);
-                NewNodeForOpenStage(NC_notes);
+                NewChildNodeForOpenNode(NC_notes);
             }
         });
 
         NewFootnote.setOnAction(new EventHandler<ActionEvent>() {
         public void handle(ActionEvent t) {
                 System.out.println("New Footnote button - called from Main");
-                //NewNodeForStage(Stage_DOC,NC_def);
-                NewNodeForOpenStage(NC_footnotes);
+                NewChildNodeForOpenNode(NC_footnotes);
             }
         });
 
         NewWitness.setOnAction(new EventHandler<ActionEvent>() {
         public void handle(ActionEvent t) {
                 System.out.println("New Witness button - called from Main");
-                //NewNodeForStage(Stage_DOC,NC_def);
-                NewNodeForOpenStage(NC_witness);
+                NewChildNodeForOpenNode(NC_witness);
             }
         });
 
         NewEvent.setOnAction(new EventHandler<ActionEvent>() {
         public void handle(ActionEvent t) {
                 System.out.println("New Event button - called from Main");
-                //NewNodeForStage(Stage_DOC,NC_event);
-                NewNodeForOpenStage(NC_event);
+                NewChildNodeForOpenNode(NC_event);
             }
         });
 
         NewTestimony.setOnAction(new EventHandler<ActionEvent>() {
         public void handle(ActionEvent t) {
                 System.out.println("New Witness button - called from Main");
-                //NewNodeForStage(Stage_DOC,NC_def);
-                NewNodeForOpenStage(NC_testimony);
+                NewChildNodeForOpenNode(NC_testimony);
             }
         });
 
         NewFact.setOnAction(new EventHandler<ActionEvent>() {
         public void handle(ActionEvent t) {
                 System.out.println("New Fact button - called from Main");
-                //NewNodeForStage(Stage_DOC,NC_event);
-                NewNodeForOpenStage(NC_fact);
+                NewChildNodeForOpenNode(NC_fact);
             }
         });
 
         NewLaw.setOnAction(new EventHandler<ActionEvent>() {
         public void handle(ActionEvent t) {
                 System.out.println("New Fact button - called from Main");
-                //NewNodeForStage(Stage_DOC,NC_event);
-                NewNodeForOpenStage(NC_law );
+                NewChildNodeForOpenNode(NC_law );
             }
         });
 
@@ -884,8 +867,7 @@ private void makeMenuBarGroup(Group myGroup) {
         NewDoc.setOnAction(new EventHandler<ActionEvent>() {
         public void handle(ActionEvent t) {
                 System.out.println("Event handler in main detected - newdoc button");
-                //NewNodeForStage(Stage_COLL,NC_document);
-                 NewNodeForOpenStage(NC_document);
+                NewChildNodeForOpenNode(NC_document);
             }
         });
 
@@ -924,8 +906,7 @@ private void makeMenuBarGroup(Group myGroup) {
 
         NewLibrary.setOnAction(new EventHandler<ActionEvent>() {
         public void handle(ActionEvent t) {
-             //NewNodeForStage(Stage_PROJLIB,NC_project);
-             NewNodeForOpenStage(NC_library);
+             NewChildNodeForOpenNode(NC_library);
             }
         }); 
 
@@ -1481,6 +1462,8 @@ private SpriteBox getCurrentSprite() {
 
 //General method to place sprite on Stage.  Uses Stage Manager class 
 //Since data nodes are to mirror GUI, update parent child relations here too
+//27.4.18 - change approach so that it adds this node (rather than box) as sub-node to another node.
+//The node viewer will then display its child nodes as spriteboxes.
 
 private void placeSpriteOnStage(SpriteBox mySprite, StageManager targetStage) {
     SpriteBox prevSprite = getCurrentSprite(); //not based on the button
@@ -1489,7 +1472,7 @@ private void placeSpriteOnStage(SpriteBox mySprite, StageManager targetStage) {
         System.out.println("Ended alert:"+prevSprite.toString());
     }
     setCurrentSprite(mySprite); 
-    targetStage.addSpriteToStage(mySprite);
+    targetStage.addNewSpriteToStage(mySprite);
     
     }
 
@@ -1501,9 +1484,9 @@ private void placeCurrentSpriteOnStage(StageManager targetStage) {
         System.out.println("Ended alert current:"+currentSprite.toString());
     }
     ClauseContainer currentParent = currentSprite.getBoxNode().getParentNode();
-    unsetParentChild(currentSprite);
-    targetStage.addSpriteToStage(currentSprite);
-    setParentChild(targetStage,currentSprite);
+    unsetParentChild(currentSprite); //To DO: let node/viewer handle this.
+    targetStage.addNewSpriteToStage(currentSprite);
+    setParentChild(targetStage,currentSprite);  //To DO: let node/viewer handle this.
 }
 
 public void copySpriteToDestination(SpriteBox mySprite, StageManager myStageMan) {
@@ -1526,10 +1509,10 @@ public void copyCurrentSpriteToDestination(StageManager myStageMan) {
 
 public void deleteSprite(SpriteBox mySprite) {
     
+    unsetParentChild(mySprite);
     StageManager mySM = mySprite.getStageLocation();
     mySM.removeSpriteFromStage(mySprite);
     mySM.getStage().show(); 
-    unsetParentChild(mySprite);
 }
 
 public void setFocusOpenStage(StageManager thisSM) {
@@ -1922,7 +1905,21 @@ public StageManager openBoxesOnStage(StageManager mySM, ClauseContainer myNode, 
         @Override 
         public void handle(ActionEvent event) {
             //openNodeInNewStage(NodeFromDefinitionsSampleText(textArea1.getText()));
-            newStageConst(NodeFromDefinitionsSampleText(textArea1.getText()),1);
+            //OLD:
+            //newStageConst(NodeFromDefinitionsSampleText(textArea1.getText()),1);
+            String sample = OpenNodeStage.getInputText();
+            //System.out.println("Current input text:"+sample);
+            ClauseContainer nodeSample = NodeFromDefinitionsSampleText(sample);
+            //String newDefs = Main.this.getMatched(gotcha);
+            ClauseContainer focusNode=OpenNodeStage.getDisplayNode();
+            //this adds the child nodes; an alternative would be to just add the parent node
+            focusNode.addNodeChildren(nodeSample);
+            System.out.println("Updated child nodes for this node:"+focusNode.toString());
+            OpenNodeStage.updateView();
+            
+            //TO DO: Update stage view?
+            //output to output area in current node viewer
+            //OpenNodeStage.setOutputText(newDefs);
         }
     };
 
@@ -2046,7 +2043,7 @@ public StageManager openBoxesOnStage(StageManager mySM, ClauseContainer myNode, 
             //Outer class method class to obtain text from analysis area
             //String gotcha = Main.this.textArea1.getText();
             String gotcha = OpenNodeStage.getInputText();
-            System.out.println("Current input text:"+gotcha);
+            //System.out.println("Current input text:"+gotcha);
             String newDefs = Main.this.getMatched(gotcha);
             
             //output to output area in current node viewer

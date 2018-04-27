@@ -118,6 +118,7 @@ public ClauseContainer getParentNode() {
 
 public void addChildNode(ClauseContainer node) {
 	this.myChildNodes.add(node);
+	node.setParentNode(ClauseContainer.this);
 }
 
 public void removeChildNode(ClauseContainer node) {
@@ -131,6 +132,20 @@ public ArrayList<ClauseContainer> getChildNodes() {
 public Boolean NodeIsLeaf() {
 	return this.myChildNodes.isEmpty();
 }
+
+//method to print clause category
+public void addNodeChildren(ClauseContainer parentNode) {
+	if (parentNode.getChildNodes().size()==0) {
+		System.out.println("No child nodes to add");
+		return;
+	}
+	ArrayList<ClauseContainer> childrenArray = parentNode.getChildNodes();
+	Iterator<ClauseContainer> NodeCycle = childrenArray.iterator();
+	while (NodeCycle.hasNext()) {
+		ClauseContainer myNode = NodeCycle.next();
+		addChildNode(myNode);
+		}
+	}
 
 //CATEGORY DATA
 public NodeCategory getNC() {
@@ -158,6 +173,7 @@ public void removeClause(Clause oldClause) {
 }
 
 //rename this function - it returns all child nodes, but not data
+//redundant: use getChildNodes instead.
 public ArrayList<ClauseContainer> getClauseArray() {
 	return this.myChildNodes;
 }
