@@ -500,9 +500,6 @@ TO DO 15.1.18 : utilise my classes from regex search API for data mining
         }
     System.out.println("Finished Statute Heading search");
     System.out.println("# of Headings Found: "+myClauseList.size()); 
-    if (myClauseList.size()>4) {
-      return this.StatuteTextExtract(myContainer, mydata);
-    }
     }
     //populate clause text before returning
     return this.StatuteTextExtract(myContainer, mydata);
@@ -558,10 +555,10 @@ TO DO 15.1.18 : utilise my classes from regex search API for data mining
                 // Group i substring output for testing
                 //System.out.println("Group " + i + ": " + matcher.group(i));
           }
-         String headingString = matcher.group(groupIn[sIndex]);
+         String label = matcher.group(groupIn[sIndex]);
          matchCount++; //no longer needed unless output
          Boolean qualityMatch=false;
-         if (headingString.equals("") || headingString.equals(" ") || headingString.length()<3) {
+         if (label.equals("") || label.equals(" ") || label.length()<3) {
             qualityMatch=false;
          }
          else {
@@ -570,20 +567,40 @@ TO DO 15.1.18 : utilise my classes from regex search API for data mining
 
          if (qualityMatch==true) {
              //Clause myC  = new Clause();
+             /*
              Clause myC = new Clause(headingString,headingString,"","clause");
              myClauseList.add(headingString);
              myContainer.addClause(myC);
+             */
+             ClauseContainer myClause = makeNewClauseNode(label);
+             myContainer.addChildNode(myClause);
           }
         }
+      }
     System.out.println("Finished Cap Heading search");
-    System.out.println("# of Headings Found: "+myClauseList.size()); 
-    if (myClauseList.size()>4) {
-      return this.ClauseTextExtract(myContainer, mydata);
-    }
-    }
+    System.out.println("# of Headings Found: "+myContainer.getChildNodes().size()); 
     //populate clause text before returning
     return this.ClauseTextExtract(myContainer, mydata);
     }
+
+//Make new node to be a child node of node returned.
+
+  private ClauseContainer makeNewClauseNode(String label) {
+    NodeCategory nodecat = new NodeCategory("clause",0,"blue"); //mirror Main.java
+    ClauseContainer clauseNode = new ClauseContainer();
+    clauseNode.setDocName(label);
+    clauseNode.setNC(nodecat);
+    clauseNode.setHeading(label);
+    //clauseNode.setNotes(text);
+    clauseNode.setShortname(label);
+    clauseNode.setOutputText("output");
+    //clauseNode.setNodeCategory(nodecat.getCategory());
+    //clauseNode.setNodeLevel(nodecat.getLevel());
+    clauseNode.setType(nodecat.getCategory());
+    clauseNode.setAuthorName("Craig");
+    return clauseNode;
+  }
+
 
 /* 
 
@@ -684,10 +701,13 @@ public Boolean checkHeadingExtraction(ClauseContainer myContainer) {
       return myContainer;
     }
 
-    /* Method to populate clause text from Clause Headings */
+    /* Method to populate clause text from Clause Headings 
+    */
     
     public ClauseContainer ClauseTextExtract(ClauseContainer myContainer, String mydata) {
     System.out.println("Clause text extract");
+
+    /*
     ArrayList<ClauseContainer> myCList = myContainer.getChildNodes();
     Iterator<ClauseContainer> myiterator = myCList.iterator();
     System.out.println("Array Size: "+myCList.size()); //conveniently, ArrayList is in Collections with a size method
@@ -708,6 +728,7 @@ public Boolean checkHeadingExtraction(ClauseContainer myContainer) {
     /*
     String LooseRegEx="([\\w\\d\\s\\(\\)\\:\\-\\;\\,\\.\\/\\’'\\<\\>\\[\\]\\u201c\\u201d\\u2013\\u2019\\x0d\\x0a\\\" ]*)";
     */
+    /*
     String LowerWord="lorem ipsum";
     int indexWindow=0;
     Clause FirstClause=null;
@@ -726,7 +747,7 @@ public Boolean checkHeadingExtraction(ClauseContainer myContainer) {
          UpperClause = LowerClause;
         }
         ClauseContainer myNode = myiterator.next();
-        LowerClause = myNode.getNodeClause();
+        LowerClause = myNode.getNotes();
         String UpperWord = UpperClause.getHeading();
         LowerWord = LowerClause.getHeading();
         //u2010-u201F is a good range for UTF8
@@ -755,7 +776,9 @@ public Boolean checkHeadingExtraction(ClauseContainer myContainer) {
             LowerClause.setClauseText(clauseCaptcha.group(0));
           } 
         } 
-      return myContainer;
+         */
+      return (new ClauseContainer());//myContainer;
+     
     }
 
 //for other methods to call these are public methods

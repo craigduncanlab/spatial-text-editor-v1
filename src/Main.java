@@ -189,6 +189,8 @@ public class Main extends Application {
     //node config
     //nodecategories
 
+    //TO DO:
+    //Enclose these inside Node class (clause container)
     NodeCategory NC_notes = new NodeCategory ("notes",0,"khaki");
     NodeCategory NC_footnotes = new NodeCategory ("footnotes",0,"khaki");
     NodeCategory NC_clause = new NodeCategory ("clause",0,"blue");
@@ -268,6 +270,8 @@ private ClauseContainer NodeFromStatuteSampleText(String mydata) {
 
 //---COMMON DOCUMENT / SPRITEBOX REQUESTS
 
+//To do: make this redundant
+
 private Clause getDefaultNodeData() {
     String label = "New document"; //unused
     String text = "Some text";
@@ -277,6 +281,11 @@ private Clause getDefaultNodeData() {
     return myClause;
 }
 
+/*
+To do: move these to constructors inside Clause Container
+i.e. constructors help encapsulate standard initialisation,
+allowing setters to be private 
+*/
 private ClauseContainer getNewNodeWithData(NodeCategory nodecat, int docNum) {
     ClauseContainer clauseNode = new ClauseContainer();
     clauseNode.setDocName(nodecat.getCategory()+docNum);
@@ -302,6 +311,10 @@ private ClauseContainer getNewNodeNoData() {
     return clauseNode;
 }
 
+/*
+TO DO: remove all instances of this, let viewer (StageManager) handle this as needed.
+However, at present, this Main app is also the viewer for main workspace
+*/
 private SpriteBox makeBoxWithNode(ClauseContainer node) {
     
     SpriteBox b = new SpriteBox();
@@ -401,13 +414,13 @@ private void unsetParentChild(SpriteBox mySprite) {
 
 /*
 Adds a box with generic data for a category of node.
-The node is added as a child node of the currently open node viewer.
+The node is added as a child node and passed as box to open node viewer.
 TO DO:
-Query whether the boxes needs to be 'made' and added, or whether the NodeViewer
-can take care of the display.
-i.e. add the data and let the viewer/context display it
-(currently, the external objects create and pass the box/node i.e. mix data and box view)
-A spritebox is an object, but it is also just 1 possible graphic representation of data.
+Define discrete stages and delegagte to appropriate objects:
+1. Create Node
+2. Make Node a Child Node of the Open Node
+3. Let Open Node viewer update both open node and presentation of child nodes as box objects
+(last step is separateion of data/view concerns)
 */
 
 private void NewChildNodeForOpenNode(NodeCategory nodecat) {
@@ -423,7 +436,6 @@ private void NewChildNodeForOpenNode(NodeCategory nodecat) {
     System.out.println("New node for target viewer :"+targetStage.toString());
     System.out.println("New sprite on stage is:"+b.toString());
 }
-
 
 //place Sprite on Target stage if open otherwise workspace
 
@@ -624,7 +636,7 @@ private void makeMenuBarGroup(Group myGroup) {
         Menu menuProjectLib = new Menu ("ProjectLib");
         Menu menuLibrary = new Menu("Library");
         Menu menuOutput = new Menu("Output");
-        Menu menuImport = new Menu("Importer");
+        Menu menuImport = new Menu("TextTools");
         Menu menuViews = new Menu("Views");
         MenuItem NewDef = new MenuItem("Def");
         MenuItem NewClause = new MenuItem("Clause");
@@ -639,7 +651,7 @@ private void makeMenuBarGroup(Group myGroup) {
         MenuItem NewLibrary = new MenuItem("Library");
         MenuItem NewCollection = new MenuItem("Collection");
         MenuItem NewProject = new MenuItem("Project");
-        MenuItem viewImporter = new MenuItem("Importer");
+        MenuItem viewImporter = new MenuItem("TextTools");
         MenuItem viewDocument = new MenuItem("Document");
         MenuItem viewTestimony = new MenuItem("Testimony");
         MenuItem viewEditor = new MenuItem("Editor");
@@ -670,6 +682,7 @@ private void makeMenuBarGroup(Group myGroup) {
         MenuItem GetDefs = new MenuItem("GetDefs");
         MenuItem GetClauses = new MenuItem("GetClauses");
         MenuItem GetSections = new MenuItem("GetSections");
+        MenuItem NodeFromSelection = new MenuItem("Selection->ChildNode");
          menuObject.getItems().addAll(NewDef,NewClause,NewNote,NewFootnote,NewWitness,NewTestimony,NewEvent,NewFact,NewLaw,NewDoc,NewLibrary,NewCollection,NewProject);
          menuViews.getItems().addAll(
             viewProjectLib,
@@ -702,7 +715,7 @@ private void makeMenuBarGroup(Group myGroup) {
         menuOutput.getItems().addAll(
             SaveOutput);
         menuImport.getItems().addAll(
-            WordCount,GetDefText,GetDefs,GetClauses,GetSections);
+            WordCount,GetDefText,GetDefs,GetClauses,GetSections,NodeFromSelection);
         
         //PROJECT
 
@@ -995,6 +1008,7 @@ private void makeMenuBarGroup(Group myGroup) {
         GetDefs.setOnAction(makeDefBoxesFromText);
         GetClauses.setOnAction(makeClauseBoxesFromText);
         GetSections.setOnAction(makeBoxesFromStatuteText);
+        NodeFromSelection.setOnAction(makeSelectedChildNode);
 
         
 
@@ -1904,22 +1918,16 @@ public StageManager openBoxesOnStage(StageManager mySM, ClauseContainer myNode, 
     new EventHandler<ActionEvent>() {
         @Override 
         public void handle(ActionEvent event) {
-            //openNodeInNewStage(NodeFromDefinitionsSampleText(textArea1.getText()));
-            //OLD:
-            //newStageConst(NodeFromDefinitionsSampleText(textArea1.getText()),1);
+            //use the persistent Stage_WS instance to get the current stage (class variable)
+            OpenNodeStage = Stage_WS.getCurrentFocus();
             String sample = OpenNodeStage.getInputText();
-            //System.out.println("Current input text:"+sample);
             ClauseContainer nodeSample = NodeFromDefinitionsSampleText(sample);
             //String newDefs = Main.this.getMatched(gotcha);
             ClauseContainer focusNode=OpenNodeStage.getDisplayNode();
             //this adds the child nodes; an alternative would be to just add the parent node
-            focusNode.addNodeChildren(nodeSample);
+            focusNode.addNodeChildren(nodeSample); //data
             System.out.println("Updated child nodes for this node:"+focusNode.toString());
-            OpenNodeStage.updateView();
-            
-            //TO DO: Update stage view?
-            //output to output area in current node viewer
-            //OpenNodeStage.setOutputText(newDefs);
+            OpenNodeStage.updateView(); //view
         }
     };
 
@@ -1931,8 +1939,14 @@ public StageManager openBoxesOnStage(StageManager mySM, ClauseContainer myNode, 
 
         public void handle(ActionEvent event) {
         
-        //openNodeInNewStage(NodeFromClausesSampleText(textArea1.getText()));
-            newStageConst(NodeFromClausesSampleText(textArea1.getText()),1);
+             //use the persistent Stage_WS instance to get the current stage (class variable)
+             OpenNodeStage = Stage_WS.getCurrentFocus();
+             String sample = OpenNodeStage.getInputText();
+             ClauseContainer nodeSample = NodeFromClausesSampleText(sample);
+             ClauseContainer focusNode=OpenNodeStage.getDisplayNode();
+             focusNode.addNodeChildren(nodeSample); //data
+             System.out.println("Updated child nodes for this node:"+focusNode.toString());
+             OpenNodeStage.updateView(); //view
         }
     };
     
@@ -2042,6 +2056,8 @@ public StageManager openBoxesOnStage(StageManager mySM, ClauseContainer myNode, 
             //Main.this.setupTextOutputWindow(Stage_Definitions,"Definitions Imported");
             //Outer class method class to obtain text from analysis area
             //String gotcha = Main.this.textArea1.getText();
+            //use the persistent Stage_WS instance to get the current stage (class variable)
+            OpenNodeStage = Stage_WS.getCurrentFocus();
             String gotcha = OpenNodeStage.getInputText();
             //System.out.println("Current input text:"+gotcha);
             String newDefs = Main.this.getMatched(gotcha);
@@ -2055,6 +2071,33 @@ public StageManager openBoxesOnStage(StageManager mySM, ClauseContainer myNode, 
             }
         };
         
+        /*
+        Method to take selected text and create a child node in open Node viewer with it
+        Encapsulation:
+        Since this works on the Open Stage, it is possible to call a public function on that object
+        and make all functions private 
+        */
+
+        EventHandler<ActionEvent> makeSelectedChildNode = 
+        new EventHandler<ActionEvent>() {
+        @Override 
+        public void handle(ActionEvent event) {
+            //use the persistent Stage_WS instance to get the current stage (class variable)
+            OpenNodeStage = Stage_WS.getCurrentFocus();
+            System.out.println("Make Node (From Selected Text) Button was pressed!");
+            if (Stage_WS.getCurrentFocus()==OpenNodeStage) {
+             System.out.println("Change of Viewer Focus OK in Main!");
+             System.out.println("Viewer :"+OpenNodeStage.toString());
+             }
+             else {
+                System.out.println("Problem with change Viewer Focus");
+                System.out.println("Current OpenNode :"+ OpenNodeStage);
+                System.out.println("Stage WS Focus :"+ Stage_WS.getCurrentFocus());
+             }
+            OpenNodeStage.selectedAsChildNode();
+            }
+        };
+
         /* Update Container or Collectoin in Container Editor */
         
         EventHandler<ActionEvent> UpdateContainerEditor = 

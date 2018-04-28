@@ -25,6 +25,10 @@ A node or Stage does not require opening up a separate 'edit' window because eac
 A display option is to have background colour of node editor change for different types/levels)
 
 The stage manager will provide its own GUI functions for updating the node's text.
+28.4.18
+This is also possible with images and video:
+Each node can hold 1 image see https://www.tutorialspoint.com/javafx/javafx_images.htm
+https://docs.oracle.com/javase/8/javafx/media-tutorial/overview.htm
 
 */
 
@@ -284,6 +288,14 @@ public String getInputText() {
     return inputTextArea.getText();
 }
 
+/* Text Area in JavaFX inherits selected text method from
+javafx.scene.control.TextInputControl
+*/
+
+private String getSelectedInputText() {
+    return inputTextArea.getSelectedText();
+}
+
 //set the identified JavaFX object (TextArea) for the Stage
 public void setStageTextArea(TextArea myTA) {
     this.inputTextArea = myTA;
@@ -459,12 +471,12 @@ public SpriteBox openDisplayNodeOnStage() {
             SpriteBox b = makeBoxWithNode(thisNode); //relies on Main, event handlers x
             addSpriteToStage(b); //differs from Main 
             setFocusBox(b); 
-
         }
         showStage();
         //return getFocusBox();
         }
 
+//only invoked here as needed i.e. when displaying child nodes on stage
 private SpriteBox makeBoxWithNode(ClauseContainer node) {
     
     SpriteBox b = new SpriteBox();
@@ -727,6 +739,16 @@ private void makeSceneForNodeEdit() {
          System.out.println("Mouse click on a node (StageManager scene) detected! " + mouseEvent.getSource());
          //setStageFocus("document");
          currentFocus=StageManager.this;
+         //error checking i.e. like jUnit assert
+         if (getCurrentFocus()==StageManager.this) {
+            System.out.println("Change of Viewer Focus OK in Viewer!");
+             System.out.println("Viewer :"+StageManager.this);
+         }
+         else {
+            System.out.println("Problem with change Viewer Focus");
+            System.out.println("Present Viewer :"+StageManager.this);
+            System.out.println("Current Focus :"+getCurrentFocus());
+         }
          }
         });
         addSceneToStage(tempScene);
@@ -747,25 +769,21 @@ EventHandler<ActionEvent> UpdateNodeText =
             String editedOutput=outputTextArea.getText();
             //
             displayNode.setDocName(editedName);
-            //parentBox
+            //parentBox - should we insist on one?
             SpriteBox pntBox = getParentBox();
-            pntBox.setLabel(editedName);
+            if (pntBox!=null) {
+                pntBox.setLabel(editedName);
+            }
             displayNode.setHeading(editedHeading);
             displayNode.setNotes(editedText);
             displayNode.setOutputText(editedOutput);
-            //
-            System.out.println("Text in the update:"+editedText);
-            System.out.println("Node updated!");
-            System.out.println("Check update:"+displayNode.getNotes());
-            /* myEditCC.setDocName(docnameEdit.getText());
-            myEditCC.setAuthorName(authorEdit.getText());
-            myEditCC.setNotes(notesEdit.getText());
-            myEditCC.setDate(CCdateEdit.getText());
-            System.out.println("Container updated!");
-            //update the SpriteBox content with updated CC, which will update GUI
-            SpriteBox focusSprite = getCurrentSprite();
-            focusSprite.setBoxNode(myEditCC);
-            */
+            //error checking - log
+            if (displayNode.getNotes().equals(editedText)) {
+                System.out.println("Node updated OK!");
+            }
+            else {
+                 System.out.println("Problem with node update.");
+            }
             }
         };
 
@@ -804,12 +822,13 @@ public Stage makeWorkspaceStage(Scene myScene) {
 
 //SPRITE BOX ASSIST FUNCTIONS
 
-/* public function to add a box to this Viewer.
+/* public function to add a box (as a child node) to this Viewer.
 It requires adding the contents of the box as a child node.
-The sprite is created through the normal addspritetostage function
+The sprite object is added through the normal addspritetostage function
+This tackles the addition of a new child node as a single GUI step, rather than adding a node and updating the whole view with child nodes.
 */
 public void addNewSpriteToStage(SpriteBox mySprite) {
-        addChildNodeToDisplayNode(mySprite); //data
+        addChildBoxToDisplayNode(mySprite); //data
         addSpriteToStage(mySprite); //view
     }
 
@@ -827,8 +846,25 @@ private void addSpriteToStage(SpriteBox mySprite) {
 }
 
 //Method to add child node based on the contents of an identified NodeBox in GUI.
-public void addChildNodeToDisplayNode(SpriteBox mySprite) {
+private void addChildBoxToDisplayNode(SpriteBox mySprite) {
     getDisplayNode().addChildNode(mySprite.getBoxNode());
+}
+
+//public method to allow Main controller to initiate child node creation in viewer
+
+public void selectedAsChildNode() {
+    String sampleText = getSelectedInputText();
+    //construct new node using available inputs (i.e. suitable constructor)
+    NodeCategory NC_clause = new NodeCategory ("clause",0,"blue"); //mirror main
+    ClauseContainer myNode = new ClauseContainer(NC_clause,sampleText);
+    addChildNodeToDisplayNode(myNode);
+}
+
+//Method to add child node to the open node in this view
+
+private void addChildNodeToDisplayNode(ClauseContainer myChildNode) {
+        getDisplayNode().addChildNode(myChildNode);
+        updateView(); //update the viewer (independently of other update calls)
 }
 
 public void removeSpriteFromStage(SpriteBox thisSprite) {

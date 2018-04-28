@@ -48,6 +48,11 @@ Query if stage and library status should also be in Clause instances
 If we make the location an object, then the GUILocation object 
 can also have the StageManager for that Location already packaged by the Node?.
 
+28.4.18
+If this 'Box' only ever operates as a GUI representation of a Node
+i.e. holds a GUI representation of a 'Node' as data object, then some of its functions unnecessary
+
+
 */
 
 public class SpriteBox extends StackPane implements java.io.Serializable {         
@@ -91,7 +96,7 @@ public class SpriteBox extends StackPane implements java.io.Serializable {
         this.setup();
     }
 
-    //Box constructor with Node .  To do.  Pass in info for event handlers needed.
+    //Box constructor with Box for Existing Node (not ChildNode)?  To do.  Pass in info for event handlers needed.
 
     public SpriteBox(ClauseContainer node, StageManager mySM) {
     
@@ -106,18 +111,18 @@ public class SpriteBox extends StackPane implements java.io.Serializable {
     //return b;
 }
 
-//Box constructor that takes just Node
+//Box constructor that takes puts a (ClauseContainer)Node inside as the Box's node.
 
     public SpriteBox(ClauseContainer node) {
     
     this.setup();
-    location = node.getNodeLocation();
+    location = node.getNodeLocation(); //use parent Node instead??
     String myCat = node.getNodeCategory(); 
     SpriteBox.this.setBoxNode(node); //sets and updates appearance//works with clausecontainer method
     //SpriteBox.this.setStageLocation(mySM);
     SpriteBox.this.setOnMousePressed(PressBoxEventHandler);  // JavaFX - inherited from Rectangle 
     SpriteBox.this.setOnMouseDragged(DragBoxEventHandler);   //ditto
-    SpriteBox.this.setBoxCategory(myCat); 
+    SpriteBox.this.setBoxCategory(myCat); //TO DO: Abandon.  Just get directly when needed.
     
     //return b;
 }
@@ -205,7 +210,7 @@ public class SpriteBox extends StackPane implements java.io.Serializable {
         this.boxcategory = category;
     }
 
-    public String getBoxCategory() {
+    private String getBoxCategory() {
         return this.boxcategory;
     }
 
@@ -304,7 +309,8 @@ public class SpriteBox extends StackPane implements java.io.Serializable {
         return this.StageLocation;
     }
 
-     /* Set index for location of spritebox (i.e. an open window or workspace) */
+     /* Set index for location of spritebox (i.e. an open window or workspace) 
+     TO DO: just use this for the GUI object (StageManager class) that is parent*/
     public void resetLocation() {
         this.StageLocation = null;
         //
@@ -318,6 +324,7 @@ public class SpriteBox extends StackPane implements java.io.Serializable {
         this.OtherStage=false;
     }
 
+    //clone function is based on box just holding a data node
 
     public SpriteBox clone() {
         SpriteBox clone = new SpriteBox();
@@ -375,12 +382,6 @@ public class SpriteBox extends StackPane implements java.io.Serializable {
         return thisNode.getNodeCategory();
     }
 
-    //get colour from enclosed nodecat instance in node
-     private String getNodeColour() {
-        ClauseContainer thisNode = this.getBoxNode();
-        return thisNode.getNodeColour();
-    }
-
     /*
     Appearance based on Clause properties/contents 
     */
@@ -389,41 +390,19 @@ public class SpriteBox extends StackPane implements java.io.Serializable {
         
         ClauseContainer thisNode = this.getBoxNode();
         updateboxlabel(thisNode);
-        //String colour = getNodeCategory(thisNode);
-        String thisboxcol = getNodeColour();
+        //the node and its category inform the colour needed by viewer
+        String thisboxcol = thisNode.getNodeColour();
         this.SetColour(thisboxcol);
         this.SetDefaultColour(thisboxcol);
-        //to do : set shape based on category too
-
-        /*
-        String thisboxcol="";
-        switch(category){
-            case "definition":
-                thisboxcol="green";
-                break;
-            case "clause":
-                thisboxcol="blue";
-                break;
-            case "library":
-                thisboxcol="lemon";
-                break;
-            case "legalrole":
-                thisboxcol="orange";
-                break;
-            case "event":
-                thisboxcol="lightblue";
-                break;
-            default:
-                thisboxcol="darkblue";
-                break;
-            }
-            */
+        //to do : set shape based on node category too
         
         }
 
     /* ----  INTERNAL OBJECT DATA --- */
 
-    /** Method to set individual parameters of internal Clause in SpriteBox */
+    /** Method to set individual parameters of internal Clause in SpriteBox 
+    TO DO: Abandon/deprecate.  Get internal object, operate on that directly if necessary.
+    */
 
     public void setInternalClause(String myLabel, String myHeading, String myText, String myCategory){
         Clause tempClause = new Clause();

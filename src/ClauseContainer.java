@@ -41,6 +41,11 @@ This repurposes any space, makes the environment flexible and nodes are function
 --> everything is local (a kind of OO design?).  
 The fact that a node can be added as a child makes this scaleable.
 
+28.4.18
+Each node can hold 1 image see https://www.tutorialspoint.com/javafx/javafx_images.htm
+(enables scalability by add child nodes if needed, in a single node)
+What about sound/video?
+
 */
 
 public class ClauseContainer extends Collection implements java.io.Serializable {
@@ -81,6 +86,22 @@ int nodeGUIloc = 0; //to store Stage or GUI element where the node is located
 //consequences: the concept of a 'clause' can be replaced by 
 //a) nodeCat to hold node category b) docnotes here to hold the text itself. 
 
+//Nodes to hold own predetermined category list?
+NodeCategory NC_notes = new NodeCategory ("notes",0,"khaki");
+NodeCategory NC_footnotes = new NodeCategory ("footnotes",0,"khaki");
+NodeCategory NC_clause = new NodeCategory ("clause",0,"blue");
+NodeCategory NC_def = new NodeCategory ("definition",0,"green");
+NodeCategory NC_testimony = new NodeCategory ("testimony",0,"lightblue");
+NodeCategory NC_witness = new NodeCategory ("witness",0,"lightblue");
+NodeCategory NC_fact = new NodeCategory ("fact",0,"lightblue");
+NodeCategory NC_event = new NodeCategory ("event",0,"lightblue");
+NodeCategory NC_library = new NodeCategory ("library",1,"lemon");
+NodeCategory NC_document = new NodeCategory ("document",1,"darkblue");
+NodeCategory NC_law = new NodeCategory ("law",0,"darkgold");
+NodeCategory NC_collection = new NodeCategory ("collection",2,"orange");
+NodeCategory NC_project = new NodeCategory ("project",3,"salmon");
+NodeCategory NC_WS = new NodeCategory ("workspace",99,"beige");
+
 //empty constructor no arguments
 public ClauseContainer() {
 
@@ -90,6 +111,18 @@ public ClauseContainer() {
 public ClauseContainer(String category) {
 	setNodeCategory(category);
 
+}
+
+//constructor with category and node text
+public ClauseContainer(NodeCategory nodecat, String nodetext) {
+	setNC(nodecat);
+	setNotes(nodetext);
+	setDocName(nodecat.getCategory()); //default
+    setHeading("heading");
+    setShortname(nodecat.getCategory());
+    setOutputText("output");
+    setType(nodecat.getCategory());
+    setAuthorName("Craig");
 }
 
 //META
@@ -147,14 +180,7 @@ public void addNodeChildren(ClauseContainer parentNode) {
 		}
 	}
 
-//CATEGORY DATA
-public NodeCategory getNC() {
-	return this.nodeCat;
-}
 
-public void setNC(NodeCategory myNC) {
-	this.nodeCat=myNC;
-}
 
 //TRANSITION METHODS
 
@@ -248,8 +274,16 @@ public Clause getNodeClause() {
 }
 
 //THIS NODE'S CATEGORY
+//using a category object
+public NodeCategory getNC() {
+	return this.nodeCat;
+}
 
+public void setNC(NodeCategory myNC) {
+	this.nodeCat=myNC;
+}
 
+//a query from the category object itself.
 public String getNodeCategory() {
 	return this.nodeCat.getCategory();
 }
