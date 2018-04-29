@@ -204,7 +204,7 @@ public class Main extends Application {
     NodeCategory NC_law = new NodeCategory ("law",0,"darkgold");
     NodeCategory NC_collection = new NodeCategory ("collection",2,"orange");
     NodeCategory NC_project = new NodeCategory ("project",3,"salmon");
-    NodeCategory NC_WS = new NodeCategory ("workspace",99,"beige");
+    NodeCategory NC_WS = new NodeCategory ("workspace",99,"white");
         //see line 690 above
     //To hold Stage with open node that is current
     StageManager OpenNodeStage = new StageManager();
@@ -301,29 +301,6 @@ private ClauseContainer getNewNodeWithData(NodeCategory nodecat, int docNum) {
     return clauseNode;
 }
 
-private ClauseContainer getNewNodeNoData() {
-    ClauseContainer clauseNode = new ClauseContainer();
-    clauseNode.setDocName("New Node"+Integer.toString(libdocnum));
-    clauseNode.setNodeCategory("collection");
-    clauseNode.setType("collection");
-    clauseNode.setAuthorName("Craig");
-    //clauseNode.addNodeClause(makeProFormaClause());
-    return clauseNode;
-}
-
-/*
-TO DO: remove all instances of this, let viewer (StageManager) handle this as needed.
-However, at present, this Main app is also the viewer for main workspace
-*/
-private SpriteBox makeBoxWithNode(ClauseContainer node) {
-    
-    SpriteBox b = new SpriteBox();
-    b.setOnMousePressed(PressBoxEventHandler); 
-    b.setOnMouseDragged(DragBoxEventHandler);
-    b.setBoxNode(node);
-    return b;
-}
-
 private SpriteBox boxNodeForStage(ClauseContainer node, StageManager mySM) {
     
     SpriteBox b = new SpriteBox(node,mySM);
@@ -360,10 +337,9 @@ private void LoadNodeWS(String filename, StageManager mySM) {
                 if (targetNode.getDocName().equals("")) {
                     targetNode.setDocName("LoadedNode"+Integer.toString(loaddocnum));
                 }
-                //create spritebox
-                //SpriteBox b = new SpriteBox(targetNode, mySM);
-                SpriteBox b = boxNodeForStage(targetNode,mySM);
-                placeSpriteOnTargetStage(b, mySM);
+                
+                //--> IF adding to workspace... mySM.newNodeForWorkspace(targetNode);
+                Stage_WS.setWSNode(targetNode);
             }
 
 //for all nodes other than Stage_WS
@@ -392,8 +368,7 @@ private void LoadNode(String filename, StageManager mySM) {
                 if (targetNode.getDocName().equals("")) {
                     targetNode.setDocName("LoadedNode"+Integer.toString(loaddocnum));
                 }
-                //create spritebox
-                //SpriteBox b = new SpriteBox(targetNode, mySM);
+                
                 SpriteBox b = boxNodeForStage(targetNode,mySM);
                 placeSpriteOnTargetStage(b, mySM);
             }
@@ -1111,11 +1086,10 @@ private VBox makeToolBarButtons() {
 
 /* Setup Stage as a Toolbar Panel for Sprite Move, Copy functions etc */
 
-public Group setupToolbarPanel(StageManager mySM, Stage myStage, String myTitle) {
+public void setupToolbarPanel(StageManager mySM) {
 
         //do this before .show
-        mySM.setStage(myStage);
-        
+        Stage myStage = mySM.getStage();
         //Instance variable
         Group toolbar_root = new Group(); //for root
         toolbarScene = new Scene (toolbar_root,150,350, Color.GREY); //default width x height (px)
@@ -1136,22 +1110,20 @@ public Group setupToolbarPanel(StageManager mySM, Stage myStage, String myTitle)
         //setup Stage config
         mySM.setPosition();
         mySM.setSceneRoot(toolbar_root);
-        myStage.setTitle(myTitle);
         myStage.setScene(toolbarScene); //set current scene for the Stage
         myStage.show();
 
-        return toolbar_root;
+        //return toolbar_root;
 }
 
 //Function to setup independent output window
 //TO DO: discard or put into StageManager constructor
 
-public void setupTextOutputWindow(StageManager myStageManager, String myTitle) {
+public void setupTextOutputWindow(StageManager myStageManager) {
 
         myStageManager.putTextScrollerOnStage();
         myStageManager.setOutputText("Some future contents");
         myStageManager.hideStage();
-        myStageManager.setTitle(myTitle);
         myStageManager.setPosition();
 }
 
@@ -1342,6 +1314,7 @@ public StageManager openBoxesOnStage(StageManager mySM, ClauseContainer myNode, 
         ParentStageSM = new StageManager();
         ParentStage = new Stage();
         ParentStageSM.setStage(ParentStage);
+        ParentStageSM.setTitle("Powerdock");
 
         //
         MenuBar myMenu = makeMenuBar();
@@ -1358,13 +1331,13 @@ public StageManager openBoxesOnStage(StageManager mySM, ClauseContainer myNode, 
         //last opened stage is default stage
         
         //setup main toolbar for buttons
-        toolbarStage = new Stage();
-        Stage_Toolbar = new StageManager(Stage_WS);
-        toolbarGroup = Main.this.setupToolbarPanel(Stage_Toolbar,toolbarStage, "Toolbar");
+        Stage_Toolbar = new StageManager(Stage_WS,"Tools");
+        //toolbarGroup = Main.this.setupToolbarPanel(Stage_Toolbar);
+        setupToolbarPanel(Stage_Toolbar);
 
         /* Setup default text Output Stage  */
-        Stage_Output = new StageManager(Stage_WS);
-        Main.this.setupTextOutputWindow(Stage_Output,"Output");
+        Stage_Output = new StageManager(Stage_WS,"Output");
+        setupTextOutputWindow(Stage_Output);
         
         //TO DO: Setup another 'Stage' for file input, creation of toolbars etc.
     }
@@ -1676,7 +1649,7 @@ public StageManager openBoxesOnStage(StageManager mySM, ClauseContainer myNode, 
             
            
             //new stage with scroll window to hold boxes created for common wods
-            StageManager myStageManager = new StageManager(Stage_WS);
+            StageManager myStageManager = new StageManager(Stage_WS, "Workspace");
             Stage myStage = new Stage();
             ScrollPane outerScroll = new ScrollPane();
             Group CountGroup_root = new Group();

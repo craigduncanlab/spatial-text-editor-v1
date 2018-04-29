@@ -167,8 +167,12 @@ public StageManager() {
     this.inputTextArea.setWrapText(true);  //default
 }
 
-//temporary constructor for old windows
-public StageManager(StageManager parent) {
+//temporary constructor for old windows (toolbars, output etc)
+public StageManager(StageManager parent, String myTitle) {
+    Stage myStage = new Stage();
+    setStage(myStage);
+    setTitle(myTitle);
+    setDragBox(DragBox);
     setJavaFXStageParent(parent);
     this.outputTextArea.setWrapText(true);
     this.inputTextArea.setWrapText(true);  //default
@@ -1016,6 +1020,7 @@ public void resetSpriteOrigin() {
     this.spriteX=0;
 }
 
+//TO DO: Reset sprite positions when re-loading display.  To match a Grid Layout.
 private void advanceSpritePosition() {
         if (this.spriteX>440) {
                 this.spriteY=spriteY+65;

@@ -104,6 +104,11 @@ public class ColBox extends Rectangle{
             myColour = Color.GOLD;
             this.boxcolour = mycol;
         }
+        if (mycol.equals("white")) {
+            myColour = Color.WHITE;
+            this.boxcolour = mycol;
+        }
+
         //update the Colour for display; allows for transparency
         setFill(myColour.deriveColor(0, 1.2, 1, 0.6));
      }

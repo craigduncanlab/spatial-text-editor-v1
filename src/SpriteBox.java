@@ -103,11 +103,13 @@ public class SpriteBox extends StackPane implements java.io.Serializable {
     this.setup();
     location = node.getNodeLocation();
     String myCat = node.getNodeCategory(); //works with clausecontainer method
-    SpriteBox.this.setStageLocation(mySM);
+    setStageLocation(mySM);
+    setBoxCategory(myCat); 
+    setBoxNode(node); //sets and updates appearance
+    //inherited methods - need to reference from the object type to call them
     SpriteBox.this.setOnMousePressed(PressBoxEventHandler);  // JavaFX - inherited from Rectangle 
     SpriteBox.this.setOnMouseDragged(DragBoxEventHandler);   //ditto
-    SpriteBox.this.setBoxCategory(myCat); 
-    SpriteBox.this.setBoxNode(node); //sets and updates appearance
+   
     //return b;
 }
 
@@ -124,7 +126,6 @@ public class SpriteBox extends StackPane implements java.io.Serializable {
     SpriteBox.this.setOnMouseDragged(DragBoxEventHandler);   //ditto
     SpriteBox.this.setBoxCategory(myCat); //TO DO: Abandon.  Just get directly when needed.
     
-    //return b;
 }
 
 
