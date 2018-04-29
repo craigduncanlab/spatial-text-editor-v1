@@ -40,12 +40,14 @@ import javafx.stage.Screen;
 //Screen positioning
 import javafx.geometry.Rectangle2D;
 import javafx.geometry.Insets;
+
 //Scene graph (nodes) and traversal
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.Node; 
 import javafx.scene.Parent;
-
+//
+import javafx.scene.shape.Rectangle;
 //Scene - Text as text
 import javafx.scene.text.Text;  //nb you can't stack textarea and shape controls but this works
 //Scene - Text controls 
@@ -58,6 +60,7 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
+import javafx.scene.control.Labeled;
 //Scene - general appearance & layout of Background Fills, Stages, nodes
 import javafx.scene.layout.Region;
 import javafx.scene.layout.Background;
@@ -160,6 +163,7 @@ ArrayList<Object> BoxContentsArray = new ArrayList<Object>(); //generic store of
 
 //Track current stage that is open.
 static StageManager currentFocus; //any StageManager can set this to itself
+static ClauseContainer currentTarget; //any Box(no?) or StageManager can set this to its display node
 
 //constructor
 public StageManager() {
@@ -188,6 +192,7 @@ public StageManager(StageManager parent, EventHandler PressBox, EventHandler Dra
 
 //workspace constructor.  Filename details will be inherited from loaded node.
 //Passes MenuBar from main application for now
+//Passes general eventhandlers from Main (at present, also uses these for the boxes)
 public StageManager(String title, MenuBar myMenu, EventHandler PressBox, EventHandler DragBox) {
     setTitle(title);
     setMenuBar(myMenu);
@@ -205,6 +210,19 @@ public StageManager getCurrentFocus() {
 //setter: should generally only set it to current instance
 public void setCurrentFocus(StageManager mySM) {
     currentFocus = mySM; //notice not a 'this' as not an instance
+}
+
+public void setTargetByViewer(StageManager mySM) {
+    currentTarget = mySM.getDisplayNode();
+}
+
+/* TENTATIVE - NOT USED? */
+public void setTargetByBox(StageManager mySM) {
+    currentTarget = mySM.getDisplayNode();
+}
+
+public ClauseContainer getCurrentTarget() {
+    return currentTarget;
 }
 
 //JAVAFX SCENE GRAPH GUI INFO (THIS IS NOT THE DATA NODE!)
@@ -509,12 +527,6 @@ public SpriteBox getParentBox () {
         while (myiterator.hasNext()) {
             ClauseContainer thisNode = myiterator.next(); 
             System.out.println("Current child node to be added: "+thisNode.toString());
-            //TO DO: check for duplication
-            /*
-            SpriteBox b = makeBoxWithNode(thisNode); //relies on Main, event handlers x
-            addSpriteToStage(b); //differs from Main 
-            setFocusBox(b); 
-            */
             addNodeToView(thisNode);
         }
         showStage();
@@ -522,14 +534,13 @@ public SpriteBox getParentBox () {
         }
 
 //only invoked here as needed i.e. when displaying child nodes on stage
-private SpriteBox makeBoxWithNode(ClauseContainer node) {
-    
-    SpriteBox b = new SpriteBox();
-    b.setOnMousePressed(PressBox); 
-    b.setOnMouseDragged(DragBox);
-    b.setBoxNode(node);
+//put in box constructor.
+//several objects share same kind of event handlers - can these be dealt with as OO?
+/*private SpriteBox makeBoxWithNode(ClauseContainer node) {
+    SpriteBox b = new SpriteBox(PressBox,DragBox,node);
     return b;
 }
+*/
 
 /* ----- GENERAL GUI FUNCTIONS ----- */
 
@@ -897,16 +908,52 @@ private Scene makeWorkspaceScene(Group myGroup) {
              if (getSceneGUI()!=getSceneLocal()) {
                   System.out.println("Problem with storing Scene");
              }
+            /*
+            areas and targets differ depending on objects on stage (invisible stretch)
+            Ignore the MenuBar here
+            JavaFX has ability to detect Text, Rectangle, ColBox (all constituents of a SpriteBox)
+            Better to force it to detect a SpriteBox?
+            Although clicking on text could be useful for updating headings/filenames
+            It is possible to change focus with a click, but exclude MenuBar targets
+            (these seemed to be instances of LabeledText 
+            i.e. class com.sun.javafx.scene.control.LabeledText)
+             */
             if (mouseEvent.getTarget()==getSceneGUI()) {
                 System.out.println("Clicked on scene; updated focus");
                 currentFocus=StageManager.this;
+                mouseEvent.consume(); //to stop the bubbling?
             }
-            if (mouseEvent.getTarget() instanceof BorderPane) {
+            else if (mouseEvent.getTarget() instanceof BorderPane) {
                  System.out.println("Clicked on Border Pane ; updated focus");
                  currentFocus=StageManager.this;
+                 mouseEvent.consume(); //to stop the bubbling?
+            }
+            else if (mouseEvent.getTarget() instanceof Pane) {
+                 System.out.println("Clicked on Pane ; updated focus");
+                 currentFocus=StageManager.this;
+                 mouseEvent.consume(); //to stop the bubbling?
+            }
+            //to distinguish Text on Menu from Text on boxes you can interrogate what the Text is to see if it's a menu
+            else if (mouseEvent.getTarget() instanceof Text) {
+                 System.out.println("Clicked on Text ; no change to focus");
+                 //currentFocus=StageManager.this;
+            }
+            else if (mouseEvent.getTarget() instanceof ColBox) {
+                 System.out.println("Clicked on box ; updated focus");
+                 currentFocus=StageManager.this;
+            }
+            else if (mouseEvent.getTarget() instanceof Rectangle) {
+                 System.out.println("Clicked on box ; updated focus");
+                 currentFocus=StageManager.this;
+            }
+            else if (mouseEvent.getTarget() instanceof Labeled) {
+                 System.out.println("Clicked on Labeled ; no change to focus");
+                 //currentFocus=StageManager.this;
+            }
+            else {
+                System.out.println("Click not identified : no change to focus");
             }
 
-             //if source = ... only then change focus 
             }
         });
 
@@ -924,13 +971,13 @@ private Scene makeWorkspaceScene(Group myGroup) {
 //SPRITE BOX ASSIST FUNCTIONS
 
 /* public function to add a box (as a child node) to this Viewer.
-It requires adding the contents of the box as a child node.
-The sprite object is added through the normal addspritetostage function
-This tackles the addition of a new child node as a single GUI step, rather than adding a node and updating the whole view with child nodes.
+Add node to view will also call the addsprite to stage to complete this.
 */
 public void addNewSpriteToStage(SpriteBox mySprite) {
-        addChildBoxToDisplayNode(mySprite); //data
-        addSpriteToStage(mySprite); //view
+        //mySprite.getBoxNode()
+        addChildNodeToDisplayNode(mySprite.getBoxNode()); //data
+        //addSpriteToStage(mySprite); //view 
+        addNodeToView(mySprite.getBoxNode());
     }
 
 /*
@@ -940,7 +987,7 @@ i.e. this adds a specific object, rather than updating the view from whole under
 */
 
 private void addSpriteToStage(SpriteBox mySprite) {
-    getSpriteGroup().getChildren().add(mySprite);  
+    getSpriteGroup().getChildren().add(mySprite); //GUI tree 
     System.out.println("Current sprite group is "+getSpriteGroup().toString()); 
     positionSpriteOnStage(mySprite);
     setFocusBox(mySprite); //local information
@@ -948,10 +995,12 @@ private void addSpriteToStage(SpriteBox mySprite) {
 }
 
 //Method to add child node based on the contents of an identified NodeBox in GUI.
-private void addChildBoxToDisplayNode(SpriteBox mySprite) {
+//also sets parent node of the node in the sprite box to this Stage Manager
+/*private void addChildBoxToDisplayNode(SpriteBox mySprite) {
     getDisplayNode().addChildNode(mySprite.getBoxNode());
+    mySprite.getBoxNode().setParentNode(getDisplayNode());
 }
-
+*/
 //public method to allow Main controller to initiate child node creation in viewer
 
 public void selectedAsChildNode() {
@@ -959,37 +1008,52 @@ public void selectedAsChildNode() {
     //construct new node using available inputs (i.e. suitable constructor)
     NodeCategory NC_clause = new NodeCategory ("clause",0,"blue"); //mirror main
     ClauseContainer myNode = new ClauseContainer(NC_clause,sampleText,sampleText.substring(0,8));
-    addChildNodeToDisplayNode(myNode);
-    updateOpenNodeView(); //update the viewer (independently of other update calls)
+    //
+    newNodeAsChildNode(myNode); //data and view for node viewer
 }
 
-public void newNodeAsChildNode(ClauseContainer myNode) {
+private void newNodeAsChildNode(ClauseContainer myNode) {
     addChildNodeToDisplayNode(myNode); //data
     updateOpenNodeView(); //view
 }
 
 //method to box up node as shape and add to GUI in node viewer
+
 private void addNodeToView (ClauseContainer myNode) {
-    SpriteBox b = makeBoxWithNode(myNode); //relies on Main, event handlers x
+    //SpriteBox b = makeBoxWithNode(myNode); //relies on Main, event handlers x
+    SpriteBox b = new SpriteBox(PressBox,DragBox,myNode);
     addSpriteToStage(b); //differs from Main 
     setFocusBox(b); 
 }
 
-public void newNodeForWorkspace(ClauseContainer myNode) {
+
+public void OpenNodeNow(ClauseContainer targetNode, StageManager myWS) {
+    if (StageManager.this==myWS) {
+             newNodeForWorkspace(targetNode);
+        }
+        else {
+             newNodeAsChildNode(targetNode);
+        }
+}
+private void newNodeForWorkspace(ClauseContainer myNode) {
     addChildNodeToDisplayNode(myNode); //data
     addNodeToView(myNode); //view
 }
 
-//Method to add child node to the open node in this view
+//Method to add child node to the open node in this view and update parent node (data)
 
 private void addChildNodeToDisplayNode(ClauseContainer myChildNode) {
         getDisplayNode().addChildNode(myChildNode);
+        myChildNode.setParentNode(getDisplayNode());
 }
 
 public void removeSpriteFromStage(SpriteBox thisSprite) {
+    thisSprite.unsetParentNode(); //data
+    //TO DO: remove Node (data) ? is it cleaned up by GUI object removal?
     this.spriteGroup.getChildren().remove(thisSprite); //view/GUI
-    thisSprite.resetLocation();
-     //TO DO: remove Node (data)
+    thisSprite.resetLocation(); //??
+    getStage().show(); //refresh GUI
+    
 }
 
 public void setContentsArray(ArrayList<Object> inputObject) {

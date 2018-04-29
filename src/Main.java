@@ -161,7 +161,7 @@ public class Main extends Application {
     Group toolbarGroup = null;
     Scene toolbarScene = null;   
     //Clause editor
-    StageManager Stage_EDITNODEPROP = new StageManager();
+    StageManager Stage_EDITNODEPROP;
     TextArea labelEdit;
     TextArea headingEdit;
     TextArea textEdit;
@@ -208,6 +208,7 @@ public class Main extends Application {
         //see line 690 above
     //To hold Stage with open node that is current
     StageManager OpenNodeStage;
+    ClauseContainer NodeTarget;
 
 /*The main method uses the launch method of the Application class.
 https://docs.oracle.com/javase/8/javafx/api/javafx/application/Application.html
@@ -345,8 +346,13 @@ private void LoadNodeWS(String filename, StageManager mySM) {
                 Stage_WS.setWSNode(targetNode);
             }
 
-//for all nodes other than Stage_WS
-private void LoadNode(String filename, StageManager mySM) {
+/*
+Method Loads Node into Open Node - for all nodes other than Stage_WS
+ALthough this currently uses the same filename the context in app can change.
+*/
+private void LoadNode(String filename) {
+                //update the Target to the currentStage
+                OpenNodeStage = Stage_WS.getCurrentFocus();
                 ClauseContainer targetNode = new ClauseContainer(); //not global anymore 
                 //String filename = mySM.getFilename();
                 System.out.println("Load filename:"+filename);
@@ -371,15 +377,14 @@ private void LoadNode(String filename, StageManager mySM) {
                 if (targetNode.getDocName().equals("")) {
                     targetNode.setDocName("LoadedNode"+Integer.toString(loaddocnum));
                 }
-                
-                SpriteBox b = boxNodeForStage(targetNode,mySM);
-                placeSpriteOnTargetStage(b, mySM);
+                OpenNodeStage.OpenNodeNow(targetNode,Stage_WS);
             }
 
 private void SaveNode(StageManager mySM) {
         ClauseContainer node = mySM.getDisplayNode();
         System.out.println("Saving:"+node.toString());
-        String filename = mySM.getFilename();
+        //String filename = mySM.getFilename();
+        String filename = "loadnode.ser"; //static filename for now
 
         FileOutputStream fos = null;
         ObjectOutputStream out = null;
@@ -401,26 +406,6 @@ private void setParentChild(StageManager targetSM, SpriteBox mySprite) {
     ClauseContainer thisNode = mySprite.getBoxNode();
     thisNode.setParentNode(parentNode);
     parentNode.addChildNode(thisNode);
-}
-
-//method to remove links between Child node in this Box (closed node) and its parent.
-
-private void unsetParentChild(SpriteBox mySprite) {
-    ClauseContainer thisNode = mySprite.getBoxNode();
-    if (thisNode==null) {
-        System.out.println("No node to unset");
-        return;
-    }
-    else
-        { 
-        ClauseContainer parentNode=thisNode.getParentNode();
-        if (parentNode==null) {
-            System.out.println("No parent node to unset");
-            return;
-        }
-        thisNode.unsetParentNode();
-        parentNode.removeChildNode(thisNode);
-    }
 }
 
 /*
@@ -451,22 +436,13 @@ private void NewChildNodeForOpenNode(NodeCategory nodecat) {
     int docnum=OpenNodeStage.advanceDocCount();
 
     ClauseContainer newNode = getNewNodeWithData(nodecat,docnum);
-    if (OpenNodeStage==Stage_WS) {
-        OpenNodeStage.newNodeForWorkspace(newNode);
-        System.out.println("New node for Workspace: "+OpenNodeStage.toString());
-    }
-    else {
-        OpenNodeStage.newNodeAsChildNode(newNode);
-        System.out.println("New node for target viewer :"+OpenNodeStage.toString());
-    }
-    
-    
+    OpenNodeStage.OpenNodeNow(newNode,Stage_WS);
 }
 
 //place Sprite on Target stage if open otherwise workspace
 
 private void placeSpriteOnTargetStage(SpriteBox mySprite, StageManager targetStage) {
-        //show stage always
+        //targetStage.placeSpriteOnStage(...)//show stage always
         if (targetStage.getStage().isShowing()==true) {
             placeSpriteOnStage(mySprite, targetStage);
             System.out.println("New sprite :"+mySprite.toString()+"on target stage:"+targetStage.toString());
@@ -490,6 +466,7 @@ private void toggleView(StageManager mySM) {
 Method to end alert status for current sprite and reassign
 Currently this looks at all Sprite Boxes globally (regardless of viewer/location)
 */
+/*
 private void moveAlertFromBoxtoBox(SpriteBox hadFocus, SpriteBox mySprite) {
     hadFocus = getCurrentSprite();
     if (hadFocus!=null) {
@@ -498,12 +475,13 @@ private void moveAlertFromBoxtoBox(SpriteBox hadFocus, SpriteBox mySprite) {
     setCurrentSprite(mySprite);
     mySprite.doAlert();
     }
+    */
        
 //General function for box clicks
-private void processBoxClick(MouseEvent t, StageManager mySM) {
+private void processBoxClick(MouseEvent t) {
 
 SpriteBox hadFocus=null;
-SpriteBox currentSprite = (SpriteBox)t.getSource();
+SpriteBox currentSprite = (SpriteBox)t.getSource();  //selects a class for click source
 
 int clickcount = t.getClickCount();
 
@@ -521,6 +499,8 @@ switch(clickcount) {
     case 1:
         moveAlertFromBoxtoBox(getCurrentSprite(),currentSprite);
         System.out.println("One click");
+        //change stage focus with just one click on spritebox (but node still closed)
+        OpenNodeStage=currentSprite.getStageLocation();
 
         break;
     case 2:
@@ -534,16 +514,7 @@ switch(clickcount) {
         //only open if not already open (TO DO: reset when all children closed)
         //prevent closing until all children closed
         //close all children when node closed.
-        
-        if (currentSprite.getChildStage()==null) {
-            StageManager childSM = new StageManager();
-            childSM = openNodeInNewStage(currentSprite);
-        }
-        //make node viewer visible if still open but not showing
-        else {
-            StageManager tempStage = currentSprite.getChildStage();
-            tempStage.showStage();
-        }
+        OpenRedNodeNow(currentSprite);
         
         break;
     case 3:
@@ -565,14 +536,8 @@ private String getCommonWordsNow(String data) {
     return myTool.getCommonWordsFromString(data);
 }
 
-public void pressMe() {
-    System.out.println ("Button pressed - registered with main app");
-}
-
-
 /* Setup text area with blank text to start.  To put default text in at time of constructing,
-insert text strings into TextArea arguments
-make this public so that the inner class can find it  */
+TO DO: delete this and put scroller into node viewer.  */
 
 public void setupImportStage(StageManager myStageManager, Stage textStage, String myTitle) {
 
@@ -637,7 +602,7 @@ private MenuBar makeMenuBar() {
         Menu menuWorkspace = new Menu("Workspace");
         Menu menuDocument = new Menu("Document");
         Menu menuCollection = new Menu("Collection");
-        Menu menuProject = new Menu("Project");
+        Menu menuFile = new Menu("File/Node");
         Menu menuProjectLib = new Menu ("ProjectLib");
         Menu menuLibrary = new Menu("Library");
         Menu menuOutput = new Menu("Output");
@@ -666,8 +631,8 @@ private MenuBar makeMenuBar() {
         MenuItem viewCollection = new MenuItem("Collection");
         MenuItem viewProject = new MenuItem("Project");
         MenuItem viewProjectLib = new MenuItem("ProjectLib");
-        MenuItem SaveProject = new MenuItem("Save");
-        MenuItem LoadProject = new MenuItem("Load");
+        MenuItem SaveNode = new MenuItem("Save");
+        MenuItem LoadSavedNode = new MenuItem("Load");
         MenuItem SaveColl = new MenuItem("Save");
         MenuItem LoadColl = new MenuItem("Load");
         MenuItem SaveWork = new MenuItem("Save");
@@ -690,6 +655,7 @@ private MenuBar makeMenuBar() {
         MenuItem NodeFromSelection = new MenuItem("Selection->ChildNode");
          menuObject.getItems().addAll(NewDef,NewClause,NewNote,NewFootnote,NewWitness,NewTestimony,NewEvent,NewFact,NewLaw,NewDoc,NewLibrary,NewCollection,NewProject);
          menuViews.getItems().addAll(
+            /*
             viewProjectLib,
             viewProject,
             viewCollection,
@@ -697,26 +663,33 @@ private MenuBar makeMenuBar() {
             viewDocument,
             viewTestimony,
             viewEditor,
+            */
             viewImporter,
             viewtextmaker,
             viewToolbar);
+         menuFile.getItems().addAll(LoadSavedNode,SaveNode);
+         /*
          menuProject.getItems().addAll(
             SaveProject,
             LoadProject);
+            
          menuCollection.getItems().addAll(
             SaveColl,
             LoadColl);
+            */
          menuWorkspace.getItems().addAll(
             SaveWork,
             LoadWork,
             OutputWork,
             PrintBoxes);
+         /*
         menuDocument.getItems().addAll(
             SaveDoc,
             LoadDoc); //OutputDoc
         menuLibrary.getItems().addAll(
             SaveLibrary,
             LoadLibrary);
+            */
         menuOutput.getItems().addAll(
             SaveOutput);
         menuImport.getItems().addAll(
@@ -730,50 +703,24 @@ private MenuBar makeMenuBar() {
             }
         }); 
 
+        //Method will save the current open node with focus.
 
-        SaveProject.setOnAction(new EventHandler<ActionEvent>() {
+        SaveNode.setOnAction(new EventHandler<ActionEvent>() {
         public void handle(ActionEvent t) {
-                //SaveNode(Stage_PROJ);
-            SaveNode(Stage_WS); //save everything on the stagefload
+            OpenNodeStage = Stage_WS.getCurrentFocus();
+            SaveNode(OpenNodeStage); //save everything on the stagefload
             }
         });
 
         /* Load Collection into an open window TO DO: as icon.
         */
-        LoadProject.setOnAction(new EventHandler<ActionEvent>() {
+        LoadSavedNode.setOnAction(new EventHandler<ActionEvent>() {
         public void handle(ActionEvent t) {
-                String filename = Stage_PROJ.getFilename();
-                LoadNode(filename,Stage_PROJLIB);
+                String filename = "loadnode.ser";
+                LoadNode(filename);
             }
         });
         
-        //COLLECTION FUNCTIONS
-
-        // New Collection object
-
-        NewCollection.setOnAction(new EventHandler<ActionEvent>() {
-        public void handle(ActionEvent t) {
-            NewChildNodeForOpenNode(NC_collection);
-            }
-        }); 
-
-        //Save the current Collection object in use (open) by the GUI
-
-        SaveColl.setOnAction(new EventHandler<ActionEvent>() {
-        public void handle(ActionEvent t) {
-                SaveNode(Stage_COLL);
-            }
-        });
-
-        /* Load Collection into an open window TO DO: as icon.
-        */
-        LoadColl.setOnAction(new EventHandler<ActionEvent>() {
-        public void handle(ActionEvent t) {
-                String filename = Stage_COLL.getFilename();
-                LoadNode(filename, Stage_PROJ);
-            }
-        });
-
         //---WORKSPACE FUNCTIONS ---
 
         //Method to save workspace (serial)
@@ -808,7 +755,7 @@ private MenuBar makeMenuBar() {
         PrintBoxes.setOnAction(new EventHandler<ActionEvent>() {
         public void handle(ActionEvent t) {
                 //call the 'print function' on the BoxContainer object (for now)
-                WorkspaceBoxes.ContentsDump();
+                //WorkspaceBoxes.ContentsDump();
                 //TO DO: ADD SERIALISATION OR FUNCTION CALL
             }
         });    
@@ -889,36 +836,6 @@ private MenuBar makeMenuBar() {
             }
         });
 
-        //Trial method to save a Clause Container (just the documentNode)
-        SaveDoc.setOnAction(new EventHandler<ActionEvent>() {
-        public void handle(ActionEvent t) {
-                SaveNode(Stage_DOC);
-            }
-        });
-
-        //load documents from single clause container
-        LoadDoc.setOnAction(new EventHandler<ActionEvent>() {
-        public void handle(ActionEvent t) {
-                String filename = Stage_DOC.getFilename();
-                LoadNode(filename,Stage_COLL);
-            }
-        });
-
-        //LIBRARY load and save functions
-        SaveLibrary.setOnAction(new EventHandler<ActionEvent>() {
-        public void handle(ActionEvent t) {
-                SaveNode(Stage_LIB);
-            }
-        });    
-
-        LoadLibrary.setOnAction(new EventHandler<ActionEvent>() {
-        public void handle(ActionEvent t) {
-                String filename = Stage_LIB.getFilename();
-                LoadNode(filename,Stage_PROJ);
-            }
-        });
-
-
         //Load up an empty library window
         //TO DO: Save under different name
 
@@ -927,69 +844,6 @@ private MenuBar makeMenuBar() {
              NewChildNodeForOpenNode(NC_library);
             }
         }); 
-
-        //Toggle visibility of Document window
-        viewDocument.setOnAction(new EventHandler<ActionEvent>() {
-        public void handle(ActionEvent t) {
-                toggleView(Stage_DOC);
-            }
-        });
-
-        //Toggle visibility of Library window
-        viewLibrary.setOnAction(new EventHandler<ActionEvent>() {
-        public void handle(ActionEvent t) {
-                toggleView(Stage_LIB);
-            }
-        });
-
-        //Toggle visibility of Project Lib window
-        viewProjectLib.setOnAction(new EventHandler<ActionEvent>() {
-        public void handle(ActionEvent t) {
-                toggleView(Stage_PROJLIB);
-            }
-        });
-
-        //Toggle visibility of Project window
-        viewProject.setOnAction(new EventHandler<ActionEvent>() {
-        public void handle(ActionEvent t) {
-                toggleView(Stage_PROJ);
-            }
-        });
-
-        //Toggle visibility of Collection window
-        viewCollection.setOnAction(new EventHandler<ActionEvent>() {
-        public void handle(ActionEvent t) {
-                toggleView(Stage_COLL);
-            }
-        });
-
-        //Toggle visibility of Testimony window
-        viewTestimony.setOnAction(new EventHandler<ActionEvent>() {
-        public void handle(ActionEvent t) {
-                toggleView(Stage_TEST);
-            }
-        });
-
-        //Toggle visibility of output window
-        viewtextmaker.setOnAction(new EventHandler<ActionEvent>() {
-        public void handle(ActionEvent t) {
-                toggleView(Stage_Output);
-            }
-        });
-
-        //toggle visibility of editor
-        viewEditor.setOnAction(new EventHandler<ActionEvent>() {
-        public void handle(ActionEvent t) {
-                toggleView(Stage_EDITNODEPROP);
-            }
-        });
-
-         //toggle visibility of importer
-        viewImporter.setOnAction(new EventHandler<ActionEvent>() {
-        public void handle(ActionEvent t) {
-                toggleView(Stage_Import);
-            }
-        });
 
          //toggle visibility of toolbar
         viewToolbar.setOnAction(new EventHandler<ActionEvent>() {
@@ -1018,45 +872,60 @@ private MenuBar makeMenuBar() {
         
 
         /* --- MENU BAR --- */
-        menuBar.getMenus().addAll(menuViews, menuObject,menuWorkspace, menuDocument, menuLibrary, menuOutput, menuImport,menuCollection,menuProject);     
+        menuBar.getMenus().addAll(menuViews, menuFile, menuObject,menuWorkspace, 
+            /*menuDocument, menuLibrary,*/ menuOutput, menuImport/*,menuCollection,menuProject*/);     
+        
+        //create an event filter so we can process mouse clicks on menubar (and ignore them!)
+        menuBar.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
+         @Override
+         public void handle(MouseEvent mouseEvent) {
+            System.out.println("MenuBar click detected! " + mouseEvent.getSource());
+            //mouseEvent.consume(); //consume this event - so menu works or not?
+            //TO DO: proceed but ignore it for change of focus purposes?
+             }
+        });
+
         return menuBar;
 }
-
-
 
 private VBox makeToolBarButtons() {
 
         //Button for removing clauses
         Button btnDeleteClause = myControlsManager.newStdButton();
-        btnDeleteClause.setTooltip(new Tooltip ("Press to delete selected box"));
+        btnDeleteClause.setTooltip(new Tooltip ("Press to delete selected node"));
         btnDeleteClause.setText("Delete");
-        btnDeleteClause.setOnAction(this.deleteCurrentSprite);
+        btnDeleteClause.setOnAction(deleteCurrentSprite);
 
+        /*
         //Button for moving clauses to Workspace
         Button btnMoveClauseWS = myControlsManager.newStdButton();
         btnMoveClauseWS.setText("Move to Workspace");
         btnMoveClauseWS.setTooltip(new Tooltip ("Press to move box to Workspace Window"));
         btnMoveClauseWS.setOnAction(MoveBoxtoWorkspace);
+        */
 
-        //Button for moving clauses to Library
+        /*
+        Button for moving clauses to Library
         //To DO: only visible if Library has been loaded
         Button btnMoveClauseLib = myControlsManager.newStdButton();
         btnMoveClauseLib.setText("Move to Library");
         btnMoveClauseLib.setTooltip(new Tooltip ("Press to move box to Library Window"));
         btnMoveClauseLib.setOnAction(MoveBoxtoLibrary);
+        */
 
         //Button for moving clauses to Document
-        Button btnMoveClauseDoc = myControlsManager.newStdButton();
-        btnMoveClauseDoc.setText("Move to Document");
-        btnMoveClauseDoc.setTooltip(new Tooltip ("Press to move box to Document Window"));
-        btnMoveClauseDoc.setOnAction(MoveBoxtoDocument);
+        Button btnMoveTarget = myControlsManager.newStdButton();
+        btnMoveTarget.setText("Move to Target");
+        btnMoveTarget.setTooltip(new Tooltip ("Press to move selected to Target node"));
+        btnMoveTarget.setOnAction(MoveBoxtoTarget);
 
         //Button for copying clause to document (leaves copy behind)
-        Button btnCopyClauseDoc = myControlsManager.newStdButton();
-        btnCopyClauseDoc.setText("Copy to Document");
-        btnCopyClauseDoc.setTooltip(new Tooltip ("Press to copy box to Document Window"));
-        btnCopyClauseDoc.setOnAction(CopyBoxtoDocument);
+        Button btnCopyTarget = myControlsManager.newStdButton();
+        btnCopyTarget.setText("Copy to Target");
+        btnCopyTarget.setTooltip(new Tooltip ("Press to copy selected to Target node"));
+        btnCopyTarget.setOnAction(CopytoTarget);
 
+        /*
         //Button for copying clause to library (leaves copy in workspace)
         Button btnCopyClauseLib = myControlsManager.newStdButton();
         btnCopyClauseLib.setText("Copy to Library");
@@ -1080,16 +949,18 @@ private VBox makeToolBarButtons() {
         btnCopyColl.setText("Copy to Project");
         btnCopyColl.setTooltip(new Tooltip ("Press to copy box to Project"));
         btnCopyColl.setOnAction(CopyBoxtoProject);
+         */
 
-        //doEdit
+        //doEdit - NOW REDUNDANT AS OPENING NODE IS EQUIVALENT
         Button btnDoEdit = myControlsManager.newStdButton();
-        btnDoEdit.setText("Edit");
-        btnDoEdit.setTooltip(new Tooltip ("Press to Edit Selection (Red Block)"));
-        btnDoEdit.setOnAction(DoPropertyEditStage);
-
+        btnDoEdit.setText("Open");
+        btnDoEdit.setTooltip(new Tooltip ("Press to Open Selected Node"));
+        btnDoEdit.setOnAction(OpenNodeViewNow);
+    
         //Set horizontal box to hold buttons
         //HBox hboxButtons = new HBox(0,btnMoveClauseWS,btnCopyClause);
-        VBox vbox1 = new VBox(0,btnCopyColl,btnCopyCC,btnMoveClauseWS,btnCopyClauseWS,btnMoveClauseDoc, btnCopyClauseDoc, btnCopyClauseLib,btnMoveClauseLib,btnDeleteClause,btnDoEdit);
+        //VBox vbox1 = new VBox(0,btnCopyColl,btnCopyCC,btnMoveClauseWS,btnCopyClauseWS,btnMoveTarget, btnCopyTarget,btnDeleteClause,btnDoEdit);
+        VBox vbox1 = new VBox(0,btnMoveTarget,btnCopyTarget,btnDeleteClause,btnDoEdit);
         int totalwidth=190;
         vbox1.setPrefWidth(totalwidth);
         return vbox1;
@@ -1165,7 +1036,20 @@ public Boolean isLegalRoleWord (String myWord) {
     return false;
 }
 
-
+/*
+Method to end alert status for current sprite and reassign
+Currently this looks at all Sprite Boxes globally (regardless of viewer/location)
+*/
+private void moveAlertFromBoxtoBox(SpriteBox hadFocus, SpriteBox mySprite) {
+    hadFocus = getCurrentSprite();
+    if (hadFocus!=null) {
+        hadFocus.endAlert();
+    }
+    setCurrentSprite(mySprite);
+    Stage_WS.setCurrentFocus(mySprite.getStageLocation());
+    mySprite.doAlert();
+    }
+ 
 
 //general method to store currentSprite
 
@@ -1183,22 +1067,20 @@ private SpriteBox getCurrentSprite() {
     return myTracker.getCurrentSprite();  
 }
 
-//General method to place sprite on Stage.  Uses Stage Manager class 
-//Since data nodes are to mirror GUI, update parent child relations here too
-//27.4.18 - change approach so that it adds this node (rather than box) as sub-node to another node.
-//The node viewer will then display its child nodes as spriteboxes.
+/*
+General method to place sprite on Stage.  Uses Stage Manager class 
+Since data nodes are to mirror GUI, update parent child relations here too
+27.4.18 - change approach so that it adds this node (rather than box) as sub-node to another node.
+The node viewer will then be responsible for display of child nodes (e.g. boxes)
+*/
 
 private void placeSpriteOnStage(SpriteBox mySprite, StageManager targetStage) {
-    SpriteBox prevSprite = getCurrentSprite(); //not based on the button
-    if (prevSprite !=null) {
-        prevSprite.endAlert(); 
-        System.out.println("Ended alert:"+prevSprite.toString());
-    }
-    setCurrentSprite(mySprite); 
-    targetStage.addNewSpriteToStage(mySprite);
     
+    setCurrentSprite(mySprite); 
+    targetStage.addNewSpriteToStage(mySprite); 
     }
 
+//This is a move not a copy.  
 
 private void placeCurrentSpriteOnStage(StageManager targetStage) {
     SpriteBox currentSprite = getCurrentSprite(); //not based on the button
@@ -1206,11 +1088,12 @@ private void placeCurrentSpriteOnStage(StageManager targetStage) {
         currentSprite.endAlert(); 
         System.out.println("Ended alert current:"+currentSprite.toString());
     }
-    ClauseContainer currentParent = currentSprite.getBoxNode().getParentNode();
-    unsetParentChild(currentSprite); //To DO: let node/viewer handle this.
+    deleteSpriteGUI(currentSprite);
+    currentSprite.unsetParentNode(); //To DO: let node/viewer handle this.
     targetStage.addNewSpriteToStage(currentSprite);
-    setParentChild(targetStage,currentSprite);  //To DO: let node/viewer handle this.
 }
+
+//Does this merely require copying the Data Node and calling node-based SM function?
 
 public void copySpriteToDestination(SpriteBox mySprite, StageManager myStageMan) {
             
@@ -1230,18 +1113,16 @@ public void copyCurrentSpriteToDestination(StageManager myStageMan) {
 /* Method to remove current SpriteBox and contents 
 */
 
-public void deleteSprite(SpriteBox mySprite) {
+public void deleteSpriteGUI(SpriteBox mySprite) {
     
-    unsetParentChild(mySprite);
-    StageManager mySM = mySprite.getStageLocation();
-    mySM.removeSpriteFromStage(mySprite);
-    mySM.getStage().show(); 
+    if (mySprite!=null) {
+        mySprite.getStageLocation().removeSpriteFromStage(mySprite);
+    }
+    else
+    {
+        System.out.println("Error : no sprite selected to delete");
+    }
 }
-
-public void setFocusOpenStage(StageManager thisSM) {
-    OpenNodeStage = thisSM;
-}
-
 
 //STAGE METHODS
 
@@ -1252,21 +1133,10 @@ public StageManager makeBasicStage() {
     return mySM;
 }
 
-/*
-new Stage constructor.  Has no spritebox as calling object.
-Set current open stage to this one when called.
-
-*/
-public StageManager newStageConst(ClauseContainer defaultNode, int hidden) {
-    StageManager mySM = makeBasicStage();
-    mySM.openNodeInViewer(defaultNode);
-    //mySM=openBoxesOnStage(mySM,defaultNode,hidden);
-    return mySM;
-}
-
-
 /* Method to open the node contained in a SpriteBox in a new Stage window 
-nb Do not change the opennode until a sprite is opened*/
+nb Do not change the opennode until a sprite is opened
+TO DO: Make this a constructor for Stage Manager 
+*/
 
 private StageManager openNodeInNewStage(SpriteBox mySprite) {
         
@@ -1275,33 +1145,8 @@ private StageManager openNodeInNewStage(SpriteBox mySprite) {
     mySprite.setChildStage(childSM);
     System.out.println("Set parent sprite to: "+mySprite.toString());
     System.out.println("Check: "+childSM.getParentBox().toString());
-    
-    
-    //open any child nodes as boxes and display if required
-
-    //childSM=openBoxesOnStage(childSM, myNode,1); //<--this also updates some stage info (default)
     return childSM;
 }
-
-/* Method to open the child nodes as boxes in current Stage  
-Check that there are child nodes
-Check for null or length zero?  */
-
-public StageManager openBoxesOnStage(StageManager mySM, ClauseContainer myNode, int hidden) {
-
-    if (myNode.getChildNodes().size()>0) {
-        mySM.openNodeInViewer(myNode);
-        setCurrentSprite(mySM.getFocusBox());
-    }
-    if (hidden==0) {
-        mySM.hideStage();
-    }
-    else {
-        mySM.showStage();
-    }
-    return mySM;
-}
-
 
 /* ---- JAVAFX APPLICATION STARTS HERE --- */
   
@@ -1325,21 +1170,12 @@ public StageManager openBoxesOnStage(StageManager mySM, ClauseContainer myNode, 
         Stage_WS.setWSNode(WorkspaceNode); //data
         OpenNodeStage=Stage_WS;
        
-        /*
-        Stage_COLL=newStageConst(getNewNodeWithData(NC_collection,0),0);
-        Stage_LIB=newStageConst(getNewNodeWithData(NC_library,0),0);
-        Stage_DOC=newStageConst(getNewNodeWithData(NC_document,0),0);
-        Stage_PROJ=newStageConst(getNewNodeWithData(NC_project,0),0);
-        Stage_TEST=newStageConst(getNewNodeWithData(NC_testimony,0),0);
-        Stage_PROJLIB=newStageConst(getNewNodeWithData(NC_project,0),1);
-        //last opened stage is default stage
-        */
+        //Temporary: demonstration nodes at start
         NewChildNodeForOpenNode(NC_library);
         NewChildNodeForOpenNode(NC_project);
         
         //setup main toolbar for buttons
         Stage_Toolbar = new StageManager(Stage_WS,"Tools");
-        //toolbarGroup = Main.this.setupToolbarPanel(Stage_Toolbar);
         setupToolbarPanel(Stage_Toolbar);
 
         /* Setup a general text Output Stage (for workspace?) */
@@ -1349,61 +1185,6 @@ public StageManager openBoxesOnStage(StageManager mySM, ClauseContainer myNode, 
         //TO DO: Setup another 'Stage' for file input, creation of toolbars etc.
     }
 
-//SETUP SPECIFIC WINDOWS FROM A NODE
- private void setLibraryStage(StageManager myStage) {
-    Stage_LIB = myStage;
- }
-
-/* This is a defined Eventhandler object (holding a function) for mouse clicks on Project boxes */
-
-    EventHandler<MouseEvent> PressProjBoxEventHandler = 
-        new EventHandler<MouseEvent>() {
- 
-        @Override
-        public void handle(MouseEvent t) {
-            processBoxClick(t,Stage_PROJ);
-            t.consume();
-        }
-    };
-
-
-/* This is a method to create eventhandler for mouse clicks on Collection boxes */
-
-    EventHandler<MouseEvent> PressCollBoxEventHandler = 
-        new EventHandler<MouseEvent>() {
- 
-        @Override
-        public void handle(MouseEvent t) {
-            processBoxClick(t,Stage_COLL);
-            t.consume();
-            }
-    };
-
-    /* This is a method to create eventhandler for Document ClauseContainer objects */
-
-    EventHandler<MouseEvent> PressDocBoxEventHandler = 
-        new EventHandler<MouseEvent>() {
- 
-        @Override
-        public void handle(MouseEvent t) {
-            processBoxClick(t,Stage_DOC);
-            t.consume();
-        }
-    };
-
-    
-    /* This is a method to create eventhandler for Library ClauseContainer objects */
-
-    EventHandler<MouseEvent> PressLibBoxEventHandler = 
-        new EventHandler<MouseEvent>() {
- 
-        @Override
-        public void handle(MouseEvent t) {
-            processBoxClick(t,Stage_LIB);
-            t.consume();
-        }
-    };
-    
     /* Event handler added to box with clause content */
 
     EventHandler<MouseEvent> PressBoxEventHandler = 
@@ -1411,12 +1192,12 @@ public StageManager openBoxesOnStage(StageManager mySM, ClauseContainer myNode, 
  
         @Override
         public void handle(MouseEvent t) {
-            processBoxClick(t,Stage_EDITNODEPROP);
+            processBoxClick(t);
             t.consume();
         }
     };
     
-     /* This is eventhandler interface to create a new eventhandler class for the SpriteBox objects 
+     /* This is an eventhandler interface to create a new eventhandler class for the SpriteBox objects 
      This uses a lambda expression to create an override of the handle method
      */
      /* These currently have no limits on how far you can drag */
@@ -1435,7 +1216,7 @@ public StageManager openBoxesOnStage(StageManager mySM, ClauseContainer myNode, 
             SpriteBox hasFocus = getCurrentSprite();
             hasFocus.endAlert();
             //change the active sprite to the current touched sprite.
-            setCurrentSprite(currentSprite);
+            setCurrentSprite(currentSprite); //clicked sprite
             System.out.println("The handler for drag box is acting");
             //updates to sprite that triggered event
             currentSprite.setTranslateX(newTranslateX);
@@ -1447,25 +1228,13 @@ public StageManager openBoxesOnStage(StageManager mySM, ClauseContainer myNode, 
 
     //BUTTON EVENT HANDLERS
 
-    //
-
     EventHandler<ActionEvent> deleteCurrentSprite = 
         new EventHandler<ActionEvent>() {
  
         @Override
         public void handle(ActionEvent t) {
-            //This sets the initial reference - should be updated based on previous selections 
-            //SpriteBox currentSprite = getCurrentSprite(); //not based on the button
-            //lose focus
-            SpriteBox hadFocus = getCurrentSprite();
-                    if (hadFocus!=null) {
-                        hadFocus.endAlert();
-                        System.out.println("Deleting..."+hadFocus.toString());
-                        deleteSprite(hadFocus);
-                    }
-                    else {
-                        System.out.println("No current sprite to delete");
-                    }
+        
+            deleteSpriteGUI(getCurrentSprite());
             }
         };
 
@@ -1480,7 +1249,7 @@ public StageManager openBoxesOnStage(StageManager mySM, ClauseContainer myNode, 
 
      */
 
-    EventHandler<ActionEvent> MoveBoxtoWorkspace = 
+    /*EventHandler<ActionEvent> MoveBoxtoWorkspace = 
         new EventHandler<ActionEvent>() {
  
         @Override
@@ -1488,63 +1257,67 @@ public StageManager openBoxesOnStage(StageManager mySM, ClauseContainer myNode, 
             placeCurrentSpriteOnStage(Stage_WS);
             }
         };
+        */
 
-    EventHandler<ActionEvent> MoveBoxtoLibrary = 
+    /* 
+    Method enables you to copy or move in these easy steps:
+    (1) Click on a box to make it active (red).
+    (2) Click to target stage (not on a box).
+    (3) Select move to target {TO DO: Shortcut key}
+
+    This works because the sprite with the red alert (current sprite) doesn't lost focus
+    even when a click to a new stage (but not a box) changes the focus. 
+    */
+
+    EventHandler<ActionEvent> MoveBoxtoTarget = 
         new EventHandler<ActionEvent>() {
  
         @Override
         public void handle(ActionEvent t) {
-            placeCurrentSpriteOnStage(Stage_LIB);
+            OpenNodeStage = Stage_WS.getCurrentFocus();
+            placeCurrentSpriteOnStage(OpenNodeStage); 
             }
     };
 
-    EventHandler<ActionEvent> MoveBoxtoDocument = 
+    EventHandler<ActionEvent> CopytoTarget = 
         new EventHandler<ActionEvent>() {
  
         @Override
         public void handle(ActionEvent t) {
-            placeCurrentSpriteOnStage(Stage_DOC);
-            }
+            OpenNodeStage = Stage_WS.getCurrentFocus();
+            copyCurrentSpriteToDestination(OpenNodeStage);
+        }
     };
 
-    EventHandler<ActionEvent> CopyBoxtoProject = 
+    EventHandler<ActionEvent> OpenNodeViewNow = 
         new EventHandler<ActionEvent>() {
  
         @Override
         public void handle(ActionEvent t) {
-            copyCurrentSpriteToDestination(Stage_PROJ);
+        /*
+        ClauseContainer nodeOpen = getCurrentSprite().getBoxNode();
+        OpenNodeStage.OpenNodeNow(nodeOpen,Stage_WS);
+        */
+        OpenRedNodeNow(getCurrentSprite());
         }
     };
 
-    EventHandler<ActionEvent> CopyBoxtoCollection = 
-        new EventHandler<ActionEvent>() {
- 
-        @Override
-        public void handle(ActionEvent t) {
-            copyCurrentSpriteToDestination(Stage_COLL);  
+    public void OpenRedNodeNow (SpriteBox currentSprite) { 
+        if (currentSprite.getChildStage()==null) {
+            StageManager childSM = new StageManager();
+            childSM = openNodeInNewStage(currentSprite);
         }
-    };
-
-    EventHandler<ActionEvent> CopyBoxtoLibrary = 
-        new EventHandler<ActionEvent>() {
- 
-        @Override
-        public void handle(ActionEvent t) { 
-            copyCurrentSpriteToDestination(Stage_LIB);
+        //make node viewer visible if still open but not showing
+        else {
+            StageManager tempStage = currentSprite.getChildStage();
+            tempStage.showStage();
         }
-    };
+     }
 
-    EventHandler<ActionEvent> CopyBoxtoDocument = 
-        new EventHandler<ActionEvent>() {
- 
-        @Override
-        public void handle(ActionEvent t) {
-            copyCurrentSpriteToDestination(Stage_DOC);
-        }
-    };
+    /* This is a copy not a move 
+    MAY NOW BE DEPRECATED BECAUSE TARGET FUNCTION WORKS WELL */
 
-    /* This is a copy not a move */
-
+    /*
     EventHandler<ActionEvent> CopyBoxtoWorkspace = 
         new EventHandler<ActionEvent>() {
  
@@ -1553,18 +1326,7 @@ public StageManager openBoxesOnStage(StageManager mySM, ClauseContainer myNode, 
             copyCurrentSpriteToDestination(Stage_WS);
         }
     };
-
-    /* Invoke the SpriteBox/Clause Property Editor */
-
-    EventHandler<ActionEvent> DoPropertyEditStage = 
-    new EventHandler<ActionEvent>() {
-
-        @Override 
-        public void handle(ActionEvent event) {
-            System.out.println("Edit Button was pressed!");
-            //TO DO: CONTENT
-        }
-    };
+    */
      
     //printClauseList
         EventHandler<ActionEvent> printClauseList = 
@@ -1630,8 +1392,6 @@ public StageManager openBoxesOnStage(StageManager mySM, ClauseContainer myNode, 
 
         public void handle(ActionEvent event) {
         //TO DO: get source of data
-        //openNodeInNewStage(NodeFromStatuteSampleText(textArea1.getText()));
-        //newStageConst(NodeFromStatuteSampleText(textArea1.getText()),1);
         OpenNodeStage = Stage_WS.getCurrentFocus();
         String sample = OpenNodeStage.getInputText();
         if (sample.equals("")) {
@@ -1732,29 +1492,19 @@ public StageManager openBoxesOnStage(StageManager mySM, ClauseContainer myNode, 
         @Override 
         public void handle(ActionEvent event) {
             System.out.println("Get Defs Text Button was pressed!");
-            //temp StageManager
-            //Main.this.setupTextOutputWindow(Stage_Definitions,"Definitions Imported");
-            //Outer class method class to obtain text from analysis area
-            //String gotcha = Main.this.textArea1.getText();
             //use the persistent Stage_WS instance to get the current stage (class variable)
             OpenNodeStage = Stage_WS.getCurrentFocus();
             String gotcha = OpenNodeStage.getInputText();
             //System.out.println("Current input text:"+gotcha);
             String newDefs = Main.this.getMatched(gotcha);
-            
-            //output to output area in current node viewer
-            OpenNodeStage.setOutputText(newDefs);
-
-            //OLD: set the content of text area inside scrollpane to our extracted text
-            //Stage_Definitions.setOutputText(newDefs);
-            
+            OpenNodeStage.setOutputText(newDefs); //output to current node viewer
             }
         };
         
         /*
         Method to take selected text and create a child node in open Node viewer with it
         Encapsulation:
-        Since this works on the Open Stage, it is possible to call a public function on that object
+        Since text selection works on the Open Stage, it is possible to call a public function on that object
         and make all functions private 
         */
 
@@ -1775,46 +1525,6 @@ public StageManager openBoxesOnStage(StageManager mySM, ClauseContainer myNode, 
                 System.out.println("Stage WS Focus :"+ Stage_WS.getCurrentFocus());
              }
             OpenNodeStage.selectedAsChildNode();
-            }
-        };
-
-        /* Update Container or Collectoin in Container Editor */
-        
-        EventHandler<ActionEvent> UpdateContainerEditor = 
-        new EventHandler<ActionEvent>() {
-        @Override 
-        public void handle(ActionEvent event) {
-            myEditCC.setDocName(docnameEdit.getText());
-            myEditCC.setAuthorName(authorEdit.getText());
-            myEditCC.setNotes(notesEdit.getText());
-            myEditCC.setDate(CCdateEdit.getText());
-            System.out.println("Container updated!");
-            //update the SpriteBox content with updated CC, which will update GUI
-            SpriteBox focusSprite = getCurrentSprite();
-            focusSprite.setBoxNode(myEditCC);
-            }
-        };
-
-        /* Update Clause in Editor */
-        
-        EventHandler<ActionEvent> UpdateClauseInEditor = 
-        new EventHandler<ActionEvent>() {
-        @Override 
-        public void handle(ActionEvent event) {
-           
-            if (editClause instanceof Event) {
-                ((Event)editClause).setDate(dateEdit.getText());
-                System.out.println("Event updated!");
-            }
-            editClause.setClauselabel(headingEdit.getText());
-            editClause.setHeading(headingEdit.getText());
-            editClause.setClauseText(textEdit.getText());
-            editClause.setCategory(categoryEdit.getText());
-            System.out.println("Clause updated!");
-            //update the SpriteBox on the GUI
-            SpriteBox focusSprite = getCurrentSprite();
-            ClauseContainer tempCC = focusSprite.getBoxNode();
-            tempCC.addNodeClause(editClause);
             }
         };
 }

@@ -144,7 +144,15 @@ public void setParentNode(ClauseContainer node) {
 }
 
 public void unsetParentNode() {
-	this.myParentNode = null;
+	/*ClauseContainer parentNode=getParentNode();
+        if (parentNode==null) {
+            System.out.println("No parent node to unset");
+            return;
+        }
+        */
+    if (this.myParentNode!=null) {
+    	this.myParentNode.removeChildNode(ClauseContainer.this);
+    }
 }
 
 public ClauseContainer getParentNode() {

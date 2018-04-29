@@ -109,8 +109,20 @@ public class SpriteBox extends StackPane implements java.io.Serializable {
     //inherited methods - need to reference from the object type to call them
     SpriteBox.this.setOnMousePressed(PressBoxEventHandler);  // JavaFX - inherited from Rectangle 
     SpriteBox.this.setOnMouseDragged(DragBoxEventHandler);   //ditto
-   
-    //return b;
+}
+
+//Box constructor that takes puts a (ClauseContainer)Node inside as the Box's node.
+
+    public SpriteBox(EventHandler PressBox, EventHandler DragBox, ClauseContainer node) {
+    
+    this.setup();
+    location = node.getNodeLocation(); //use parent Node instead??
+    String myCat = node.getNodeCategory(); 
+    setBoxNode(node); //sets and updates appearance//works with clausecontainer method
+    //SpriteBox.this.setStageLocation(mySM);
+    setOnMousePressed(PressBox);  // JavaFX - inherited from Rectangle 
+    setOnMouseDragged(DragBox);   //ditto
+    setBoxCategory(myCat); //TO DO: Abandon.  Just get directly when needed.
 }
 
 //Box constructor that takes puts a (ClauseContainer)Node inside as the Box's node.
@@ -227,6 +239,18 @@ public class SpriteBox extends StackPane implements java.io.Serializable {
     public ClauseContainer getBoxNode() {
         return this.BoxNode;
     }
+
+    /*Set parent node/unset*/
+    //method to remove data links between Child node in this Box (closed node) and its parent.
+
+    public void unsetParentNode() {
+        if (getBoxNode()!=null) {
+            getBoxNode().unsetParentNode();
+        }
+        else {
+            System.out.println("Error : No parent node to unset");
+        }
+}
 
     /*Return the ClauseContainer inside (if ClauseContainer) REDUNDANT */
 
