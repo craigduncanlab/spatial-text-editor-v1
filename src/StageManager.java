@@ -183,6 +183,7 @@ public StageManager(StageManager parent, EventHandler PressBox, EventHandler Dra
     setJavaFXStageParent(parent);
     setPressBox(PressBox);
     setDragBox(DragBox);
+    currentFocus=StageManager.this; //set focus on creation
 }
 
 //workspace constructor.  Filename details will be inherited from loaded node.
@@ -192,7 +193,8 @@ public StageManager(String title, MenuBar myMenu, EventHandler PressBox, EventHa
     setMenuBar(myMenu);
     setPressBox(PressBox);
     setDragBox(DragBox);
-    newWorkstageFromGroup();  
+    newWorkstageFromGroup();
+    currentFocus=StageManager.this; //set focus on creation  
 }
 
 //any instance can return the global variable with focus stage
@@ -956,7 +958,7 @@ public void selectedAsChildNode() {
     String sampleText = getSelectedInputText();
     //construct new node using available inputs (i.e. suitable constructor)
     NodeCategory NC_clause = new NodeCategory ("clause",0,"blue"); //mirror main
-    ClauseContainer myNode = new ClauseContainer(NC_clause,sampleText);
+    ClauseContainer myNode = new ClauseContainer(NC_clause,sampleText,sampleText.substring(0,8));
     addChildNodeToDisplayNode(myNode);
     updateOpenNodeView(); //update the viewer (independently of other update calls)
 }
@@ -1044,9 +1046,22 @@ public double getBigX() {
     return this.myBigX;
 }
 
-
 public double getBigY() {
     return this.myBigY;
 }
+
+//SPECIFIC TEXT OUTPUT WINDOW OPTION
+
+//Function to setup independent output window
+//TO DO: discard or put into StageManager constructor
+
+public void setupTextOutputWindow() {
+
+    putTextScrollerOnStage();
+    setOutputText("Some future contents");
+    hideStage();
+    setPosition();
+}
+
 
 }

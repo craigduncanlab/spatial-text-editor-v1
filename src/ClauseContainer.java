@@ -99,7 +99,7 @@ NodeCategory NC_library = new NodeCategory ("library",1,"lemon");
 NodeCategory NC_document = new NodeCategory ("document",1,"darkblue");
 NodeCategory NC_law = new NodeCategory ("law",0,"darkgold");
 NodeCategory NC_collection = new NodeCategory ("collection",2,"orange");
-NodeCategory NC_project = new NodeCategory ("project",3,"salmon");
+NodeCategory NC_project = new NodeCategory ("project",3,"white");
 NodeCategory NC_WS = new NodeCategory ("workspace",99,"beige");
 
 //empty constructor no arguments
@@ -114,7 +114,7 @@ public ClauseContainer(String category) {
 }
 
 //constructor with category and node text
-public ClauseContainer(NodeCategory nodecat, String nodetext) {
+public ClauseContainer(NodeCategory nodecat, String nodetext, String label) {
 	setNC(nodecat);
 	setNotes(nodetext);
 	setDocName(nodecat.getCategory()); //default
@@ -123,6 +123,10 @@ public ClauseContainer(NodeCategory nodecat, String nodetext) {
     setOutputText("output");
     setType(nodecat.getCategory());
     setAuthorName("Craig");
+    //heading/label for this node
+    setDocName(label);
+    setHeading(label);
+    setShortname(label);
 }
 
 //META

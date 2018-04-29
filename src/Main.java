@@ -203,11 +203,11 @@ public class Main extends Application {
     NodeCategory NC_document = new NodeCategory ("document",1,"darkblue");
     NodeCategory NC_law = new NodeCategory ("law",0,"darkgold");
     NodeCategory NC_collection = new NodeCategory ("collection",2,"orange");
-    NodeCategory NC_project = new NodeCategory ("project",3,"salmon");
+    NodeCategory NC_project = new NodeCategory ("project",3,"white");
     NodeCategory NC_WS = new NodeCategory ("workspace",99,"white");
         //see line 690 above
     //To hold Stage with open node that is current
-    StageManager OpenNodeStage = new StageManager();
+    StageManager OpenNodeStage;
 
 /*The main method uses the launch method of the Application class.
 https://docs.oracle.com/javase/8/javafx/api/javafx/application/Application.html
@@ -263,6 +263,9 @@ private ClauseContainer NodeFromClausesSampleText(String mydata) {
 private ClauseContainer NodeFromStatuteSampleText(String mydata) {
     WordTool myTool = new WordTool();
     //TO DO: add options for different clause extractions
+    if (mydata==null) {
+        System.out.println("Problem with sampling text for extraction");
+    }
     ClauseContainer clauseCarton = myTool.StatuteSectionImport(mydata);
     //ClauseContainer clauseCarton = myTool.ClauseInlineHeadingExtract(mydata);
     return clauseCarton;
@@ -429,12 +432,21 @@ Define discrete stages and delegagte to appropriate objects:
 2. Make Node a Child Node of the Open Node
 3. Let Open Node viewer update both open node and presentation of child nodes as box objects
 (last step is separateion of data/view concerns)
+
+//The Workspace is always 'open' but not used unless space clicked on first.
+
 */
 
 private void NewChildNodeForOpenNode(NodeCategory nodecat) {
 
     //use the persistent Stage_WS instance to get the current stage (class variable)
+    if (Stage_WS==null) {
+        System.out.println("Problem with Stage_WS");
+    }
     OpenNodeStage = Stage_WS.getCurrentFocus();
+    if (OpenNodeStage==null) {
+        System.out.println("Problem with setting Open Node");
+    }
     System.out.println("Creating new node for this viewer:"+OpenNodeStage.toString());
     int docnum=OpenNodeStage.advanceDocCount();
 
@@ -1091,9 +1103,11 @@ public void setupToolbarPanel(StageManager mySM) {
         //do this before .show
         Stage myStage = mySM.getStage();
         //Instance variable
-        Group toolbar_root = new Group(); //for root
-        toolbarScene = new Scene (toolbar_root,150,350, Color.GREY); //default width x height (px)
+        Group myGroup = new Group(); //for root
+        toolbarScene = new Scene (myGroup,150,350, Color.GREY); //default width x height (px)
+        myStage.setScene(toolbarScene); //set current scene for the Stage
         //optional event handler
+        
         toolbarScene.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
          @Override
          public void handle(MouseEvent mouseEvent) {
@@ -1105,26 +1119,14 @@ public void setupToolbarPanel(StageManager mySM) {
         VBox vbox1 = makeToolBarButtons();
         
         //add Button box to root node
-        toolbar_root.getChildren().add(vbox1); //add the vbox to the root node to hold everything
+        myGroup.getChildren().add(vbox1); //add the vbox to the root node to hold everything
        
         //setup Stage config
         mySM.setPosition();
-        mySM.setSceneRoot(toolbar_root);
-        myStage.setScene(toolbarScene); //set current scene for the Stage
+        mySM.setSceneRoot(myGroup);
         myStage.show();
 
         //return toolbar_root;
-}
-
-//Function to setup independent output window
-//TO DO: discard or put into StageManager constructor
-
-public void setupTextOutputWindow(StageManager myStageManager) {
-
-        myStageManager.putTextScrollerOnStage();
-        myStageManager.setOutputText("Some future contents");
-        myStageManager.hideStage();
-        myStageManager.setPosition();
 }
 
 private void setArea1Text(String fname) {
@@ -1319,9 +1321,11 @@ public StageManager openBoxesOnStage(StageManager mySM, ClauseContainer myNode, 
         //
         MenuBar myMenu = makeMenuBar();
         Stage_WS = new StageManager("Workspace", myMenu, PressBoxEventHandler, DragBoxEventHandler);  //sets up GUI for view
-        WorkspaceNode = new ClauseContainer(NC_WS,"The workspace is base node of project.");
+        WorkspaceNode = new ClauseContainer(NC_WS,"The workspace is base node of project.","myWorkspace");
         Stage_WS.setWSNode(WorkspaceNode); //data
+        OpenNodeStage=Stage_WS;
        
+        /*
         Stage_COLL=newStageConst(getNewNodeWithData(NC_collection,0),0);
         Stage_LIB=newStageConst(getNewNodeWithData(NC_library,0),0);
         Stage_DOC=newStageConst(getNewNodeWithData(NC_document,0),0);
@@ -1329,18 +1333,26 @@ public StageManager openBoxesOnStage(StageManager mySM, ClauseContainer myNode, 
         Stage_TEST=newStageConst(getNewNodeWithData(NC_testimony,0),0);
         Stage_PROJLIB=newStageConst(getNewNodeWithData(NC_project,0),1);
         //last opened stage is default stage
+        */
+        NewChildNodeForOpenNode(NC_library);
+        NewChildNodeForOpenNode(NC_project);
         
         //setup main toolbar for buttons
         Stage_Toolbar = new StageManager(Stage_WS,"Tools");
         //toolbarGroup = Main.this.setupToolbarPanel(Stage_Toolbar);
         setupToolbarPanel(Stage_Toolbar);
 
-        /* Setup default text Output Stage  */
+        /* Setup a general text Output Stage (for workspace?) */
         Stage_Output = new StageManager(Stage_WS,"Output");
-        setupTextOutputWindow(Stage_Output);
+        Stage_Output.setupTextOutputWindow();
         
         //TO DO: Setup another 'Stage' for file input, creation of toolbars etc.
     }
+
+//SETUP SPECIFIC WINDOWS FROM A NODE
+ private void setLibraryStage(StageManager myStage) {
+    Stage_LIB = myStage;
+ }
 
 /* This is a defined Eventhandler object (holding a function) for mouse clicks on Project boxes */
 
@@ -1619,7 +1631,17 @@ public StageManager openBoxesOnStage(StageManager mySM, ClauseContainer myNode, 
         public void handle(ActionEvent event) {
         //TO DO: get source of data
         //openNodeInNewStage(NodeFromStatuteSampleText(textArea1.getText()));
-            newStageConst(NodeFromStatuteSampleText(textArea1.getText()),1);
+        //newStageConst(NodeFromStatuteSampleText(textArea1.getText()),1);
+        OpenNodeStage = Stage_WS.getCurrentFocus();
+        String sample = OpenNodeStage.getInputText();
+        if (sample.equals("")) {
+            System.out.println("No text to sample");
+        }
+        ClauseContainer nodeSample = NodeFromStatuteSampleText(sample);
+        ClauseContainer focusNode=OpenNodeStage.getDisplayNode();
+        focusNode.addNodeChildren(nodeSample); //data
+        System.out.println("Updated child nodes for this node:"+focusNode.toString());
+        OpenNodeStage.updateOpenNodeView(); //view
         }
     };
     

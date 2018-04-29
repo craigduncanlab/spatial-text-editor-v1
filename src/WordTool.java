@@ -422,7 +422,7 @@ TO DO 15.1.18 : utilise my classes from regex search API for data mining
 
 /*  
 
-  Method to find stautory sections (clauses) and store them in clause objects
+  Method to find stautory sections (clauses) and store them in Nodes
     
 */
 
@@ -493,9 +493,11 @@ TO DO 15.1.18 : utilise my classes from regex search API for data mining
 
          if (qualityMatch==true) {
              //Clause myC  = new Clause();
-             Clause myC = new Clause(headingString,headingString,"","clause");
+             //Clause myC = new Clause(headingString,headingString,"","clause");
+             NodeCategory NC_clause = new NodeCategory ("clause",0,"blue"); //mirror main
+             ClauseContainer myC = new ClauseContainer(NC_clause,"text",headingString);
              myClauseList.add(headingString);
-             myContainer.addClause(myC);
+             myContainer.addChildNode(myC);
           }
         }
     System.out.println("Finished Statute Heading search");
@@ -653,13 +655,14 @@ public Boolean checkHeadingExtraction(ClauseContainer myContainer) {
     
     String LowerWord="lorem ipsum";
     int indexWindow=0;
-    Clause FirstClause=null;
-    Clause UpperClause=null;
-    Clause LowerClause=null;
+    ClauseContainer FirstClause=null;
+    ClauseContainer UpperClause=null;
+    ClauseContainer LowerClause=null;
     if (myiterator.hasNext()) {
       System.out.println("First has next");
-      ClauseContainer myNode = myiterator.next();
-      FirstClause = myNode.getNodeClause();
+      //ClauseContainer myNode = myiterator.next();
+      //FirstClause = myNode.getNodeClause();
+      FirstClause = myiterator.next();
       UpperClause = FirstClause;
       LowerClause = FirstClause;
     }
@@ -668,8 +671,8 @@ public Boolean checkHeadingExtraction(ClauseContainer myContainer) {
         if (indexWindow>0) {
          UpperClause = LowerClause;
         }
-        ClauseContainer myNode = myiterator.next();
-        LowerClause = myNode.getNodeClause();
+        LowerClause = myiterator.next();
+        //LowerClause = myNode.getNodeClause();
         String UpperWord = UpperClause.getHeading();
         LowerWord = LowerClause.getHeading();
         //u2010-u201F is a good range for UTF8
@@ -682,7 +685,7 @@ public Boolean checkHeadingExtraction(ClauseContainer myContainer) {
           while (clauseCaptcha.find())
           {
             System.out.println("Pattern: "+myRegEx+" # Group + " + clauseCaptcha.group(0));
-            UpperClause.setClauseText(clauseCaptcha.group(0));
+            UpperClause.setNotes(clauseCaptcha.group(0));
           }
           indexWindow++;  
         } 
@@ -695,7 +698,7 @@ public Boolean checkHeadingExtraction(ClauseContainer myContainer) {
           while (clauseCaptcha.find())
           {
             System.out.println("Pattern: "+myRegEx+" # Group + " + clauseCaptcha.group(0));
-            LowerClause.setClauseText(clauseCaptcha.group(0));
+            LowerClause.setNotes(clauseCaptcha.group(0));
           } 
         } 
       return myContainer;
