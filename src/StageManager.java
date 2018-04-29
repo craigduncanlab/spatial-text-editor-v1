@@ -45,6 +45,7 @@ import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.Node; 
 import javafx.scene.Parent;
+
 //Scene - Text as text
 import javafx.scene.text.Text;  //nb you can't stack textarea and shape controls but this works
 //Scene - Text controls 
@@ -73,10 +74,17 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 //for UI and Mouse Click and Drag
 import javafx.scene.input.MouseEvent;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.Cursor;
 // event handlers
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+//Paint
+import javafx.scene.paint.Color;
+//Menus
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuBar;
 
 
 
@@ -103,8 +111,9 @@ String stageTitle = "";
 ClauseContainer reference_ParentNode = new ClauseContainer();
 Stage localStage = new Stage();
 Node rootNode; //Use Javafx object type
-Group spriteGroup = new Group();
-Scene spriteScene;
+Group spriteGroup;
+Pane spritePane;
+Scene localScene;
 SpriteBox focusbox; //for holding active sprite in this scene.  Pass to app.
 //SpriteTracker globalTracker;
 SpriteBox parentBox;//to hold the calling box for this viewer.  
@@ -135,6 +144,8 @@ Text parentBoxText;
 //Store the common event handlers here for use
 EventHandler<MouseEvent> PressBox;
 EventHandler<MouseEvent> DragBox;
+//MenuBar
+MenuBar localmenubar;
 
 
 /*
@@ -156,21 +167,36 @@ public StageManager() {
     this.inputTextArea.setWrapText(true);  //default
 }
 
-//constructor with category etc
-/*public StageManager(String category) {
-    //this.globalTracker=tracker;
+//temporary constructor for old windows
+public StageManager(StageManager parent) {
+    setJavaFXStageParent(parent);
     this.outputTextArea.setWrapText(true);
     this.inputTextArea.setWrapText(true);  //default
-    setCategory(category);
 }
-*/
+
+//standard open node viewer constructor
+public StageManager(StageManager parent, EventHandler PressBox, EventHandler DragBox) {
+    setJavaFXStageParent(parent);
+    setPressBox(PressBox);
+    setDragBox(DragBox);
+}
+
+//workspace constructor.  Filename details will be inherited from loaded node.
+//Passes MenuBar from main application for now
+public StageManager(String title, MenuBar myMenu, EventHandler PressBox, EventHandler DragBox) {
+    setTitle(title);
+    setMenuBar(myMenu);
+    setPressBox(PressBox);
+    setDragBox(DragBox);
+    newWorkstageFromGroup();  
+}
 
 //any instance can return the global variable with focus stage
 public StageManager getCurrentFocus() {
     return currentFocus; //notice not a 'this' as not an instance
 }
 
-//any instance can return the global variable with focus stage
+//setter: should generally only set it to current instance
 public void setCurrentFocus(StageManager mySM) {
     currentFocus = mySM; //notice not a 'this' as not an instance
 }
@@ -216,7 +242,7 @@ public void putTextScrollerOnStage() {
     configDefaultScroller(rootnode_scroll); //scroller with text
     Scene textOutputScene = makeSceneScrollerAsRoot(rootnode_scroll);
     Stage textOutputStage = new Stage();
-    setSceneOnStage(textOutputScene, textOutputStage);
+    storeSceneAndStage(textOutputScene, textOutputStage);
 }
 
 //make new scene with Scroller
@@ -308,14 +334,22 @@ public TextArea getInputTextNode() {
 
 //SIMPLE SCENE GETTERS AND SETTERS AS JAVA FX WRAPPER
 
-public void setSceneOnStage (Scene myScene, Stage myStage) {
+public void storeSceneAndStage (Scene myScene, Stage myStage) {
     setStage(myStage);
-    addSceneToStage(myScene);
+    updateScene(myScene);
 }
 
-private void addSceneToStage (Scene myScene) {
-     getStage().setScene(myScene); //JavaFX
-     setSceneInStage(myScene);
+private Scene getSceneLocal() {
+    return this.localScene;
+}
+
+private Scene getSceneGUI () {
+     return getStage().getScene(); //JavaFX
+}
+
+private void updateScene (Scene myScene) {
+     getStage().setScene(myScene); //JavaFX in the GUI
+     this.localScene = myScene; //local copy/reference
 }
 
 //SIMPLE STAGE GETTERS AND SETTERS FOR CUSTOM GUI.  WRAPPER FOR JAVAFX SETTERS
@@ -347,8 +381,17 @@ public String getCategory() {
     return this.category;
 }
 
-/* --- BASIC GUI SETUP --- */
-public void updateView() {
+//for passing in a menubar from main (for now: 29.4.18)
+public void setMenuBar(MenuBar myMenu) {
+    this.localmenubar = myMenu;
+}
+
+public MenuBar getMenuBar() {
+    return this.localmenubar;
+}
+
+/* --- BASIC GUI SETUP FOR OPEN NODE VIEWERS --- */
+public void updateOpenNodeView() {
     makeSceneForNodeEdit();
     resetSpriteOrigin();
     //title bar
@@ -380,10 +423,10 @@ public void updateView() {
     //output node contents
     outputTextArea.setText(displayNode.getOutputText());
     //child nodes
-    displayBoxesOnStage();
+    displayChildNodeBoxes();
 }
 
-/* ----- DATA NODE FUNCTIONS ----- */
+/* ----- DATA (DISPLAY) NODE FUNCTIONS ----- */
 
 /* 
 This method sets the node that is used for the display in this stage.
@@ -396,20 +439,30 @@ private void setDisplayNode(ClauseContainer myNode) {
     this.displayNode = myNode;
     String myFileLabel = myNode.getDocName();
     setFilename(myFileLabel+".ser"); //default
-    updateView();
+    updateOpenNodeView();
 }
 
 public ClauseContainer getDisplayNode() {
     return this.displayNode;
 }
 
-//specific method for creating initial workspace view
+public void addWSNode(ClauseContainer myNode) {
+
+}
+
+//Method to update workspace appearance based on current node setting (usually root of project)
 public void setWSNode(ClauseContainer myNode) {
     this.displayNode = myNode;
-    //String myFileLabel = myNode.getDocName();
-    String myFileLabel = "workspace";
+    String myFileLabel = myNode.getDocName();
     setFilename(myFileLabel+".ser"); //default
-    //updateView();
+    Group newGroup = new Group(); //new GUI node to show only new content.
+    swapSpriteGroup(newGroup); //store the new GUI node for later use
+    displayChildNodeBoxes(); //update WS view with new child boxes only
+}
+
+public void openNodeInViewer(ClauseContainer myNode) {
+
+    setDisplayNode(myNode);
 }
 
 public ClauseContainer Node() {
@@ -437,40 +490,26 @@ public SpriteBox getParentBox () {
     return this.parentBox;
 }
 
-public void openBoxesOnStage(ClauseContainer myNode) {
-
-    setDisplayNode(myNode);
-}
-
-/* Altenative: open default Node that is stored here */
-/*
-public SpriteBox openDisplayNodeOnStage() {
-
-    ClauseContainer myNode = getDisplayNode();
-    resetSpriteOrigin();
-    defaultConfigStage();
-    setTitle(myNode.getDocName());
-    //setDisplayNode(myNode);
-    SpriteBox b = displayBoxesOnStage(myNode);
-    return b;
-}
-*/
 /* Box up a container of Sprites and place on Stage */
 
- private void displayBoxesOnStage() {
+ private void displayChildNodeBoxes() {
     
         ClauseContainer parentNode = displayNode;
         //SpriteBox lastBox = new SpriteBox();
         ArrayList<ClauseContainer> childNodes = parentNode.getChildNodes();
         Iterator<ClauseContainer> myiterator = childNodes.iterator();
 
+        //only operates if there are Child Nodes to add
         while (myiterator.hasNext()) {
             ClauseContainer thisNode = myiterator.next(); 
             System.out.println("Current child node to be added: "+thisNode.toString());
             //TO DO: check for duplication
+            /*
             SpriteBox b = makeBoxWithNode(thisNode); //relies on Main, event handlers x
             addSpriteToStage(b); //differs from Main 
             setFocusBox(b); 
+            */
+            addNodeToView(thisNode);
         }
         showStage();
         //return getFocusBox();
@@ -498,27 +537,30 @@ public Stage getStage() {
     return this.localStage;
 }
 
-
-//setter for the Scene
-public void setSceneInStage(Scene myScene) {
-    this.spriteScene = myScene;
-    getStage().setScene(myScene);
-}
-
-//getter for the Scene
-public Scene getSceneInStage() {
-    return this.spriteScene;
-}
-
-
-//setter for the Group sprite boxes will be added to
+/*
+setter for the Group sprite boxes will be added to
+*/
 public void setSpriteGroup(Group myGroup) {
     this.spriteGroup = myGroup;
 }
 
-//getter for the Group sprite boxes are added to
 public Group getSpriteGroup() {
     return this.spriteGroup;
+}
+
+public void setSpritePane(Pane myPane) {
+    this.spritePane = myPane;
+}
+
+public Pane getSpritePane() {
+    return this.spritePane;
+}
+
+public void swapSpriteGroup(Group myGroup) {
+    Pane myPane = getSpritePane();
+    myPane.getChildren().remove(getSpriteGroup());
+    setSpriteGroup(myGroup);
+    myPane.getChildren().addAll(myGroup);
 }
 
 private void setStagePosition(double x, double y) {
@@ -549,12 +591,11 @@ nb If the stage has been called from a SpriteBox, the tree parent is the box, bu
 that box lies within a stage that can be used as parent stage here
 (or make all stages the child of Stage_WS)
 */
-public void setStageParent(StageManager ParentSM) {
+private void setJavaFXStageParent(StageManager ParentSM) {
     Stage myStage = getStage(); 
     Stage Parent = ParentSM.getStage();
     myStage.initOwner(Parent);
 }
-
 
 /* 
 
@@ -660,18 +701,10 @@ public void toggleStage() {
 public void setInitStage(StageManager myParentSM, Stage myStage, Group myGroup, String myTitle) {
    setStageName(myTitle);
    setStage(myStage);
-   setStageParent(myParentSM);
+   setJavaFXStageParent(myParentSM);
    setPosition(); 
    setSpriteGroup(myGroup);
    setTitle(myTitle);
-}
-
-//method replaces scene in current stage with the default node editing screen
-//does not create the stage in this method as the localStage is a StageManager instance variable
-private void defaultConfigStage() {
-    //Scene myScene = makeSceneForBoxes(makeScrollGroup());
-    
-    //Stage myStage = setupNewSpriteStage(myScene);
 }
 
 /* Method to make new Scene with known Group for Sprite display */
@@ -702,7 +735,7 @@ private Scene makeSceneForBoxes(ScrollPane myPane) {
          //setStageFocus("document");
              }
         });
-        setSceneInStage(tempScene);
+        updateScene(tempScene);
         return tempScene;
 }
 
@@ -751,9 +784,7 @@ private void makeSceneForNodeEdit() {
          }
          }
         });
-        addSceneToStage(tempScene);
-        //setSceneInStage(tempScene);
-        //return tempScene;
+        updateScene(tempScene);
 }
 
 //Create Eventhandler to use with stages that allow edit button
@@ -787,38 +818,102 @@ EventHandler<ActionEvent> UpdateNodeText =
             }
         };
 
-/*
-Method to setup single stage using Scene and Group - currently not used internally
-obsolete external call
-*/
 
-
-public void setupNewSpriteStage(Scene myScene) {
-
-    //Configure the Stage and its position/visibility
-    Stage tempStage = new Stage();
-    setStage(tempStage);
-    //setStageParent(myParentSM);
-    setSceneInStage(myScene);
+private void newWorkstageFromGroup() {
+    Group myGroup = makeWorkspaceTree();
+    Scene myScene = makeWorkspaceScene(myGroup);
+    Stage myStage = new Stage();
+    setStage(myStage);
+    updateScene(myScene);
     setPosition();
-    tempStage.show();
+    showStage();
 }
 
-/*
-Method to setup single stage using Scene and Group - used only by WS stage
+/* 
+
+Java FX View setup:
+Create root node and branches that is ready for placing in a Scene.
+
+Sets up workspace stage with 2 subgroups for vertical separation:
+(a) menu bar
+(b) sprite display area, which is inside a border pane and group for layout reasons.
+
+This method does not update content of the Sprite-display GUI node.
+
 */
 
-public Stage makeWorkspaceStage(Scene myScene) {
+private Group makeWorkspaceTree() {
 
-    Stage tempStage = new Stage();
-    tempStage.setScene(myScene); //JavaFX: set current scene for the Stage
-    setStage(tempStage);
-    setSceneInStage(myScene);
-    setPosition();
-    tempStage.show();
-    return tempStage;
-}
+        Group myGroup_root = new Group(); //for root node of Scene
+        BorderPane myBP = new BorderPane(); //holds the menubar, spritegroup
+        Group menubarGroup = new Group(); //subgroup
+        MenuBar myMenu = getMenuBar();
+        menubarGroup.getChildren().addAll(myMenu);
+        
+        //the Pane holding the group allows movement of SpriteBoxes independently, without relative movement
+        
+        Pane workspacePane = new Pane(); //to hold a group, holding a spritegroup
+        Group displayAreaGroup = new Group(); //subgroup of Pane; where Sprites located
+        
+        workspacePane.getChildren().addAll(displayAreaGroup);
+        setSpritePane(workspacePane); //store for later use
+        setSpriteGroup(displayAreaGroup); //store for later use
 
+        myBP.setTop(menubarGroup);
+        myBP.setMargin(workspacePane, new Insets(50,50,50,50));
+        myBP.setCenter(workspacePane);
+        //workspacePane.setPadding(new Insets(150,150,150,150));
+        
+        //add the Border Pane and branches to root Group 
+        myGroup_root.getChildren().addAll(myBP);
+        //store the root node for future use
+        setSceneRoot(myGroup_root); //store 
+        //for box placement within the Scene - attach them to the correct Node.
+        return myGroup_root;  
+    }
+
+private Scene makeWorkspaceScene(Group myGroup) {
+        
+        //construct scene with its root node
+        Scene workspaceScene = new Scene (myGroup,getBigX(),getBigY(), Color.BEIGE);
+        
+        //nb do not change focus unless click on sprite group
+        //Nodes etc inherit Event Target so you can check it in the event chain.
+        
+        //filter for capture, handler for sorting through the bubbling
+        workspaceScene.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
+             @Override
+             public void handle(MouseEvent mouseEvent) {
+             System.out.println("Workspace Stage Mouse click detected! " + mouseEvent.getSource());
+             System.out.println("Workspace is "+StageManager.this.toString());
+             System.out.println("Here is the target: "+mouseEvent.getTarget());
+             System.out.println("Target class: "+mouseEvent.getTarget().getClass());
+             if (getSceneGUI()!=getSceneLocal()) {
+                  System.out.println("Problem with storing Scene");
+             }
+            if (mouseEvent.getTarget()==getSceneGUI()) {
+                System.out.println("Clicked on scene; updated focus");
+                currentFocus=StageManager.this;
+            }
+            if (mouseEvent.getTarget() instanceof BorderPane) {
+                 System.out.println("Clicked on Border Pane ; updated focus");
+                 currentFocus=StageManager.this;
+            }
+
+             //if source = ... only then change focus 
+            }
+        });
+
+        workspaceScene.addEventFilter(KeyEvent.KEY_PRESSED, new EventHandler<KeyEvent>() {
+             @Override
+             public void handle(KeyEvent keyEvent) {
+             System.out.println("Key pressed on workspace stage " + keyEvent.getSource());
+             //if source = ... only then change focus 
+            }
+        });
+        
+        return workspaceScene;
+    }
 
 //SPRITE BOX ASSIST FUNCTIONS
 
@@ -839,7 +934,8 @@ i.e. this adds a specific object, rather than updating the view from whole under
 */
 
 private void addSpriteToStage(SpriteBox mySprite) {
-    getSpriteGroup().getChildren().add(mySprite);   
+    getSpriteGroup().getChildren().add(mySprite);  
+    System.out.println("Current sprite group is "+getSpriteGroup().toString()); 
     positionSpriteOnStage(mySprite);
     setFocusBox(mySprite); //local information
     mySprite.setStageLocation(StageManager.this); //give Sprite the object for use later.
@@ -858,13 +954,30 @@ public void selectedAsChildNode() {
     NodeCategory NC_clause = new NodeCategory ("clause",0,"blue"); //mirror main
     ClauseContainer myNode = new ClauseContainer(NC_clause,sampleText);
     addChildNodeToDisplayNode(myNode);
+    updateOpenNodeView(); //update the viewer (independently of other update calls)
+}
+
+public void newNodeAsChildNode(ClauseContainer myNode) {
+    addChildNodeToDisplayNode(myNode); //data
+    updateOpenNodeView(); //view
+}
+
+//method to box up node as shape and add to GUI in node viewer
+private void addNodeToView (ClauseContainer myNode) {
+    SpriteBox b = makeBoxWithNode(myNode); //relies on Main, event handlers x
+    addSpriteToStage(b); //differs from Main 
+    setFocusBox(b); 
+}
+
+public void newNodeForWorkspace(ClauseContainer myNode) {
+    addChildNodeToDisplayNode(myNode); //data
+    addNodeToView(myNode); //view
 }
 
 //Method to add child node to the open node in this view
 
 private void addChildNodeToDisplayNode(ClauseContainer myChildNode) {
         getDisplayNode().addChildNode(myChildNode);
-        updateView(); //update the viewer (independently of other update calls)
 }
 
 public void removeSpriteFromStage(SpriteBox thisSprite) {
@@ -887,10 +1000,15 @@ public void positionSpriteOnStage(SpriteBox mySprite) {
                 mySprite.endAlert();
         }
         advanceSpritePosition();
-        System.out.println("advanced pos on sprite:"+mySprite.toString());
         mySprite.setTranslateX(spriteX);
         mySprite.setTranslateY(spriteY); 
         mySprite.setStageLocation(StageManager.this); //needed if stage is not o/w tracked
+        if (mySprite.getStageLocation()!=StageManager.this) {
+            System.out.println("Problem with adding sprite:"+mySprite.toString());
+        }
+        else {
+            System.out.println("Positioned sprite at:"+mySprite.toString()+" ("+spriteX+","+spriteY+")");
+        }
 }
 
 public void resetSpriteOrigin() {

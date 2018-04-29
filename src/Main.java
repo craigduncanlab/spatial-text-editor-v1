@@ -106,8 +106,8 @@ public class Main extends Application {
     //Main Stage (Workspace window) that owns all other Stages
     StageManager Stage_WS;
     Stage WorkspaceStage;
-    Group WorkspaceGroup;
-    ClauseContainer WorkspaceNode = new ClauseContainer();
+    //Group WorkspaceGroup; //deprecated
+    ClauseContainer WorkspaceNode;
     BoxContainer WorkspaceBoxes; //A serializable top-level container (optional)
     ClauseContainer wsCollection = new ClauseContainer(); //for holding workspace contents (inside boxes)
     //Opus = project collection.  Display Projects as Icons, as in a library.
@@ -146,7 +146,7 @@ public class Main extends Application {
     ScrollPane import_rootnode_scroll; //root Node for import stage
 
     //Text Output windows (no edits)
-    StageManager Stage_Output = new StageManager();
+    StageManager Stage_Output;
     StageManager Stage_Definitions = new StageManager();
     
     //Display SpriteBoxes window(s)
@@ -334,6 +334,39 @@ private SpriteBox boxNodeForStage(ClauseContainer node, StageManager mySM) {
 
 //LOAD, SAVE AND NEW FOR NODES - EVENT HANDLERS
 
+//for Stage_WS
+private void LoadNodeWS(String filename, StageManager mySM) {
+                ClauseContainer targetNode = new ClauseContainer(); //not global anymore 
+                //String filename = mySM.getFilename();
+                System.out.println("Load filename:"+filename);
+                //TO DO: check function
+                FileInputStream fis = null;
+                ObjectInputStream in = null;
+                try {
+                    fis = new FileInputStream(filename);
+                    in = new ObjectInputStream(fis);
+                    targetNode=(ClauseContainer)in.readObject();
+                    in.close();
+                    System.out.println(targetNode.toString());
+                }
+                catch(IOException ex) {
+                    ex.printStackTrace();
+                }
+                catch(ClassNotFoundException ex)
+                {
+                     ex.printStackTrace();
+                }
+                loaddocnum++;
+                if (targetNode.getDocName().equals("")) {
+                    targetNode.setDocName("LoadedNode"+Integer.toString(loaddocnum));
+                }
+                //create spritebox
+                //SpriteBox b = new SpriteBox(targetNode, mySM);
+                SpriteBox b = boxNodeForStage(targetNode,mySM);
+                placeSpriteOnTargetStage(b, mySM);
+            }
+
+//for all nodes other than Stage_WS
 private void LoadNode(String filename, StageManager mySM) {
                 ClauseContainer targetNode = new ClauseContainer(); //not global anymore 
                 //String filename = mySM.getFilename();
@@ -365,7 +398,7 @@ private void LoadNode(String filename, StageManager mySM) {
                 placeSpriteOnTargetStage(b, mySM);
             }
 
-private void SaveNode (StageManager mySM) {
+private void SaveNode(StageManager mySM) {
         ClauseContainer node = mySM.getDisplayNode();
         System.out.println("Saving:"+node.toString());
         String filename = mySM.getFilename();
@@ -427,14 +460,20 @@ private void NewChildNodeForOpenNode(NodeCategory nodecat) {
 
     //use the persistent Stage_WS instance to get the current stage (class variable)
     OpenNodeStage = Stage_WS.getCurrentFocus();
-    StageManager targetStage = OpenNodeStage;
-    int docnum=targetStage.advanceDocCount();
-    SpriteBox b = new SpriteBox(getNewNodeWithData(nodecat,docnum));
-    b.setOnMousePressed(PressBoxEventHandler); 
-    b.setOnMouseDragged(DragBoxEventHandler);
-    placeSpriteOnTargetStage(b, targetStage);
-    System.out.println("New node for target viewer :"+targetStage.toString());
-    System.out.println("New sprite on stage is:"+b.toString());
+    System.out.println("Creating new node for this viewer:"+OpenNodeStage.toString());
+    int docnum=OpenNodeStage.advanceDocCount();
+
+    ClauseContainer newNode = getNewNodeWithData(nodecat,docnum);
+    if (OpenNodeStage==Stage_WS) {
+        OpenNodeStage.newNodeForWorkspace(newNode);
+        System.out.println("New node for Workspace: "+OpenNodeStage.toString());
+    }
+    else {
+        OpenNodeStage.newNodeAsChildNode(newNode);
+        System.out.println("New node for target viewer :"+OpenNodeStage.toString());
+    }
+    
+    
 }
 
 //place Sprite on Target stage if open otherwise workspace
@@ -599,31 +638,10 @@ public void setupImportStage(StageManager myStageManager, Stage textStage, Strin
         textStage.show();
     }
 
-public Scene updateWorkSpaceScene(Group myGroup) {
-        
-        workspaceScene = new Scene (myGroup,Stage_WS.getBigX(),Stage_WS.getBigY(), Color.BEIGE);
-        
-        //optional event handler
-        workspaceScene.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
-             @Override
-             public void handle(MouseEvent mouseEvent) {
-             System.out.println("Workspace Stage Mouse click detected! " + mouseEvent.getSource());
-            }
-        });
-        return workspaceScene;
-    }
-    
-public Stage newWorkstageFromGroup(Group myGroup) {
-        Scene myScene = updateWorkSpaceScene(myGroup);
-        Stage myStage = Stage_WS.makeWorkspaceStage(myScene); 
-        //Stage_WS.setSpriteGroup(myGroup);
-        return myStage; 
-}
-
 
 /* Make menuBar for workspace */
 
-private void makeMenuBarGroup(Group myGroup) {
+private MenuBar makeMenuBar() {
         
         //MENUBAR SETUP
         MenuBar menuBar = new MenuBar();
@@ -728,8 +746,8 @@ private void makeMenuBarGroup(Group myGroup) {
 
         SaveProject.setOnAction(new EventHandler<ActionEvent>() {
         public void handle(ActionEvent t) {
-                //Check
-                SaveNode(Stage_PROJ);
+                //SaveNode(Stage_PROJ);
+            SaveNode(Stage_WS); //save everything on the stagefload
             }
         });
 
@@ -784,7 +802,7 @@ private void makeMenuBarGroup(Group myGroup) {
         LoadWork.setOnAction(new EventHandler<ActionEvent>() {
         public void handle(ActionEvent t) {
                 String filename = Stage_WS.getFilename();
-                LoadNode(filename, Stage_WS);
+                LoadNodeWS(filename, Stage_WS);
             }
         });
 
@@ -1014,241 +1032,10 @@ private void makeMenuBarGroup(Group myGroup) {
 
         /* --- MENU BAR --- */
         menuBar.getMenus().addAll(menuViews, menuObject,menuWorkspace, menuDocument, menuLibrary, menuOutput, menuImport,menuCollection,menuProject);     
-        myGroup.getChildren().addAll(menuBar);
+        return menuBar;
 }
 
-/* 
 
-Setup workspace stage with 2 subgroups for vertical separation:
-(a) menubar
-(b) sprite display area.  (this group is returned to become WorkspaceGroup - global.)
-
-*/
-
-public Group makeWorkspaceGroups() {
-
-        Group myGroup_root = new Group(); //for root node
-        BorderPane myBP = new BorderPane();
-        Group menubarGroup = new Group(); //subgroup
-        Group displayAreaGroup = new Group(); //subgroup
-        makeMenuBarGroup(menubarGroup); 
-        
-        //the Pane holding the group allows movement of SpriteBoxes independently, without relative movement
-        Pane workspacePane = new Pane();
-        //workspacePane.setPadding(new Insets(150,150,150,150));
-        workspacePane.getChildren().addAll(displayAreaGroup);
-        
-        //The BorderPane holds the menu separate from Pane, adds constraints. 
-        myBP.setTop(menubarGroup);
-        myBP.setCenter(workspacePane);
-        myBP.setMargin(workspacePane, new Insets(50,50,50,50));
-        //add the Box Pane
-        myGroup_root.getChildren().addAll(myBP);
-        Stage_WS.setSceneRoot(myGroup_root); //store 
-        //for box placement within the Scene - attach them to the correct Node.
-        Stage_WS.setSpriteGroup(displayAreaGroup);
-        return myGroup_root;  
-    }
-
-/* TO DO: One for edit metadata/properties; another for editing clauses
-*/
-
-public Pane setupNodePropertyEditor(StageManager mySM, Stage myStage) {
-
-        System.out.println("Setup node property editor Panel");
-        myStage.setTitle("Node Property Editor");
-        //TO DO: Instance variable
-        //Group editorPanel_root = new Group(); 
-        Pane editorPane = new Pane();
-
-        Scene CCeditScene = new Scene (editorPane,400,400, Color.GREY); //default width x height (px)
-        //optional event handler (cf editorScene.setOnMousePressed(EventHandler))
-        CCeditScene.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
-         @Override
-             public void handle(MouseEvent mouseEvent) {
-             System.out.println("Mouse click detected - Container edit! " + mouseEvent.getSource());
-             mySpriteManager.setStageFocus("CCEditor");
-            }
-        });
-        //TextArea and contents
-        Text docnameTag = new Text("Doc/Lib Name:");
-        docnameEdit = new TextArea();
-        docnameEdit.setPrefRowCount(2);
-        Text authorTag = new Text("Author:");
-        authorEdit = new TextArea();
-        authorEdit.setPrefHeight(100);
-        authorEdit.setPrefWidth(400);
-        authorEdit.setWrapText(true);
-        Text notesTag = new Text("Notes:");
-        notesEdit = new TextArea();
-        notesEdit.setPrefRowCount(1);
-        Text dateTag = new Text("Date:");
-        CCdateEdit = new TextArea();
-        CCdateEdit.setPrefRowCount(1);
-        //
-        SpriteBox focusSprite = getCurrentSprite();
-        System.out.println("Current sprite for edit:"+focusSprite.toString());
-        myEditCC = focusSprite.getBoxNode();
-        System.out.println("Current Container for edit:"+myEditCC.toString());
-        VBox vboxEdit;
-
-        //TO DO: cater for library separately?
-        vboxEdit = new VBox(0,docnameTag,docnameEdit,authorTag,authorEdit,notesTag,notesEdit,dateTag,CCdateEdit);
-        
-        //children vertical grow priority
-        vboxEdit.setVgrow(docnameEdit,null);
-        vboxEdit.setVgrow(authorEdit,null);
-        vboxEdit.setVgrow(notesEdit,null);
-        vboxEdit.setFillWidth(true); //for width of vbox children 
-        System.out.println("FillWidth status: "+vboxEdit.isFillWidth());
-
-        //put values in for curent Container (name, author etc)
-        docnameEdit.setText(myEditCC.getDocName());
-        authorEdit.setText(myEditCC.getAuthorName());
-        notesEdit.setText(myEditCC.getNotes());
-        CCdateEdit.setText(myEditCC.getDate());
-
-        myStage.setScene(CCeditScene); //set current scene for the Stage
-        
-        //Button for saving clauses
-        Button btnUpdate = new Button();
-        btnUpdate.setText("Update");
-        btnUpdate.setTooltip(new Tooltip ("Press to Save current edits"));
-        btnUpdate.setOnAction(UpdateContainerEditor);
-
-        //Button for cancel
-        Button btnEditCancel = new Button();
-        btnEditCancel.setText("Cancel Edits");
-        btnEditCancel.setTooltip(new Tooltip ("Press to Cancel current edits"));
-        
-        //Set horizontal box to hold buttons
-        HBox hboxButtons = new HBox(0,btnUpdate,btnEditCancel);
-        //Finish
-        VBox vboxAll = new VBox(0,vboxEdit,hboxButtons);
-        vboxAll.setPrefWidth(200);
-        //
-        editorPane.getChildren().add(vboxAll); //add the vbox to the root node to hold everything
-        //Stage Management and Layout
-        mySM.setStageName("Editor");
-        mySM.setStageParent(Stage_WS);
-        mySM.setPosition();
-        mySM.getStage().show();
-        mySM.setSceneRoot(editorPane);
-        return editorPane;
-}
-
-/* Setup Stage as a Clause inspection and edit Window */
-
-public Pane setupClauseEditorPanel(StageManager myStageManager, Stage myStage) {
-
-        System.out.println("Making editor Panel");
-        myStage.setTitle("Clause Content Editor Panel");
-        Pane editorPanel_root = new Pane();
-
-        Scene editorScene = new Scene (editorPanel_root,400,400, Color.GREY); //default width x height (px)
-        //optional event handler (cf editorScene.setOnMousePressed(EventHandler))
-        editorScene.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
-         @Override
-         public void handle(MouseEvent mouseEvent) {
-         System.out.println("editor Panel Window: Mouse click detected! " + mouseEvent.getSource());
-         mySpriteManager.setStageFocus("Editor");
-        }
-        });
-        //TextArea and contents
-        Text labelTag = new Text("Label:");
-        labelEdit = new TextArea();
-        labelEdit.setPrefRowCount(2);
-        labelEdit.setPrefColumnCount(80);
-        Text headingTag = new Text("Clause heading:");
-        headingEdit = new TextArea();
-        headingEdit.setPrefRowCount(2);
-        Text contentsTag = new Text("Clause text:");
-        textEdit = new TextArea();
-        //textEdit.setPrefRowCount(5);
-        //textEdit.setPrefColumnCount(80);
-        textEdit.setPrefHeight(100);
-        textEdit.setPrefWidth(400);
-        textEdit.setWrapText(true);
-        Text categoryTag = new Text("Category:");
-        categoryEdit = new TextArea();
-        categoryEdit.setPrefRowCount(1);
-        Text dateTag = new Text("Date:");
-        dateEdit = new TextArea();
-        dateEdit.setPrefRowCount(1);
-        //
-        SpriteBox focusSprite = getCurrentSprite();
-        editClause = focusSprite.getClause();
-        VBox vboxEdit;
-
-        if (editClause.getCategory().equals("event")) {
-        //first paramater is the spacing between childen
-        vboxEdit = new VBox(0,headingTag,headingEdit,dateTag,dateEdit,contentsTag,textEdit,categoryTag,categoryEdit);
-        }
-        else {
-        //VBox vboxEdit = new VBox(0,labelTag,labelEdit,headingTag,headingEdit,contentsTag,textEdit,categoryTag,categoryEdit);
-        /* do not edit label separately for now*/
-        vboxEdit = new VBox(0,headingTag,headingEdit,contentsTag,textEdit,categoryTag,categoryEdit);
-        //vboxEdit.setVgrow(textEdit, Priority.ALWAYS);
-        }
-        //children vertical grow priority
-        vboxEdit.setVgrow(textEdit,null);
-        vboxEdit.setVgrow(categoryEdit,null);
-        vboxEdit.setVgrow(dateEdit,null);
-        vboxEdit.setFillWidth(true); //for width of vbox children 
-        System.out.println("FillWidth status: "+vboxEdit.isFillWidth());
-        //Appearance for specific types of Clauses
-        if (editClause.getCategory().equals("definition")) {
-            headingTag.setText("Defined term:");
-            contentsTag.setText("means:");
-        }
-
-        if (editClause.getCategory().equals("event")) {
-            headingTag.setText("Event:");
-            contentsTag.setText("Description:");
-            dateTag.setText("Date:");
-            dateEdit.setText(((Event)editClause).getDate());
-        }
-
-        labelEdit.setText(editClause.getHeading());
-        headingEdit.setText(editClause.getHeading());
-        textEdit.setText(editClause.getClauseText());
-        categoryEdit.setText(editClause.getCategory());
-
-        myStage.setScene(editorScene); //set current scene for the Stage
-        //Layout
-        myStageManager.setStageParent(Stage_WS);
-        myStageManager.setPosition();
-        myStage.show();
-        
-        //Button for saving clauses
-        Button btnUpdate = new Button();
-        btnUpdate.setText("Update");
-        btnUpdate.setTooltip(new Tooltip ("Press to Save current edits"));
-        btnUpdate.setOnAction(UpdateClauseInEditor);
-
-        //Button for cancel
-        Button btnEditCancel = new Button();
-        btnEditCancel.setText("Cancel Edits");
-        btnEditCancel.setTooltip(new Tooltip ("Press to Cancel current edits"));
-        //btnEditCancel.setOnAction(EditCancel);
-        
-        
-        //Set horizontal box to hold buttons
-        HBox hboxButtons = new HBox(0,btnUpdate,btnEditCancel);
-        //Finish
-        VBox vboxAll = new VBox(0,vboxEdit,hboxButtons);
-        vboxAll.setPrefWidth(200);
-        //
-        editorPanel_root.getChildren().add(vboxAll); //add the vbox to the root node to hold everything
-        
-        //Stage Management and Layout
-        myStageManager.setStageName("Editor");
-        myStageManager.setStageParent(Stage_WS);
-        myStageManager.setPosition();
-        myStageManager.getStage().show();
-
-        return editorPanel_root;
-}
 
 private VBox makeToolBarButtons() {
 
@@ -1328,7 +1115,6 @@ public Group setupToolbarPanel(StageManager mySM, Stage myStage, String myTitle)
 
         //do this before .show
         mySM.setStage(myStage);
-        mySM.setStageParent(Stage_WS);
         
         //Instance variable
         Group toolbar_root = new Group(); //for root
@@ -1348,7 +1134,6 @@ public Group setupToolbarPanel(StageManager mySM, Stage myStage, String myTitle)
         toolbar_root.getChildren().add(vbox1); //add the vbox to the root node to hold everything
        
         //setup Stage config
-        mySM.setStageParent(Stage_WS);
         mySM.setPosition();
         mySM.setSceneRoot(toolbar_root);
         myStage.setTitle(myTitle);
@@ -1358,57 +1143,8 @@ public Group setupToolbarPanel(StageManager mySM, Stage myStage, String myTitle)
         return toolbar_root;
 }
 
-
-/** Setup independent definitions window 
-@Returns a Scrollpane representing the root node
-
-@notes Scene size will determine initial width of Stage window 
-
-**/
-
-public ScrollPane setupDefinitionsWindow(StageManager myStageManager) {
-        
-        defsTextStage = new Stage();
-            
-        //create a scrollpane as root with a text area inside
-        ScrollPane rootnode_scroll = new ScrollPane();
-        rootnode_scroll.setFitToHeight(true);
-        rootnode_scroll.setFitToWidth(true);
-
-        //make Text Area
-        double width = 800; 
-        double height = 500; 
-        textArea3.setPrefHeight(height);  
-        textArea3.setPrefWidth(width);
-        textArea3.setWrapText(true);
-
-        //add Text Area
-        rootnode_scroll.setContent(textArea3); 
-
-        //Add rootnode to Scene graph
-        int setWidth=500;
-        int setHeight=500;
-        Scene defsTextScene = new Scene (rootnode_scroll,setWidth,setHeight); //width x height (px)
-        defsTextScene.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
-         @Override
-         public void handle(MouseEvent mouseEvent) {
-         System.out.println("Mouse click detected for text scroll window! " + mouseEvent.getSource());
-             }
-        });
-        //Add Scene to Stage, size and position 
-        defsTextStage.setScene(defsTextScene);
-        defsTextStage.setY(350);
-        defsTextStage.show();
-
-        myStageManager.setStageParent(Stage_WS);
-        myStageManager.setPosition();
-        myStageManager.setSceneRoot(rootnode_scroll);
-        myStageManager.setTitle("Definitions List");
-        
-        return rootnode_scroll; 
-        }
-
 //Function to setup independent output window
+//TO DO: discard or put into StageManager constructor
 
 public void setupTextOutputWindow(StageManager myStageManager, String myTitle) {
 
@@ -1416,7 +1152,6 @@ public void setupTextOutputWindow(StageManager myStageManager, String myTitle) {
         myStageManager.setOutputText("Some future contents");
         myStageManager.hideStage();
         myStageManager.setTitle(myTitle);
-        myStageManager.setStageParent(Stage_WS);
         myStageManager.setPosition();
 }
 
@@ -1537,10 +1272,7 @@ public void setFocusOpenStage(StageManager thisSM) {
 //STAGE METHODS
 
 public StageManager makeBasicStage() {
-    StageManager mySM = new StageManager(); //category
-    mySM.setStageParent(Stage_WS);
-    mySM.setPressBox(PressBoxEventHandler);
-    mySM.setDragBox(DragBoxEventHandler);
+    StageManager mySM = new StageManager(Stage_WS, PressBoxEventHandler, DragBoxEventHandler); //category
     OpenNodeStage=mySM;
     Stage_WS.setCurrentFocus(mySM); //use Stage_WS to set class variable
     return mySM;
@@ -1553,7 +1285,7 @@ Set current open stage to this one when called.
 */
 public StageManager newStageConst(ClauseContainer defaultNode, int hidden) {
     StageManager mySM = makeBasicStage();
-    mySM.openBoxesOnStage(defaultNode);
+    mySM.openNodeInViewer(defaultNode);
     //mySM=openBoxesOnStage(mySM,defaultNode,hidden);
     return mySM;
 }
@@ -1584,7 +1316,7 @@ Check for null or length zero?  */
 public StageManager openBoxesOnStage(StageManager mySM, ClauseContainer myNode, int hidden) {
 
     if (myNode.getChildNodes().size()>0) {
-        mySM.openBoxesOnStage(myNode);
+        mySM.openNodeInViewer(myNode);
         setCurrentSprite(mySM.getFocusBox());
     }
     if (hidden==0) {
@@ -1612,31 +1344,11 @@ public StageManager openBoxesOnStage(StageManager mySM, ClauseContainer myNode, 
         ParentStageSM.setStage(ParentStage);
 
         //
-    
-        Stage_WS = new StageManager(); //category
-        Stage_WS.setTitle("Workspace");
-        Stage_WS.setFilename("workspace.ser");
-        Stage_WS.setPressBox(PressBoxEventHandler);
-        Stage_WS.setDragBox(DragBoxEventHandler);
-        Stage_WS.setWSNode(WorkspaceNode); //default Node
-        WorkspaceGroup=makeWorkspaceGroups();
-        WorkspaceStage = newWorkstageFromGroup(WorkspaceGroup);        
+        MenuBar myMenu = makeMenuBar();
+        Stage_WS = new StageManager("Workspace", myMenu, PressBoxEventHandler, DragBoxEventHandler);  //sets up GUI for view
+        WorkspaceNode = new ClauseContainer(NC_WS,"The workspace is base node of project.");
+        Stage_WS.setWSNode(WorkspaceNode); //data
        
-        //Group tempGroup = Main.this.setupNewSpriteStage(mySM);
-        //Stage_WS.setSpriteGroup(tempGroup);
-        //identifyStages(Stage_WS,WorkspaceStage,WorkspaceGroup);
-        
-        //setup Project Libary window
-        
-        //setStageInit(Stage_PROJLIB,ProjectLibStage,ProjectLibGroup,"Project Library");
-        //identifyStages(Stage_PROJLIB,ProjectLibStage,ProjectLibGroup);
-
-        //configStageMan(Stage_PROJLIB,ProjectLibStage,ProjLibScene,ProjectLibGroup,"Project Library");
-        
-        //configStageMan(Stage_PROJ,ProjectStage,ProjectScene,ProjectGroup,"Project");
-
-        //configStageMan(Stage_COLL,CollectionStage,CollectionScene,CollectionGroup,"Collection");
-        
         Stage_COLL=newStageConst(getNewNodeWithData(NC_collection,0),0);
         Stage_LIB=newStageConst(getNewNodeWithData(NC_library,0),0);
         Stage_DOC=newStageConst(getNewNodeWithData(NC_document,0),0);
@@ -1645,39 +1357,13 @@ public StageManager openBoxesOnStage(StageManager mySM, ClauseContainer myNode, 
         Stage_PROJLIB=newStageConst(getNewNodeWithData(NC_project,0),1);
         //last opened stage is default stage
         
-        /*setup Editor window
-        editorStage = new Stage();
-        StageManager Stage_EDITCLAUSE = new StageManager();
-        Stage_EDITCLAUSE.setStageParent(ParentStage,editorStage);
-        */
-
-        /*
-        //setup Node Propety Editor window
-        editorStage = new Stage();
-        StageManager Stage_EDITNODEPROP = new StageManager();
-        Stage_EDITNODEPROP.setTitle("Editor");
-        Stage_EDITNODEPROP.setStageParent(ParentStage,editorStage);
-        */
-
-        /*
-        //*setup Import window (text input display and editing)
-        ImportStage = new Stage();
-        Stage_Import = new StageManager();
-        this.setupImportStage(Stage_Import,ImportStage,"Text Importer");
-        //set some default text in main text window
-        //this.myTextFile="popstarlease.txt";
-        this.myTextFile="electricity.txt";
-        this.setArea1Text(this.myTextFile);
-        this.setArea2Text(this.myTextFile);
-        // use this line if you want it by default: ImportStage.show();
-        ImportStage.hide();
-        */
         //setup main toolbar for buttons
         toolbarStage = new Stage();
-        Stage_Toolbar = new StageManager();
+        Stage_Toolbar = new StageManager(Stage_WS);
         toolbarGroup = Main.this.setupToolbarPanel(Stage_Toolbar,toolbarStage, "Toolbar");
 
         /* Setup default text Output Stage  */
+        Stage_Output = new StageManager(Stage_WS);
         Main.this.setupTextOutputWindow(Stage_Output,"Output");
         
         //TO DO: Setup another 'Stage' for file input, creation of toolbars etc.
@@ -1891,7 +1577,7 @@ public StageManager openBoxesOnStage(StageManager mySM, ClauseContainer myNode, 
         @Override 
         public void handle(ActionEvent event) {
             System.out.println("Edit Button was pressed!");
-            editGroup_root = Main.this.setupNodePropertyEditor(Stage_EDITNODEPROP,editorStage); //mySM, Stage
+            //TO DO: CONTENT
         }
     };
      
@@ -1927,7 +1613,7 @@ public StageManager openBoxesOnStage(StageManager mySM, ClauseContainer myNode, 
             //this adds the child nodes; an alternative would be to just add the parent node
             focusNode.addNodeChildren(nodeSample); //data
             System.out.println("Updated child nodes for this node:"+focusNode.toString());
-            OpenNodeStage.updateView(); //view
+            OpenNodeStage.updateOpenNodeView(); //view
         }
     };
 
@@ -1946,7 +1632,7 @@ public StageManager openBoxesOnStage(StageManager mySM, ClauseContainer myNode, 
              ClauseContainer focusNode=OpenNodeStage.getDisplayNode();
              focusNode.addNodeChildren(nodeSample); //data
              System.out.println("Updated child nodes for this node:"+focusNode.toString());
-             OpenNodeStage.updateView(); //view
+             OpenNodeStage.updateOpenNodeView(); //view
         }
     };
     
@@ -1990,7 +1676,7 @@ public StageManager openBoxesOnStage(StageManager mySM, ClauseContainer myNode, 
             
            
             //new stage with scroll window to hold boxes created for common wods
-            StageManager myStageManager = new StageManager();
+            StageManager myStageManager = new StageManager(Stage_WS);
             Stage myStage = new Stage();
             ScrollPane outerScroll = new ScrollPane();
             Group CountGroup_root = new Group();
@@ -2009,7 +1695,6 @@ public StageManager openBoxesOnStage(StageManager mySM, ClauseContainer myNode, 
             myStage.setScene(myScene); //this selects this stage as current scene
             myStage.setTitle("Common Words Window");
             myStage.setY(600);
-            myStageManager.setStageParent(Stage_WS);
             myStageManager.setPosition();
             myStage.show();
 
