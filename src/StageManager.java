@@ -30,6 +30,10 @@ This is also possible with images and video:
 Each node can hold 1 image see https://www.tutorialspoint.com/javafx/javafx_images.htm
 https://docs.oracle.com/javase/8/javafx/media-tutorial/overview.htm
 
+30.4.18
+Idea about user choice of views e.g. (a) node text/input, child nodes, output area (b) node text only (c) child nodes only 
+Keys to cycle through that for any chosen node.  [Every node is an app, the app is flexible]
+Easy to achieve through a MVC model.
 */
 
 //import utilities needed for Arrays lists etc
@@ -149,7 +153,8 @@ EventHandler<MouseEvent> PressBox;
 EventHandler<MouseEvent> DragBox;
 //MenuBar
 MenuBar localmenubar;
-
+//User choice of view
+String userNodeView;
 
 /*
 Data collection will parallel GUI display of boxes. Provided stage manager can be serialised?
@@ -180,6 +185,7 @@ public StageManager(StageManager parent, String myTitle) {
     setJavaFXStageParent(parent);
     this.outputTextArea.setWrapText(true);
     this.inputTextArea.setWrapText(true);  //default
+    cycleUserView();
 }
 
 //standard open node viewer constructor
@@ -187,7 +193,9 @@ public StageManager(StageManager parent, EventHandler PressBox, EventHandler Dra
     setJavaFXStageParent(parent);
     setPressBox(PressBox);
     setDragBox(DragBox);
+    setKeyPress(NodeKeyHandler); //this can be different for workspace
     currentFocus=StageManager.this; //set focus on creation
+    cycleUserView();
 }
 
 //workspace constructor.  Filename details will be inherited from loaded node.
@@ -200,6 +208,30 @@ public StageManager(String title, MenuBar myMenu, EventHandler PressBox, EventHa
     setDragBox(DragBox);
     newWorkstageFromGroup();
     currentFocus=StageManager.this; //set focus on creation  
+}
+
+//GLOBAL view setting.  Make switch.
+private void cycleUserView() {
+    if (userNodeView==null) {
+        userNodeView="all";
+        //updateOpenNodeView();
+        return;
+    }
+    if (userNodeView.equals("all")) {
+        userNodeView="textonly";
+        updateOpenNodeView();
+        return;
+    }
+    if (userNodeView.equals("textonly")) {
+        userNodeView="nodeboxesonly";
+        updateOpenNodeView();
+        return;
+    }
+    if (userNodeView.equals("nodeboxesonly")) {
+        userNodeView="all";
+        updateOpenNodeView();
+        return;
+    }
 }
 
 //any instance can return the global variable with focus stage
@@ -288,13 +320,37 @@ public void setDragBox(EventHandler<MouseEvent> myEvent) {
     this.DragBox=myEvent;
 }
 
+//Set key handler at level of stage in node editor
+private void setKeyPress(EventHandler<KeyEvent> myKE) {
+    getStage().addEventFilter(KeyEvent.KEY_PRESSED, NodeKeyHandler);
+}
 
 EventHandler myMouseLambda = new EventHandler<MouseEvent>() {
  @Override
  public void handle(MouseEvent mouseEvent) {
- System.out.println("Mouse click detected for text output window! " + mouseEvent.getSource());
+    System.out.println("Mouse click detected for text output window! " + mouseEvent.getSource());
      }
  };
+
+ EventHandler<KeyEvent> NodeKeyHandler = new EventHandler<KeyEvent>() {
+ @Override
+ public void handle(KeyEvent ke) {
+    System.out.println("Key Event on current Stage:"+StageManager.this.toString());
+    System.out.println("Key Press (keycode):"+ke.getCode());
+    //System.out.println("Key Press (keycode textual):"+ke.getCode().getKeyCode());
+    System.out.println("Key Press (keycode name):"+ke.getCode().getName());
+    System.out.println("Key Press (as string):"+ke.getCode().toString());
+    System.out.println("KeyPress (as source): " + ke.getSource());
+    System.out.println("KeyPress (as higher-level event type): " + ke.getEventType());
+    System.out.println("KeyPress (unicode): " + ke.getCharacter());
+    System.out.println("is Control Down: " + ke.isControlDown());
+    System.out.println("is Meta(Command) Down: " + ke.isMetaDown());
+    if (ke.isMetaDown() && ke.getCode().getName().equals("Z")) {
+         System.out.println("CMND-Z pressed");
+         cycleUserView();
+    }
+ }
+};
 
 private void configDefaultScroller(ScrollPane myScroll) {
     myScroll.setFitToHeight(true);
@@ -441,15 +497,26 @@ public void updateOpenNodeView() {
     String pathText = parentSTR+"-->"+displayNode.getDocName()+"(contents)"; 
     parentBoxText.setText(pathText);
     //main node contents (text)
-    shortnameTextArea.setText(displayNode.getDocName());
-    headingTextArea.setText(displayNode.getHeading());
-    inputTextArea.setText(displayNode.getNotes());
-    //output node contents
-    outputTextArea.setText(displayNode.getOutputText());
-    //child nodes
-    displayChildNodeBoxes();
-}
+    if (userNodeView.equals("textonly")) {
+        inputTextArea.setText(displayNode.getNotes());
+    }
+    
+    else if (userNodeView.equals("nodeboxesonly")) {
+        displayChildNodeBoxes();
+    }
 
+    else {
+        inputTextArea.setText(displayNode.getNotes());
+
+        shortnameTextArea.setText(displayNode.getDocName());
+        headingTextArea.setText(displayNode.getHeading());
+        
+        //output node contents
+        outputTextArea.setText(displayNode.getOutputText());
+    
+        displayChildNodeBoxes();
+        }
+    }
 /* ----- DATA (DISPLAY) NODE FUNCTIONS ----- */
 
 /* 
@@ -756,7 +823,17 @@ private Scene makeSceneForBoxes(ScrollPane myPane) {
         return tempScene;
 }
 
-//The scene contains a text area, a pane to display sprite boxes and an Edit/Update button
+/* Method to build the viewer for the current open node.
+Capable of showing a text area, a pane to display sprite boxes and an Edit/Update button
+User can choose to see less (i.e. only work with some of what a node can contain)
+i.e. can resemble a text editor, or graphical tree, or functional text processor with all three areas
+
+Takes arguments that define which version of UI to display.
+Could use a number to cycle but words more symbolic.  
+Cycle pattern: Could use circular linked list, or just if-for
+
+
+*/
 
 private void makeSceneForNodeEdit() {
         
@@ -776,11 +853,24 @@ private void makeSceneForNodeEdit() {
         HBox hboxButtons = new HBox(0,btnUpdate,btnEditCancel);
         //
         parentBoxText = new Text();
-        VBox allContent = new VBox(0,parentBoxText,shortnameTextArea,headingTextArea,inputTextArea,hboxButtons,tempPane,outputTextArea);
+        //set view option
+        VBox customView;
+        if (userNodeView.equals("textonly")) {
+            System.out.println("Make Scene. User Node View: "+userNodeView);
+            customView = new VBox(0,inputTextArea,hboxButtons);
+        }
+        else if(userNodeView.equals("nodeboxesonly")) {
+            customView = new VBox(0,tempPane);
+            System.out.println("Make Scene. User Node View: "+userNodeView);
+        }
+            else {
+            customView = new VBox(0,parentBoxText,shortnameTextArea,headingTextArea,inputTextArea,hboxButtons,tempPane,outputTextArea);
+            System.out.println("Make Scene. User Node View: "+userNodeView);
+        }
         //vboxAll.setPrefWidth(200);
         //
         Pane largePane = new Pane();
-        largePane.getChildren().add(allContent); 
+        largePane.getChildren().add(customView); 
         Scene tempScene = new Scene (largePane,nodeViewWidth,nodeViewHeight); //default width x height (px)
         //add event handler for mouse event
         tempScene.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
@@ -1025,7 +1115,6 @@ private void addNodeToView (ClauseContainer myNode) {
     addSpriteToStage(b); //differs from Main 
     setFocusBox(b); 
 }
-
 
 public void OpenNodeNow(ClauseContainer targetNode, StageManager myWS) {
     if (StageManager.this==myWS) {
