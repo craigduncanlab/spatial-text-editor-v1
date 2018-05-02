@@ -119,6 +119,7 @@ ClauseContainer reference_ParentNode = new ClauseContainer();
 Stage localStage = new Stage();
 Node rootNode; //Use Javafx object type
 Group spriteGroup;
+ScrollPane spriteScrollPane;
 Pane spritePane;
 Scene localScene;
 SpriteBox focusbox; //for holding active sprite in this scene.  Pass to app.
@@ -197,7 +198,7 @@ public StageManager(StageManager parent, NodeCategory myCat, EventHandler PressB
     setKeyPress(NodeKeyHandler); //this can be different for workspace
     //associate this Node Category with this StageManager (used with views etc)
     myCat.setCatViewer(StageManager.this);
-    //data: new node based on category alone
+    //data: new 'parent' node based on category alone
     setDisplayNode(new ClauseContainer(myCat,"The holding area for all nodes of this category",myCat.getCategory()));
     //focus
     currentFocus=StageManager.this; //set focus on creation
@@ -595,8 +596,7 @@ public ClauseContainer getRefParentNode() {
 
 public void setParentBox (SpriteBox myPB) {
     this.parentBox = myPB;
-    ClauseContainer myNode = myPB.getBoxNode();
-    setDisplayNode(myNode);
+    setDisplayNode(myPB.getBoxNode());
 }
 
 public SpriteBox getParentBox () {
@@ -654,12 +654,31 @@ public Pane getSpritePane() {
     return this.spritePane;
 }
 
+public void setSpriteScrollPane(ScrollPane myPane) {
+    this.spriteScrollPane = myPane;
+}
+
+public ScrollPane getSpriteScrollPane() {
+    return this.spriteScrollPane;
+}
+
+
 public void swapSpriteGroup(Group myGroup) {
     Pane myPane = getSpritePane();
     myPane.getChildren().remove(getSpriteGroup());
     setSpriteGroup(myGroup);
     myPane.getChildren().addAll(myGroup);
 }
+
+/*
+public void swapSpriteChildGroup(Group myGroup) {
+    ScrollPane myPane = getSpriteScrollPane();
+    myPane.getChildren().remove(getSpriteGroup());
+    setSpriteGroup(myGroup);
+    myPane.getChildren().addAll(myGroup);
+}
+*/
+
 
 private void setStagePosition(double x, double y) {
     this.localStage.setX(x);
@@ -809,8 +828,11 @@ public void setInitStage(StageManager myParentSM, Stage myStage, Group myGroup, 
 public ScrollPane makeScrollGroup () {
     Group myGroup = new Group();
     setSpriteGroup(myGroup); 
+    Pane myPane = new Pane();
+    setSpritePane(myPane);
+    myPane.getChildren().add(myGroup);
     ScrollPane outerScroll = new ScrollPane();
-    outerScroll.setContent(myGroup);
+    outerScroll.setContent(myPane);
     return outerScroll;
 }
 
@@ -835,6 +857,23 @@ private Scene makeSceneForBoxes(ScrollPane myPane) {
         });
         updateScene(tempScene);
         return tempScene;
+}
+
+/* Method to refresh GUI objects from underlying data (as saved) */
+
+private void refreshNodeViewScene() {
+        inputTextArea.setText(displayNode.getNotes());
+
+        shortnameTextArea.setText(displayNode.getDocName());
+        headingTextArea.setText(displayNode.getHeading());
+        
+        //output node contents
+        outputTextArea.setText(displayNode.getOutputText());
+        //redisplay boxes
+        Group newGroup = new Group(); //new GUI node to show only new content.
+        swapSpriteGroup(newGroup); //store the new GUI node for later use
+        resetSpriteOrigin();
+        displayChildNodeBoxes();
 }
 
 /* Method to build the viewer for the current open node.
@@ -897,11 +936,17 @@ private void makeSceneForNodeEdit() {
          public void handle(MouseEvent mouseEvent) {
          System.out.println("Mouse click on a node (StageManager scene) detected! " + mouseEvent.getSource());
          //setStageFocus("document");
-         currentFocus=StageManager.this;
+         if (!currentFocus.equals(StageManager.this)) {
+            refreshNodeViewScene();//update the GUI with focus.  TO DO: do once.
+            currentFocus=StageManager.this;
+         }
          //error checking i.e. like jUnit assert
          if (getCurrentFocus()==StageManager.this) {
             System.out.println("Change of Viewer Focus OK in Viewer!");
              System.out.println("makescene Viewer :"+StageManager.this);
+             System.out.println("scene display node :"+getDisplayNode().toString());
+             System.out.println("notes String :"+getDisplayNode().getNotes());
+             System.out.println("Input text area: "+inputTextArea.getText());
          }
          else {
             System.out.println("Problem with change Viewer Focus");
@@ -1137,17 +1182,29 @@ private void addNodeToView (ClauseContainer myNode) {
 //General method to add AND open a node if not on ws; otherwise place on workspace
 //The StageManager arg passed in as myWS should be 'Stage_WS' for all calls 
 
-public void OpenNewNodeNow(ClauseContainer targetNode, StageManager myWS) {
+public void OpenNewNodeNow(ClauseContainer newNode, StageManager myWS) {
     System.out.println("OpenNewNode now...");
      if (StageManager.this.equals(myWS)) { 
-     newNodeForWorkspace(targetNode);
+     newNodeForWorkspace(newNode);
      System.out.println("Adding new node to Workspace");
 }
         else {
-             newNodeAsChildNode(targetNode);
-             System.out.println("Adding new node to stage (not WS)");
-             System.out.println("sm.this in opennew, Viewer :"+StageManager.this.toString());
-             System.out.println("myWS in opennew, Viewer :"+myWS.toString());
+             newNodeAsChildNode(newNode);
+        }
+}
+
+//General method to PLACE AN EXISTING NODE
+//in current focus...
+//The StageManager arg passed in as myWS should be 'Stage_WS' for all calls 
+
+public void PlaceNodeNow(ClauseContainer myNode, StageManager myWS) {
+    System.out.println("PlaceNewNode now...");
+     if (StageManager.this.equals(myWS)) { 
+     //newNodeForWorkspace(newNode);
+     System.out.println("Adding new node to Workspace");
+}
+        else {
+             //newNodeAsChildNode(newNode);
         }
 }
 
@@ -1176,8 +1233,8 @@ private void addChildNodeToDisplayNode(ClauseContainer myChildNode) {
 
 /* Method to add node as child node of parent AND update/display all nodes */
 
-private void newNodeAsChildNode(ClauseContainer myNode) {
-    addChildNodeToDisplayNode(myNode); //data
+private void newNodeAsChildNode(ClauseContainer newNode) {
+    addChildNodeToDisplayNode(newNode); //data
     updateOpenNodeView(); //view
 }
 

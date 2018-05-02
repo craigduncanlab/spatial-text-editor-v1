@@ -484,7 +484,7 @@ switch(clickcount) {
         System.out.println("One click");
         //change stage focus with just one click on spritebox (but node still closed)
         OpenNodeStage=currentSprite.getStageLocation();
-
+        //refreshNodeViewScene();
         break;
     case 2:
         System.out.println("Two clicks");
@@ -615,9 +615,18 @@ private void addNewObjectItems (Menu myMenu) {
             //handlers
             myNewViewItem.setOnAction(new EventHandler<ActionEvent>() {
             public void handle(ActionEvent t) {
-                //Ensure that focus doesn't remain on open node if WS clicked:
-                OpenNodeStage=Stage_WS.getCurrentFocus();
-                OpenNodeStage.OpenNewNodeNow(new ClauseContainer(myCat),Stage_WS);
+                //New node..
+                ClauseContainer newNode = new ClauseContainer(myCat);
+                //Add new object to the category container
+                myCat.getCatViewer().OpenNewNodeNow(newNode,Stage_WS);
+                //place a COPY (REF) of node in the relevant open node.  Testing...
+                OpenNodeStage=Stage_WS.getCurrentFocus(); //update focus id.
+                OpenNodeStage.OpenNewNodeNow(newNode,Stage_WS); // check they both update
+                /* place a NEW object in the relevant open node... */
+                //OpenNodeStage.OpenNewNodeNow(new ClauseContainer(myCat),Stage_WS);
+                    System.out.println("Nodes ");
+                    System.out.println("Category Node: "+myCat.getCatViewer().getDisplayNode().getChildNodes().toString());
+                    System.out.println("Context Node: "+OpenNodeStage.getDisplayNode().getChildNodes().toString());
             }
         });
 

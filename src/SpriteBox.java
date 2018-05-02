@@ -107,8 +107,8 @@ public class SpriteBox extends StackPane implements java.io.Serializable {
     setBoxCategory(myCat); 
     setBoxNode(node); //sets and updates appearance
     //inherited methods - need to reference from the object type to call them
-    SpriteBox.this.setOnMousePressed(PressBoxEventHandler);  // JavaFX - inherited from Rectangle 
-    SpriteBox.this.setOnMouseDragged(DragBoxEventHandler);   //ditto
+    setOnMousePressed(PressBoxEventHandler);  // JavaFX - inherited from Rectangle 
+    setOnMouseDragged(DragBoxEventHandler);   //ditto
 }
 
 //Box constructor that takes puts a (ClauseContainer)Node inside as the Box's node.
