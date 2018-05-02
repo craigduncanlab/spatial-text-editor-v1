@@ -608,6 +608,8 @@ private MenuBar makeMenuBar() {
         Menu menuOutput = new Menu("Output");
         Menu menuImport = new Menu("TextTools");
         Menu menuViews = new Menu("Views");
+        //TO DO: Build following items from the NodeCategories
+        //Put into an array of MenuItems which can be iterated to make menuObject.
         MenuItem NewDef = new MenuItem("Def");
         MenuItem NewClause = new MenuItem("Clause");
         MenuItem NewNote = new MenuItem("Note");
@@ -621,6 +623,11 @@ private MenuBar makeMenuBar() {
         MenuItem NewLibrary = new MenuItem("Library");
         MenuItem NewCollection = new MenuItem("Collection");
         MenuItem NewProject = new MenuItem("Project");
+        //
+        //TO DO: Place Menu with any Level 1 Category Nodes
+        //
+        //TO DO: Build following items from the NodeCategories
+        //Put into an array of MenuItems which can be iterated to make menuViews.
         MenuItem viewImporter = new MenuItem("TextTools");
         MenuItem viewDocument = new MenuItem("Document");
         MenuItem viewTestimony = new MenuItem("Testimony");
@@ -631,6 +638,7 @@ private MenuBar makeMenuBar() {
         MenuItem viewCollection = new MenuItem("Collection");
         MenuItem viewProject = new MenuItem("Project");
         MenuItem viewProjectLib = new MenuItem("ProjectLib");
+        //
         MenuItem SaveNode = new MenuItem("Save");
         MenuItem LoadSavedNode = new MenuItem("Load");
         MenuItem SaveColl = new MenuItem("Save");

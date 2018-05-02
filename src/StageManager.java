@@ -31,7 +31,7 @@ Each node can hold 1 image see https://www.tutorialspoint.com/javafx/javafx_imag
 https://docs.oracle.com/javase/8/javafx/media-tutorial/overview.htm
 
 30.4.18
-Idea about user choice of views e.g. (a) node text/input, child nodes, output area (b) node text only (c) child nodes only 
+Provided user choice of views e.g. (a) node text/input, child nodes, output area (b) node text only (c) child nodes only 
 Keys to cycle through that for any chosen node.  [Every node is an app, the app is flexible]
 Easy to achieve through a MVC model.
 */
@@ -185,7 +185,7 @@ public StageManager(StageManager parent, String myTitle) {
     setJavaFXStageParent(parent);
     this.outputTextArea.setWrapText(true);
     this.inputTextArea.setWrapText(true);  //default
-    cycleUserView();
+    //cycleUserView();
 }
 
 //standard open node viewer constructor
@@ -195,7 +195,7 @@ public StageManager(StageManager parent, EventHandler PressBox, EventHandler Dra
     setDragBox(DragBox);
     setKeyPress(NodeKeyHandler); //this can be different for workspace
     currentFocus=StageManager.this; //set focus on creation
-    cycleUserView();
+    //cycleUserView();
 }
 
 //workspace constructor.  Filename details will be inherited from loaded node.
@@ -212,10 +212,9 @@ public StageManager(String title, MenuBar myMenu, EventHandler PressBox, EventHa
 
 //GLOBAL view setting.  Make switch.
 private void cycleUserView() {
+    //handle null case
     if (userNodeView==null) {
         userNodeView="all";
-        //updateOpenNodeView();
-        return;
     }
     if (userNodeView.equals("all")) {
         userNodeView="textonly";
@@ -446,11 +445,14 @@ public String getStageName() {
 //probably redundant - keep name or title
 public void setTitle(String myTitle) {
     this.stageTitle = myTitle;
-    this.localStage.setTitle(myTitle);
 }
 
 public String getTitle() {
     return this.stageTitle;
+}
+
+private void refreshTitle() {
+    this.localStage.setTitle(getTitle());
 }
 
 public void setCategory(String myCat) {
@@ -475,9 +477,8 @@ public void updateOpenNodeView() {
     makeSceneForNodeEdit();
     resetSpriteOrigin();
     //title bar
-    setTitle(displayNode.getType());
-    //path
-    //Set text to identify Stage containing parent box
+    refreshTitle();
+    //provide information about path of current open node in tree
     SpriteBox parBX = getParentBox();
     String parentSTR="";
     if (parBX==null) {
@@ -494,18 +495,10 @@ public void updateOpenNodeView() {
         }
         */
     }
-    String pathText = parentSTR+"-->"+displayNode.getDocName()+"(contents)"; 
+    String pathText = parentSTR+"-->"+displayNode.getDocName()+"(viewing)"; 
     parentBoxText.setText(pathText);
-    //main node contents (text)
-    if (userNodeView.equals("textonly")) {
-        inputTextArea.setText(displayNode.getNotes());
-    }
+    //REFRESHES ALL GUI DATA - EVEN IF NOT CURRENTLY VISIBLE
     
-    else if (userNodeView.equals("nodeboxesonly")) {
-        displayChildNodeBoxes();
-    }
-
-    else {
         inputTextArea.setText(displayNode.getNotes());
 
         shortnameTextArea.setText(displayNode.getDocName());
@@ -515,7 +508,7 @@ public void updateOpenNodeView() {
         outputTextArea.setText(displayNode.getOutputText());
     
         displayChildNodeBoxes();
-        }
+
     }
 /* ----- DATA (DISPLAY) NODE FUNCTIONS ----- */
 
@@ -600,15 +593,6 @@ public SpriteBox getParentBox () {
         //return getFocusBox();
         }
 
-//only invoked here as needed i.e. when displaying child nodes on stage
-//put in box constructor.
-//several objects share same kind of event handlers - can these be dealt with as OO?
-/*private SpriteBox makeBoxWithNode(ClauseContainer node) {
-    SpriteBox b = new SpriteBox(PressBox,DragBox,node);
-    return b;
-}
-*/
-
 /* ----- GENERAL GUI FUNCTIONS ----- */
 
 //setter for the Stage
@@ -691,7 +675,7 @@ then add WIP spritexboxes to a 'Document Group' that replaces Workspace with 'Do
 
 */
 
-//TO DO: set position based on StageManager category.
+//TO DO: set position based on NodeCat.
 public void setPosition() {
 
     switch(this.stageName){
@@ -828,10 +812,8 @@ Capable of showing a text area, a pane to display sprite boxes and an Edit/Updat
 User can choose to see less (i.e. only work with some of what a node can contain)
 i.e. can resemble a text editor, or graphical tree, or functional text processor with all three areas
 
-Takes arguments that define which version of UI to display.
-Could use a number to cycle but words more symbolic.  
-Cycle pattern: Could use circular linked list, or just if-for
-
+State variable (userNodeView) defines which version of UI to display.
+User can cycle through states of UI display through key press (CMD-Z)
 
 */
 
@@ -855,17 +837,24 @@ private void makeSceneForNodeEdit() {
         parentBoxText = new Text();
         //set view option
         VBox customView;
+        //handle null case
+        if (userNodeView==null) {
+            userNodeView="all";
+        }
         if (userNodeView.equals("textonly")) {
             System.out.println("Make Scene. User Node View: "+userNodeView);
-            customView = new VBox(0,inputTextArea,hboxButtons);
+            customView = new VBox(0,headingTextArea,inputTextArea,hboxButtons);
+            setTitle(getDisplayNode().getDocName()+" - Text View");
         }
         else if(userNodeView.equals("nodeboxesonly")) {
-            customView = new VBox(0,tempPane);
+            customView = new VBox(0,shortnameTextArea,hboxButtons,tempPane);
             System.out.println("Make Scene. User Node View: "+userNodeView);
+            setTitle(getDisplayNode().getDocName()+" - Container View");
         }
             else {
             customView = new VBox(0,parentBoxText,shortnameTextArea,headingTextArea,inputTextArea,hboxButtons,tempPane,outputTextArea);
             System.out.println("Make Scene. User Node View: "+userNodeView);
+            setTitle(getDisplayNode().getDocName()+" - Full View");
         }
         //vboxAll.setPrefWidth(200);
         //
@@ -1001,7 +990,7 @@ private Scene makeWorkspaceScene(Group myGroup) {
             /*
             areas and targets differ depending on objects on stage (invisible stretch)
             Ignore the MenuBar here
-            JavaFX has ability to detect Text, Rectangle, ColBox (all constituents of a SpriteBox)
+            JavaFX has ability to detect Text, Rectangle, ColBox (all components of a SpriteBox)
             Better to force it to detect a SpriteBox?
             Although clicking on text could be useful for updating headings/filenames
             It is possible to change focus with a click, but exclude MenuBar targets
