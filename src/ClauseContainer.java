@@ -113,13 +113,16 @@ public ClauseContainer(String category) {
 
 }
 
-//constructor with category and node text
+/*constructor with category and node text
+The label is used to set document name and heading 
+In turn, document name will be used for the viewer title when Node is opened. */
+
 public ClauseContainer(NodeCategory nodecat, String nodetext, String label) {
 	setNC(nodecat);
 	setNotes(nodetext);
-	setDocName(nodecat.getCategory()); //default
-    setHeading("heading");
-    setShortname(nodecat.getCategory());
+	//setDocName(nodecat.getCategory()); //default
+    //setHeading("heading");
+    //setShortname(nodecat.getCategory());
     setOutputText("output");
     setType(nodecat.getCategory());
     setAuthorName("Craig");

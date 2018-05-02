@@ -200,7 +200,11 @@ public StageManager(StageManager parent, NodeCategory myCat, EventHandler PressB
     //focus
     currentFocus=StageManager.this; //set focus on creation
     parent.setCurrentFocus(StageManager.this);//this duplicated previous line since class variable?
+    //
+    //makeSceneForNodeEdit(); //test this, possible update view as well
     //cycleUserView();
+    updateOpenNodeView(); //updates contents but doesn't show stage unless requested
+    //showStage(); //to do: put default view in constructor
 }
 
 //standard open node viewer constructor using an existing Spritebox with node 
@@ -599,7 +603,8 @@ public SpriteBox getParentBox () {
     return this.parentBox;
 }
 
-/* Box up a container of Sprites and place on Stage */
+/* Box up a container of Sprites and place on Stage 
+Refreshes stage from display node, but doesn't show if invisible*/
 
  private void displayChildNodeBoxes() {
     
@@ -614,7 +619,6 @@ public SpriteBox getParentBox () {
             System.out.println("Current child node to be added: "+thisNode.toString());
             addNodeToView(thisNode);
         }
-        showStage();
         //return getFocusBox();
         }
 
@@ -1116,11 +1120,6 @@ public void selectedAsChildNode() {
     newNodeAsChildNode(myNode); //data and view for node viewer
 }
 
-private void newNodeAsChildNode(ClauseContainer myNode) {
-    addChildNodeToDisplayNode(myNode); //data
-    updateOpenNodeView(); //view
-}
-
 //method to box up node as shape and add to GUI in node viewer
 
 private void addNodeToView (ClauseContainer myNode) {
@@ -1142,20 +1141,34 @@ public void OpenNodeNow(ClauseContainer targetNode, StageManager myWS) {
         }
 }
 
+/* This method adds the child nodes of the parentNode passed as arg 
+to the Open Node, as its child nodes and then updates the view.
+*/
+
 public void addOpenNodeChildren (ClauseContainer parentNode) {
     getDisplayNode().addNodeChildren(parentNode);
     updateOpenNodeView();
 }
+
+/* This method adds a single node to workspace without refreshing entire view */
+
 private void newNodeForWorkspace(ClauseContainer myNode) {
     addChildNodeToDisplayNode(myNode); //data
     addNodeToView(myNode); //view
 }
 
-//Method to add child node to the open node in this view and update parent node (data)
+//Method to add a single child node to the open node in this view and update parent node (data)
 
 private void addChildNodeToDisplayNode(ClauseContainer myChildNode) {
         getDisplayNode().addChildNode(myChildNode);
         myChildNode.setParentNode(getDisplayNode());
+}
+
+/* Method to add node as child node of parent AND update/display all nodes */
+
+private void newNodeAsChildNode(ClauseContainer myNode) {
+    addChildNodeToDisplayNode(myNode); //data
+    updateOpenNodeView(); //view
 }
 
 public void removeSpriteFromStage(SpriteBox thisSprite) {
@@ -1228,6 +1241,7 @@ public double getBigY() {
 //SPECIFIC TEXT OUTPUT WINDOW OPTION
 
 //Function to setup independent output window
+//This is only called for the Stage_Output instance.
 //TO DO: discard or put into StageManager constructor
 
 public void setupTextOutputWindow() {
