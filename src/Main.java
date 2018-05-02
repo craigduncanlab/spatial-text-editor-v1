@@ -107,7 +107,6 @@ public class Main extends Application {
     StageManager Stage_WS;
     Stage WorkspaceStage;
     //Group WorkspaceGroup; //deprecated
-    ClauseContainer WorkspaceNode;
     BoxContainer WorkspaceBoxes; //A serializable top-level container (optional)
     ClauseContainer wsCollection = new ClauseContainer(); //for holding workspace contents (inside boxes)
     //Opus = project collection.  Display Projects as Icons, as in a library.
@@ -186,12 +185,13 @@ public class Main extends Application {
     SpriteTracker myTracker = new SpriteTracker();
     //STAGE IDS
     int location = 0;
-    //node config
-    //nodecategories
+    //Menu to hold view toggle functions, but configure as needed.
+    Menu theViewMenu;
 
     //TO DO:
     //Enclose these inside Node class (clause container)
-    NodeCategory NC_notes = new NodeCategory ("notes",0,"khaki");
+    
+    NodeCategory NC_notes = new NodeCategory("notes",0,"khaki");
     NodeCategory NC_footnotes = new NodeCategory ("footnotes",0,"khaki");
     NodeCategory NC_clause = new NodeCategory ("clause",0,"blue");
     NodeCategory NC_def = new NodeCategory ("definition",0,"green");
@@ -205,7 +205,9 @@ public class Main extends Application {
     NodeCategory NC_collection = new NodeCategory ("collection",2,"orange");
     NodeCategory NC_project = new NodeCategory ("project",3,"white");
     NodeCategory NC_WS = new NodeCategory ("workspace",99,"white");
-        //see line 690 above
+    
+    ArrayList<NodeCategory> nodeCatList = new ArrayList<NodeCategory>(Arrays.asList(NC_notes,NC_footnotes,NC_clause,NC_def,NC_law,NC_fact,NC_event,NC_witness,NC_testimony));
+
     //To hold Stage with open node that is current
     StageManager OpenNodeStage;
     ClauseContainer NodeTarget;
@@ -435,7 +437,7 @@ private void NewChildNodeForOpenNode(NodeCategory nodecat) {
     System.out.println("Creating new node for this viewer:"+OpenNodeStage.toString());
     int docnum=OpenNodeStage.advanceDocCount();
 
-    ClauseContainer newNode = getNewNodeWithData(nodecat,docnum);
+    ClauseContainer newNode = getNewNodeWithData(nodecat,docnum);//TO DO: constructor
     OpenNodeStage.OpenNodeNow(newNode,Stage_WS);
 }
 
@@ -590,6 +592,39 @@ public void setupImportStage(StageManager myStageManager, Stage textStage, Strin
         textStage.show();
     }
 
+/*Method to add category views needed.
+As this will toggle views to stages, and each stage has a parent Stage_WS,
+Stage_WS should be defined before this call (i.e. not null)
+*/
+
+private void addMenuViewsItems(Menu myMenu) {
+
+         Iterator<NodeCategory> myIterator = nodeCatList.iterator(); //alternatively use Java method to see if in Array?
+            while (myIterator.hasNext()) {
+            NodeCategory myCat = myIterator.next();
+            System.out.println(myCat.getCategory());
+            MenuItem myNewViewItem = new MenuItem(myCat.getCategory());
+            StageManager myNewStage = new StageManager(Stage_WS, myCat, PressBoxEventHandler,DragBoxEventHandler); //to do: title.  Global?
+            //to do: set a data node for this stage.
+            myMenu.getItems().add(myNewViewItem);
+            myNewViewItem.setOnAction(new EventHandler<ActionEvent>() {
+            public void handle(ActionEvent t) {
+                toggleView(myNewStage); //To DO: Link this to the 'category' stages
+            }
+        });
+
+        }
+}
+
+private Menu getMenuViews() {
+    return this.theViewMenu;
+}
+
+private void setMenuViews() {
+    this.theViewMenu = new Menu("Views");
+    //addMenuViewsItems(menuViews); //n
+}
+
 
 /* Make menuBar for workspace */
 
@@ -607,7 +642,8 @@ private MenuBar makeMenuBar() {
         Menu menuLibrary = new Menu("Library");
         Menu menuOutput = new Menu("Output");
         Menu menuImport = new Menu("TextTools");
-        Menu menuViews = new Menu("Views");
+        setMenuViews();
+        Menu menuViews = getMenuViews();
         //TO DO: Build following items from the NodeCategories
         //Put into an array of MenuItems which can be iterated to make menuObject.
         MenuItem NewDef = new MenuItem("Def");
@@ -625,19 +661,6 @@ private MenuBar makeMenuBar() {
         MenuItem NewProject = new MenuItem("Project");
         //
         //TO DO: Place Menu with any Level 1 Category Nodes
-        //
-        //TO DO: Build following items from the NodeCategories
-        //Put into an array of MenuItems which can be iterated to make menuViews.
-        MenuItem viewImporter = new MenuItem("TextTools");
-        MenuItem viewDocument = new MenuItem("Document");
-        MenuItem viewTestimony = new MenuItem("Testimony");
-        MenuItem viewEditor = new MenuItem("Editor");
-        MenuItem viewtextmaker = new MenuItem("Textmaker");
-        MenuItem viewToolbar = new MenuItem("Clause Toolbar");
-        MenuItem viewLibrary = new MenuItem("Library");
-        MenuItem viewCollection = new MenuItem("Collection");
-        MenuItem viewProject = new MenuItem("Project");
-        MenuItem viewProjectLib = new MenuItem("ProjectLib");
         //
         MenuItem SaveNode = new MenuItem("Save");
         MenuItem LoadSavedNode = new MenuItem("Load");
@@ -661,43 +684,13 @@ private MenuBar makeMenuBar() {
         MenuItem GetClauses = new MenuItem("GetClauses");
         MenuItem GetSections = new MenuItem("GetSections");
         MenuItem NodeFromSelection = new MenuItem("Selection->ChildNode");
-         menuObject.getItems().addAll(NewDef,NewClause,NewNote,NewFootnote,NewWitness,NewTestimony,NewEvent,NewFact,NewLaw,NewDoc,NewLibrary,NewCollection,NewProject);
-         menuViews.getItems().addAll(
-            /*
-            viewProjectLib,
-            viewProject,
-            viewCollection,
-            viewLibrary,
-            viewDocument,
-            viewTestimony,
-            viewEditor,
-            */
-            viewImporter,
-            viewtextmaker,
-            viewToolbar);
+        menuObject.getItems().addAll(NewDef,NewClause,NewNote,NewFootnote,NewWitness,NewTestimony,NewEvent,NewFact,NewLaw,NewDoc,NewLibrary,NewCollection,NewProject);
          menuFile.getItems().addAll(LoadSavedNode,SaveNode);
-         /*
-         menuProject.getItems().addAll(
-            SaveProject,
-            LoadProject);
-            
-         menuCollection.getItems().addAll(
-            SaveColl,
-            LoadColl);
-            */
          menuWorkspace.getItems().addAll(
             SaveWork,
             LoadWork,
             OutputWork,
             PrintBoxes);
-         /*
-        menuDocument.getItems().addAll(
-            SaveDoc,
-            LoadDoc); //OutputDoc
-        menuLibrary.getItems().addAll(
-            SaveLibrary,
-            LoadLibrary);
-            */
         menuOutput.getItems().addAll(
             SaveOutput);
         menuImport.getItems().addAll(
@@ -752,8 +745,8 @@ private MenuBar makeMenuBar() {
         OutputWork.setOnAction(new EventHandler<ActionEvent>() {
         public void handle(ActionEvent t) {
                 
-            WorkspaceNode.doPrintIteration();
-            String output=WorkspaceNode.getClauseAndText();
+            Stage_WS.getDisplayNode().doPrintIteration();
+            String output=Stage_WS.getDisplayNode().getClauseAndText();
             Stage_Output.setOutputText(output);
             Stage_Output.showStage();
             }
@@ -852,13 +845,6 @@ private MenuBar makeMenuBar() {
              NewChildNodeForOpenNode(NC_library);
             }
         }); 
-
-         //toggle visibility of toolbar
-        viewToolbar.setOnAction(new EventHandler<ActionEvent>() {
-        public void handle(ActionEvent t) {
-                toggleView(Stage_Toolbar);
-            }
-        });
 
         SaveOutput.setOnAction(new EventHandler<ActionEvent>() {
         public void handle(ActionEvent t) {
@@ -1134,28 +1120,6 @@ public void deleteSpriteGUI(SpriteBox mySprite) {
 
 //STAGE METHODS
 
-public StageManager makeBasicStage() {
-    StageManager mySM = new StageManager(Stage_WS, PressBoxEventHandler, DragBoxEventHandler); //category
-    OpenNodeStage=mySM;
-    Stage_WS.setCurrentFocus(mySM); //use Stage_WS to set class variable
-    return mySM;
-}
-
-/* Method to open the node contained in a SpriteBox in a new Stage window 
-nb Do not change the opennode until a sprite is opened
-TO DO: Make this a constructor for Stage Manager 
-*/
-
-private StageManager openNodeInNewStage(SpriteBox mySprite) {
-        
-    StageManager childSM = makeBasicStage();
-    childSM.setParentBox(mySprite);
-    mySprite.setChildStage(childSM);
-    System.out.println("Set parent sprite to: "+mySprite.toString());
-    System.out.println("Check: "+childSM.getParentBox().toString());
-    return childSM;
-}
-
 /* ---- JAVAFX APPLICATION STARTS HERE --- */
   
     @Override
@@ -1164,7 +1128,7 @@ private StageManager openNodeInNewStage(SpriteBox mySprite) {
         /* This only affects the primary stage set by the application */
         primaryStage.setTitle("Powerdock App");
         primaryStage.show();
-        primaryStage.close();
+        //primaryStage.close(); //why?
         
         ParentStageSM = new StageManager();
         ParentStage = new Stage();
@@ -1173,12 +1137,12 @@ private StageManager openNodeInNewStage(SpriteBox mySprite) {
 
         //
         MenuBar myMenu = makeMenuBar();
-        Stage_WS = new StageManager("Workspace", myMenu, PressBoxEventHandler, DragBoxEventHandler);  //sets up GUI for view
-        WorkspaceNode = new ClauseContainer(NC_WS,"The workspace is base node of project.","myWorkspace");
-        Stage_WS.setWSNode(WorkspaceNode); //data
-        OpenNodeStage=Stage_WS;
+        Stage_WS = new StageManager("Workspace", NC_WS, myMenu, PressBoxEventHandler, DragBoxEventHandler);  //sets up GUI for view
+        addMenuViewsItems(getMenuViews()); //need to do this after Stage_WS defined as it is parent for toggle views.
+        
        
         //Temporary: demonstration nodes at start
+        Stage_WS.setCurrentFocus(Stage_WS);
         NewChildNodeForOpenNode(NC_library);
         NewChildNodeForOpenNode(NC_project);
         
@@ -1312,13 +1276,12 @@ private StageManager openNodeInNewStage(SpriteBox mySprite) {
 
     public void OpenRedNodeNow (SpriteBox currentSprite) { 
         if (currentSprite.getChildStage()==null) {
-            StageManager childSM = new StageManager();
-            childSM = openNodeInNewStage(currentSprite);
+            OpenNodeStage = new StageManager(Stage_WS, currentSprite, PressBoxEventHandler, DragBoxEventHandler); 
         }
         //make node viewer visible if still open but not showing
         else {
-            StageManager tempStage = currentSprite.getChildStage();
-            tempStage.showStage();
+            OpenNodeStage = currentSprite.getChildStage();
+            OpenNodeStage.showStage();
         }
      }
 
@@ -1342,8 +1305,8 @@ private StageManager openNodeInNewStage(SpriteBox mySprite) {
         @Override 
         public void handle(ActionEvent event) {
              //textmakerTextArea.setText("This is where list of clauses will appear");
-             WorkspaceNode.doPrintIteration();
-             String output=WorkspaceNode.getClauseAndText();
+             Stage_WS.getDisplayNode().doPrintIteration();
+             String output=Stage_WS.getDisplayNode().getClauseAndText();
              Stage_Output.setOutputText(output);
 
              /* TO DO: Have a separate "Output/Preview" Window to show clause output.  
@@ -1362,13 +1325,19 @@ private StageManager openNodeInNewStage(SpriteBox mySprite) {
             //use the persistent Stage_WS instance to get the current stage (class variable)
             OpenNodeStage = Stage_WS.getCurrentFocus();
             String sample = OpenNodeStage.getInputText();
+            //TO DO: add node to openstage
+            //To do: call this from inside StageManager instance
             ClauseContainer nodeSample = NodeFromDefinitionsSampleText(sample);
-            //String newDefs = Main.this.getMatched(gotcha);
+            OpenNodeStage.addOpenNodeChildren(nodeSample);
+            //TO DO: add node to open stage
+            //OpenNodeStage.OpenNodeNow(nodeSample,Stage_WS);
+            /*
             ClauseContainer focusNode=OpenNodeStage.getDisplayNode();
             //this adds the child nodes; an alternative would be to just add the parent node
             focusNode.addNodeChildren(nodeSample); //data
             System.out.println("Updated child nodes for this node:"+focusNode.toString());
             OpenNodeStage.updateOpenNodeView(); //view
+            */
         }
     };
 
@@ -1384,10 +1353,13 @@ private StageManager openNodeInNewStage(SpriteBox mySprite) {
              OpenNodeStage = Stage_WS.getCurrentFocus();
              String sample = OpenNodeStage.getInputText();
              ClauseContainer nodeSample = NodeFromClausesSampleText(sample);
+             OpenNodeStage.addOpenNodeChildren(nodeSample);
+             /*
              ClauseContainer focusNode=OpenNodeStage.getDisplayNode();
              focusNode.addNodeChildren(nodeSample); //data
              System.out.println("Updated child nodes for this node:"+focusNode.toString());
              OpenNodeStage.updateOpenNodeView(); //view
+             */
         }
     };
     
@@ -1406,10 +1378,13 @@ private StageManager openNodeInNewStage(SpriteBox mySprite) {
             System.out.println("No text to sample");
         }
         ClauseContainer nodeSample = NodeFromStatuteSampleText(sample);
+        OpenNodeStage.addOpenNodeChildren(nodeSample);
+        /*
         ClauseContainer focusNode=OpenNodeStage.getDisplayNode();
         focusNode.addNodeChildren(nodeSample); //data
         System.out.println("Updated child nodes for this node:"+focusNode.toString());
         OpenNodeStage.updateOpenNodeView(); //view
+        */
         }
     };
     

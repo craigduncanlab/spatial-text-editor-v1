@@ -188,26 +188,51 @@ public StageManager(StageManager parent, String myTitle) {
     //cycleUserView();
 }
 
-//standard open node viewer constructor
-public StageManager(StageManager parent, EventHandler PressBox, EventHandler DragBox) {
+//standard open node viewer constructor, with only category and no content passed on.  Title?
+public StageManager(StageManager parent, NodeCategory myCat, EventHandler PressBox, EventHandler DragBox) {
+    //view
     setJavaFXStageParent(parent);
     setPressBox(PressBox);
     setDragBox(DragBox);
     setKeyPress(NodeKeyHandler); //this can be different for workspace
+    //data: new node based on category alone
+    setDisplayNode(new ClauseContainer(myCat,"The holding area for all nodes of this category",myCat.getCategory()));
+    //focus
     currentFocus=StageManager.this; //set focus on creation
+    parent.setCurrentFocus(StageManager.this);//this duplicated previous line since class variable?
     //cycleUserView();
+}
+
+//standard open node viewer constructor using an existing Spritebox with node 
+public StageManager(StageManager parent, SpriteBox myBox, EventHandler PressBox, EventHandler DragBox) {
+    setJavaFXStageParent(parent);
+    setParentBox(myBox); //data 
+    //
+    myBox.setChildStage(StageManager.this);
+    setPressBox(PressBox);
+    setDragBox(DragBox);
+    setKeyPress(NodeKeyHandler); //this can be different for workspace
+    //
+    currentFocus=StageManager.this; //set focus on creation
+    parent.setCurrentFocus(StageManager.this);//this duplicated previous line since class variable?
+    updateOpenNodeView();
+    showStage();
 }
 
 //workspace constructor.  Filename details will be inherited from loaded node.
 //Passes MenuBar from main application for now
 //Passes general eventhandlers from Main (at present, also uses these for the boxes)
-public StageManager(String title, MenuBar myMenu, EventHandler PressBox, EventHandler DragBox) {
+public StageManager(String title, NodeCategory myCategory, MenuBar myMenu, EventHandler PressBox, EventHandler DragBox) {
+    //view
     setTitle(title);
     setMenuBar(myMenu);
     setPressBox(PressBox);
     setDragBox(DragBox);
     newWorkstageFromGroup();
     currentFocus=StageManager.this; //set focus on creation  
+    //data
+    //ClauseContainer WorkspaceNode = ;
+    setWSNode(new ClauseContainer(myCategory,"The workspace is base node of project.","myWorkspace")); //data
 }
 
 //GLOBAL view setting.  Make switch.
@@ -473,7 +498,7 @@ public MenuBar getMenuBar() {
 }
 
 /* --- BASIC GUI SETUP FOR OPEN NODE VIEWERS --- */
-public void updateOpenNodeView() {
+private void updateOpenNodeView() {
     makeSceneForNodeEdit();
     resetSpriteOrigin();
     //title bar
@@ -523,7 +548,6 @@ private void setDisplayNode(ClauseContainer myNode) {
     this.displayNode = myNode;
     String myFileLabel = myNode.getDocName();
     setFilename(myFileLabel+".ser"); //default
-    updateOpenNodeView();
 }
 
 public ClauseContainer getDisplayNode() {
@@ -547,6 +571,7 @@ public void setWSNode(ClauseContainer myNode) {
 public void openNodeInViewer(ClauseContainer myNode) {
 
     setDisplayNode(myNode);
+    updateOpenNodeView();
 }
 
 public ClauseContainer Node() {
@@ -1105,6 +1130,9 @@ private void addNodeToView (ClauseContainer myNode) {
     setFocusBox(b); 
 }
 
+//General method to add AND open a node if not on ws; otherwise place on workspace
+//The StageManager arg passed in as myWS should be 'Stage_WS' for all calls 
+
 public void OpenNodeNow(ClauseContainer targetNode, StageManager myWS) {
     if (StageManager.this==myWS) {
              newNodeForWorkspace(targetNode);
@@ -1112,6 +1140,11 @@ public void OpenNodeNow(ClauseContainer targetNode, StageManager myWS) {
         else {
              newNodeAsChildNode(targetNode);
         }
+}
+
+public void addOpenNodeChildren (ClauseContainer parentNode) {
+    getDisplayNode().addNodeChildren(parentNode);
+    updateOpenNodeView();
 }
 private void newNodeForWorkspace(ClauseContainer myNode) {
     addChildNodeToDisplayNode(myNode); //data
