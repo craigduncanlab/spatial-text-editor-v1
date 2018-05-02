@@ -195,14 +195,14 @@ public StageManager(StageManager parent, NodeCategory myCat, EventHandler PressB
     setPressBox(PressBox);
     setDragBox(DragBox);
     setKeyPress(NodeKeyHandler); //this can be different for workspace
+    //associate this Node Category with this StageManager (used with views etc)
+    myCat.setCatViewer(StageManager.this);
     //data: new node based on category alone
     setDisplayNode(new ClauseContainer(myCat,"The holding area for all nodes of this category",myCat.getCategory()));
     //focus
     currentFocus=StageManager.this; //set focus on creation
     parent.setCurrentFocus(StageManager.this);//this duplicated previous line since class variable?
     //
-    //makeSceneForNodeEdit(); //test this, possible update view as well
-    //cycleUserView();
     updateOpenNodeView(); //updates contents but doesn't show stage unless requested
     //showStage(); //to do: put default view in constructor
 }
@@ -1132,7 +1132,7 @@ private void addNodeToView (ClauseContainer myNode) {
 //General method to add AND open a node if not on ws; otherwise place on workspace
 //The StageManager arg passed in as myWS should be 'Stage_WS' for all calls 
 
-public void OpenNodeNow(ClauseContainer targetNode, StageManager myWS) {
+public void OpenNewNodeNow(ClauseContainer targetNode, StageManager myWS) {
     if (StageManager.this==myWS) {
              newNodeForWorkspace(targetNode);
         }

@@ -102,6 +102,8 @@ NodeCategory NC_collection = new NodeCategory ("collection",2,"orange");
 NodeCategory NC_project = new NodeCategory ("project",3,"white");
 NodeCategory NC_WS = new NodeCategory ("workspace",99,"beige");
 
+
+
 //empty constructor no arguments
 public ClauseContainer() {
 
@@ -130,6 +132,20 @@ public ClauseContainer(NodeCategory nodecat, String nodetext, String label) {
     setDocName(label);
     setHeading(label);
     setShortname(label);
+}
+
+//constructor 2 - a default container based on category 
+//checks current docnum for this stage and advances it.
+//TO DO: advance docnumber based on category.
+public ClauseContainer (NodeCategory nodecat) {
+	int docNum = nodecat.advanceDocCount();
+    setDocName(nodecat.getCategory()+docNum);
+    setNC(nodecat);
+    setHeading("heading");
+    setShortname(nodecat.getCategory()+docNum);
+    setOutputText("output");
+    setType(nodecat.getCategory());
+    setAuthorName("Craig");
 }
 
 //META
