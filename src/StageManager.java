@@ -617,6 +617,7 @@ Refreshes stage from display node, but doesn't show if invisible*/
         while (myiterator.hasNext()) {
             ClauseContainer thisNode = myiterator.next(); 
             System.out.println("Current child node to be added: "+thisNode.toString());
+            System.out.println("WS Viewer :"+StageManager.this);
             addNodeToView(thisNode);
         }
         //return getFocusBox();
@@ -900,11 +901,11 @@ private void makeSceneForNodeEdit() {
          //error checking i.e. like jUnit assert
          if (getCurrentFocus()==StageManager.this) {
             System.out.println("Change of Viewer Focus OK in Viewer!");
-             System.out.println("Viewer :"+StageManager.this);
+             System.out.println("makescene Viewer :"+StageManager.this);
          }
          else {
             System.out.println("Problem with change Viewer Focus");
-            System.out.println("Present Viewer :"+StageManager.this);
+            System.out.println("makescene Present Viewer :"+StageManager.this);
             System.out.println("Current Focus :"+getCurrentFocus());
          }
          }
@@ -1009,10 +1010,10 @@ private Scene makeWorkspaceScene(Group myGroup) {
         workspaceScene.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
              @Override
              public void handle(MouseEvent mouseEvent) {
-             System.out.println("Workspace Stage Mouse click detected! " + mouseEvent.getSource());
-             System.out.println("Workspace is "+StageManager.this.toString());
-             System.out.println("Here is the target: "+mouseEvent.getTarget());
-             System.out.println("Target class: "+mouseEvent.getTarget().getClass());
+             //System.out.println("Workspace Stage Mouse click detected! " + mouseEvent.getSource());
+             //System.out.println("Workspace is "+StageManager.this.toString());
+             //System.out.println("Here is the target: "+mouseEvent.getTarget());
+             //System.out.println("Target class: "+mouseEvent.getTarget().getClass());
              if (getSceneGUI()!=getSceneLocal()) {
                   System.out.println("Problem with storing Scene");
              }
@@ -1026,40 +1027,44 @@ private Scene makeWorkspaceScene(Group myGroup) {
             (these seemed to be instances of LabeledText 
             i.e. class com.sun.javafx.scene.control.LabeledText)
              */
-            if (mouseEvent.getTarget()==getSceneGUI()) {
+            //if (mouseEvent.getTarget()==getSceneGUI()) {
+            if (mouseEvent.getTarget() instanceof Scene) {
                 System.out.println("Clicked on scene; updated focus");
+                System.out.println("ws Viewer :"+StageManager.this);
                 currentFocus=StageManager.this;
                 mouseEvent.consume(); //to stop the bubbling?
             }
             else if (mouseEvent.getTarget() instanceof BorderPane) {
                  System.out.println("Clicked on Border Pane ; updated focus");
+                 System.out.println("ws Viewer :"+StageManager.this);
                  currentFocus=StageManager.this;
                  mouseEvent.consume(); //to stop the bubbling?
             }
             else if (mouseEvent.getTarget() instanceof Pane) {
-                 System.out.println("Clicked on Pane ; updated focus");
+                 System.out.println("ws Clicked on Pane ; updated focus");
                  currentFocus=StageManager.this;
                  mouseEvent.consume(); //to stop the bubbling?
             }
             //to distinguish Text on Menu from Text on boxes you can interrogate what the Text is to see if it's a menu
             else if (mouseEvent.getTarget() instanceof Text) {
-                 System.out.println("Clicked on Text ; no change to focus");
+                 System.out.println("ws Clicked on Text ; no change to focus");
                  //currentFocus=StageManager.this;
             }
             else if (mouseEvent.getTarget() instanceof ColBox) {
-                 System.out.println("Clicked on box ; updated focus");
+                 System.out.println("ws Clicked on box ; updated focus");
+                 System.out.println("ws Viewer :"+StageManager.this);
                  currentFocus=StageManager.this;
             }
             else if (mouseEvent.getTarget() instanceof Rectangle) {
-                 System.out.println("Clicked on box ; updated focus");
+                 System.out.println("ws Clicked on box ; updated focus");
                  currentFocus=StageManager.this;
             }
             else if (mouseEvent.getTarget() instanceof Labeled) {
-                 System.out.println("Clicked on Labeled ; no change to focus");
+                 System.out.println("ws Clicked on Labeled ; no change to focus");
                  //currentFocus=StageManager.this;
             }
             else {
-                System.out.println("Click not identified : no change to focus");
+                System.out.println("ws Click not identified : no change to focus");
             }
 
             }
@@ -1133,11 +1138,16 @@ private void addNodeToView (ClauseContainer myNode) {
 //The StageManager arg passed in as myWS should be 'Stage_WS' for all calls 
 
 public void OpenNewNodeNow(ClauseContainer targetNode, StageManager myWS) {
-    if (StageManager.this==myWS) {
-             newNodeForWorkspace(targetNode);
-        }
+    System.out.println("OpenNewNode now...");
+     if (StageManager.this.equals(myWS)) { 
+     newNodeForWorkspace(targetNode);
+     System.out.println("Adding new node to Workspace");
+}
         else {
              newNodeAsChildNode(targetNode);
+             System.out.println("Adding new node to stage (not WS)");
+             System.out.println("sm.this in opennew, Viewer :"+StageManager.this.toString());
+             System.out.println("myWS in opennew, Viewer :"+myWS.toString());
         }
 }
 

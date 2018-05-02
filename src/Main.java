@@ -418,6 +418,7 @@ private void NewChildNodeForOpenNode(NodeCategory nodecat) {
     System.out.println("Creating new node for this viewer:"+OpenNodeStage.toString());
 
     //ClauseContainer newNode =  new ClauseContainer(nodecat);
+    System.out.println("About to open new node with Stage_WS: "+Stage_WS.toString());
     OpenNodeStage.OpenNewNodeNow(new ClauseContainer(nodecat),Stage_WS);
 }
 
@@ -614,7 +615,8 @@ private void addNewObjectItems (Menu myMenu) {
             //handlers
             myNewViewItem.setOnAction(new EventHandler<ActionEvent>() {
             public void handle(ActionEvent t) {
-                //If opening in current Stage or Stage_WS (Place)
+                //Ensure that focus doesn't remain on open node if WS clicked:
+                OpenNodeStage=Stage_WS.getCurrentFocus();
                 OpenNodeStage.OpenNewNodeNow(new ClauseContainer(myCat),Stage_WS);
             }
         });
@@ -789,6 +791,9 @@ private MenuBar makeMenuBar() {
          @Override
          public void handle(MouseEvent mouseEvent) {
             System.out.println("MenuBar click detected! " + mouseEvent.getSource());
+            //OpenNodeStage=Stage_WS.getCurrentFocus(); //update focus after click
+            System.out.println("MB Open Node, Viewer :"+OpenNodeStage.toString());
+            System.out.println("MB Viewer :"+Stage_WS.getCurrentFocus());
             //mouseEvent.consume(); //consume this event - so menu works or not?
             //TO DO: proceed but ignore it for change of focus purposes?
              }
@@ -1377,7 +1382,7 @@ public void deleteSpriteGUI(SpriteBox mySprite) {
             System.out.println("Make Node (From Selected Text) Button was pressed!");
             if (Stage_WS.getCurrentFocus()==OpenNodeStage) {
              System.out.println("Change of Viewer Focus OK in Main!");
-             System.out.println("Viewer :"+OpenNodeStage.toString());
+             System.out.println("SCN Viewer :"+OpenNodeStage.toString());
              }
              else {
                 System.out.println("Problem with change Viewer Focus");
