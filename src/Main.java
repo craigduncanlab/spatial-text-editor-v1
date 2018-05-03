@@ -667,10 +667,11 @@ private MenuBar makeMenuBar() {
         Menu menuDocument = new Menu("Document");
         Menu menuCollection = new Menu("Collection");
         Menu menuFile = new Menu("File/Node");
+        Menu menuData = new Menu("Data");
         Menu menuProjectLib = new Menu ("ProjectLib");
         Menu menuLibrary = new Menu("Library");
         Menu menuOutput = new Menu("Output");
-        Menu menuImport = new Menu("TextTools");
+        Menu menuText = new Menu("Text");
         
         //instance variables (content of these 2 is empty until ready to insert list and event handlers)
         setMenuViews();
@@ -710,9 +711,13 @@ private MenuBar makeMenuBar() {
             PrintBoxes);
         menuOutput.getItems().addAll(
             SaveOutput);
-        menuImport.getItems().addAll(
+        menuText.getItems().addAll(
             WordCount,GetDefText,GetDefs,GetClauses,GetSections,NodeFromSelection);
         
+        //DATA
+        MenuItem setFollower = new MenuItem("setFollower");
+        MenuItem detachFollower = new MenuItem("clearFollower");
+        menuData.getItems().addAll(setFollower,detachFollower);
         //Method will save the current open node with focus.
 
         SaveNode.setOnAction(new EventHandler<ActionEvent>() {
@@ -789,11 +794,11 @@ private MenuBar makeMenuBar() {
         GetSections.setOnAction(makeBoxesFromStatuteText);
         NodeFromSelection.setOnAction(makeSelectedChildNode);
 
-        
+        //DATA MENU
+        setFollower.setOnAction(handleSetFollower);
 
         /* --- MENU BAR --- */
-        menuBar.getMenus().addAll(menuViews, menuFile, menuNewNode,menuWorkspace, 
-            /*menuDocument, menuLibrary,*/ menuOutput, menuImport/*,menuCollection,menuProject*/);     
+        menuBar.getMenus().addAll(menuViews, menuFile, menuNewNode,menuWorkspace, menuData, menuText, menuOutput);     
         
         //create an event filter so we can process mouse clicks on menubar (and ignore them!)
         menuBar.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
@@ -990,6 +995,23 @@ private void placeCurrentSpriteOnStage(StageManager targetStage) {
     targetStage.addNewSpriteToStage(currentSprite);
 }
 
+//Set current Sprite's node as data link parent.  
+
+private void setCurrentSpriteDataParent() {
+    SpriteBox currentSprite = getCurrentSprite(); //not based on the button
+    if (currentSprite !=null) {
+        currentSprite.endAlert(); 
+        System.out.println("Ended alert current:"+currentSprite.toString());
+    }
+    OpenNodeStage=Stage_WS.getCurrentFocus();
+    System.out.println("Stage that is to have follower set:"+OpenNodeStage.toString());
+    System.out.println("Source sprite for parent data:"+currentSprite.toString());
+    OpenNodeStage.setFollow(currentSprite);
+    if (OpenNodeStage.getDisplayNode().isFollower()==false) {
+        System.out.println ("Error in setting follower status for:"+OpenNodeStage.toString());
+    }
+}
+
 //Does this merely require copying the Data Node and calling node-based SM function?
 
 public void copySpriteToDestination(SpriteBox mySprite, StageManager myStageMan) {
@@ -1174,8 +1196,12 @@ public void deleteSpriteGUI(SpriteBox mySprite) {
         }
     };
 
+    //Open a new stage in all cases (a kind of refresh)
+
     public void OpenRedNodeNow (SpriteBox currentSprite) { 
-        if (currentSprite.getChildStage()==null) {
+        OpenNodeStage = new StageManager(Stage_WS, currentSprite, PressBoxEventHandler, DragBoxEventHandler); 
+
+        /*if (currentSprite.getChildStage()==null) {
             OpenNodeStage = new StageManager(Stage_WS, currentSprite, PressBoxEventHandler, DragBoxEventHandler); 
         }
         //make node viewer visible if still open but not showing
@@ -1183,6 +1209,7 @@ public void deleteSpriteGUI(SpriteBox mySprite) {
             OpenNodeStage = currentSprite.getChildStage();
             OpenNodeStage.showStage();
         }
+        */
      }
 
     /* This is a copy not a move 
@@ -1357,6 +1384,16 @@ public void deleteSpriteGUI(SpriteBox mySprite) {
         }
     };
     
+        //menu button handler to call method to set follower 
+        EventHandler<ActionEvent> handleSetFollower = 
+        new EventHandler<ActionEvent>() {
+        @Override 
+        public void handle(ActionEvent event) {
+            System.out.println("About to set follower...");
+            setCurrentSpriteDataParent();
+            }
+        };
+
         /* Process the text in the input area of the current Node viewer 
         (whether saved or not)
         */

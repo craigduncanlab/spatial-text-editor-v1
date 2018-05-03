@@ -879,6 +879,18 @@ private void refreshNodeViewScene() {
         displayChildNodeBoxes();
 }
 
+//Method to change title depending on data mode the node is in.
+private String getTitleText(String myString) {
+    System.out.println("Make Scene. User Node View: "+getDisplayNode().getUserView());
+    //main function        
+    if (getDisplayNode().isFollower()==true) {
+        return getDisplayNode().getDocName()+"--- NODE IN FOLLOW MODE [NO CHANGES SAVED] ---"+myString;
+    }
+    else {
+        return getDisplayNode().getDocName()+myString;
+    }
+}
+
 /* Method to build the viewer for the current open node.
 Capable of showing a text area, a pane to display sprite boxes and an Edit/Update button
 User can choose to see less (i.e. only work with some of what a node can contain)
@@ -914,19 +926,16 @@ private void makeSceneForNodeEdit() {
             getDisplayNode().setUserView("all");
         }
         if (getDisplayNode().getUserView().equals("textonly")) {
-            System.out.println("Make Scene. User Node View: "+getDisplayNode().getUserView());
             customView = new VBox(0,headingTextArea,inputTextArea,hboxButtons);
-            setTitle(getDisplayNode().getDocName()+" - Text View");
+            setTitle(getTitleText(" - Text View"));
         }
         else if(getDisplayNode().getUserView().equals("nodeboxesonly")) {
             customView = new VBox(0,shortnameTextArea,hboxButtons,tempPane);
-            System.out.println("Make Scene. User Node View: "+getDisplayNode().getUserView());
-            setTitle(getDisplayNode().getDocName()+" - Container View");
+            setTitle(getTitleText(" - Container View"));
         }
             else {
             customView = new VBox(0,parentBoxText,shortnameTextArea,headingTextArea,inputTextArea,hboxButtons,tempPane,outputTextArea);
-            System.out.println("Make Scene. User Node View: "+getDisplayNode().getUserView());
-            setTitle(getDisplayNode().getDocName()+" - Full View");
+            setTitle(getTitleText(" - Full View"));
         }
         //vboxAll.setPrefWidth(200);
         //
@@ -1131,6 +1140,11 @@ private Scene makeWorkspaceScene(Group myGroup) {
 
 //SPRITE BOX ASSIST FUNCTIONS
 
+public void setFollow(SpriteBox mySprite) {
+    ClauseContainer parentLinkNode = mySprite.getBoxNode();
+    getDisplayNode().setFollow(parentLinkNode);
+}
+
 /* public function to add a box (as a child node) to this Viewer.
 Add node to view will also call the addsprite to stage to complete this.
 */
@@ -1154,6 +1168,8 @@ private void addSpriteToStage(SpriteBox mySprite) {
     setFocusBox(mySprite); //local information
     mySprite.setStageLocation(StageManager.this); //give Sprite the object for use later.
 }
+
+
 
 //Method to add child node based on the contents of an identified NodeBox in GUI.
 //also sets parent node of the node in the sprite box to this Stage Manager

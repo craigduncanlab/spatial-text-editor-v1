@@ -51,6 +51,8 @@ can also have the StageManager for that Location already packaged by the Node?.
 28.4.18
 If this 'Box' only ever operates as a GUI representation of a Node
 i.e. holds a GUI representation of a 'Node' as data object, then some of its functions unnecessary
+i.e. operate on the data node directly through main app, and let this just create a GUI representation.
+(separation of concerns)
 
 
 */
@@ -77,6 +79,7 @@ public class SpriteBox extends StackPane implements java.io.Serializable {
     Boolean OtherStage=false;
     String defaultColour="";
     String alertColour="red";
+    String followerColour="pink";
     StageManager StageLocation;
     StageManager childStage; //i.e. the nodeviewer stage
     //using alternate states representation for open window
@@ -371,6 +374,7 @@ public class SpriteBox extends StackPane implements java.io.Serializable {
         return this.location;
     }
 
+    // ----------- COLOURS FOR STATES
 
     public Boolean isAlert() {
         return this.isAlert;
@@ -385,20 +389,11 @@ public class SpriteBox extends StackPane implements java.io.Serializable {
         myBox.setColour(defaultColour);
     }
 
+    // --------------------------------
+
     public String getBoxDocName() {
         ClauseContainer thisNode = this.getBoxNode();
         return thisNode.getDocName();
-    }
-
-    private void updateboxlabel(ClauseContainer thisNode) {
-    
-        String thisboxlabel=thisNode.getDocName();
-         //set label with Node DocName?
-        if (thisboxlabel=="") {
-            thisboxlabel="newobject";
-        }
-        this.setLabel(thisboxlabel); 
-        
     }
 
     //get category from enclosed node
@@ -408,19 +403,23 @@ public class SpriteBox extends StackPane implements java.io.Serializable {
     }
 
     /*
-    Appearance based on Clause properties/contents 
+    Method to refresh appearance and default colour based on associated node.
+    3.5.18:
+    Use the data that the node 'shows' to the GUI.
+    i.e. if node can swap out its data or 'show' to the outside, then the node's public methods will choose.
+    This SpriteBox will not know the difference.
     */
 
     private void updateAppearance() {
         
         ClauseContainer thisNode = this.getBoxNode();
-        updateboxlabel(thisNode);
-        //the node and its category inform the colour needed by viewer
-        String thisboxcol = thisNode.getNodeColour();
-        this.SetColour(thisboxcol);
-        this.SetDefaultColour(thisboxcol);
+        this.setLabel(thisNode.getDocName()); 
+        this.SetColour(thisNode.getNodeColour());
+        this.SetDefaultColour(thisNode.getNodeColour());
+        if (thisNode.isFollower()==true) {
+            myBox.setColour(followerColour);
+        }
         //to do : set shape based on node category too
-        
         }
 
     /* ----  INTERNAL OBJECT DATA --- */

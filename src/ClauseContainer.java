@@ -35,16 +35,34 @@ However, if each Node stores a 'level' then it will allow some search and save f
 
 27.4.18
 Testing the idea that every node is a functional workspace.
-i.e. it has input (text data) and output (text) areas, both can be display in GUI.
+i.e. it has input (text data) and output (text) areas, both can be displayed in GUI.
 The GUI can then apply any of the general operations on text to any node (do not need a specific importer window - just use the current node text area).
 This repurposes any space, makes the environment flexible and nodes are functional
 --> everything is local (a kind of OO design?).  
 The fact that a node can be added as a child makes this scaleable.
 
 28.4.18
-Each node can hold 1 image see https://www.tutorialspoint.com/javafx/javafx_images.htm
+Each node should be able to hold 1 image see https://www.tutorialspoint.com/javafx/javafx_images.htm
 (enables scalability by add child nodes if needed, in a single node)
 What about sound/video?
+
+3.5.18
+Separation of ideas about associated nodes:
+(a)child nodes can be for navigation
+(b)there can be associations between data nodes relevant to content of THIS NODE, but not navigation.
+In this respect, separate ideas of node's static data (what it holds) and other data it might want to link to (i.e. follow data in another node)
+In order to retain flexibility, a node can keep its own data for a time, then switch to a 'follower' for a while or permanently, switch back.
+It can also copy of the data from the node it has been following.
+(TO DO)
+
+Data pipeline modes:
+Data link parent enables another node's data to be 'followed' i.e. the priority data accessed in the GUI. etc
+If data mode is set to follower this node will then "show" that other data to other objects (including the GUI)
+However, it always has its own data.
+So if the data mode is set to "own", it will its own data.
+This will also allow the 'followed' node to be copied into own data periodically.
+Storing the parent data node for following will maintain that information for the node's benefit.
+This is useful for obtaining GUI-access to data in other contexts, and for precedent creation etc.
 
 */
 
@@ -71,8 +89,9 @@ String output="";
 NodeCategory nodeCat = new NodeCategory();
 
 //NODE ASSOCIATIONS: i.e. Graph nodes along edges:
-ClauseContainer myParentNode; 
+ClauseContainer myParentNode; //for structural associations
 ClauseContainer dataLinkParent; //the node to 'follow' for follow mode.
+ClauseContainer dataDisplayNode; //the data this Node will display 
 ArrayList<ClauseContainer> myChildNodes = new ArrayList<ClauseContainer>();
 
 //This node's data and level in tree:
@@ -82,8 +101,9 @@ String nodecategory = "";
 int nodelevel = 0; //start at root 0 (project) allows future tree expansion
 int nodeGUIloc = 0; //to store Stage or GUI element where the node is located
 //(nodelocation can match Stage?)
-// store the node's preference for what view to start in.
+// store the node's preference for what GUI view & data view to start in.
 String userNodeView;
+String followerMode;
 
 //As of 26.4.18 - Make this node hold its own text, title (for now use docnotes as node text)
 //consequences: the concept of a 'clause' can be replaced by 
@@ -147,6 +167,7 @@ public ClauseContainer(NodeCategory nodecat, String nodetext, String label) {
     setDocName(label);
     setHeading(label);
     setShortname(label);
+    dataLinkParent= new ClauseContainer();
 }
 
 //constructor 2 - a default container based on category 
@@ -161,6 +182,7 @@ public ClauseContainer (NodeCategory nodecat) {
     setOutputText("output");
     setType(nodecat.getCategory());
     setAuthorName("Craig");
+    dataLinkParent= new ClauseContainer();
 }
 
 //META
@@ -172,7 +194,30 @@ public String getType() {
 	return this.ContainerType;
 }
 
+/*Method to specify the node utilised for data 
+(another node or this node's data) depending on data mode node is in.
+Defaults to returning this object if errors.
+*/
+
+private ClauseContainer getdataDisplayNode() {
+	if (getDataMode()==null) {
+		return ClauseContainer.this;
+	}
+	if (getDataMode().equals("follower")) {
+		if (this.dataLinkParent==null) {
+			return ClauseContainer.this;
+		}
+		else {
+			return this.dataLinkParent;
+		}
+	}
+	else {
+		return ClauseContainer.this;
+	}
+}
+
 //DEFAULT USER VIEWS
+//GUI layout.  This is currently not affected by follower mode.
 public String getUserView() {
 	return this.userNodeView;
 }
@@ -181,7 +226,41 @@ public void setUserView(String myView) {
 	this.userNodeView=myView;
 }
 
-//---PARENT NODE DATA ---
+// ---- FOLLOWER MODE AND DATA
+
+public void setFollow(ClauseContainer myParentLink) {
+	this.dataLinkParent = myParentLink;
+	setDataMode("follower");
+}
+
+public ClauseContainer getFollow() {
+	return this.dataLinkParent;
+}
+
+public void setDataMode(String myDataMode) {
+	this.followerMode=myDataMode;
+}
+
+//data level pipeline
+private String getDataMode() {
+	return this.followerMode;
+}
+
+//public access to state.  
+//Boolean allows internal structures to change without having to write external code.
+public Boolean isFollower() {
+	if (getDataMode()=="follower") {
+		System.out.println("Current parent link:"+getFollow().toString());
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+
+
+//---PARENT (NAVIGATION) NODE DATA ---
 public void setParentNode(ClauseContainer node) {
 	this.myParentNode = node;
 }
@@ -261,8 +340,9 @@ public ArrayList<ClauseContainer> getClauseArray() {
 
 //METHODS FOR INTERNAL AND EXTERNAL UPDATES TO NODE
 
-/*Method to set ClauseContainer's array by copying each entry
-Rename this */
+/*Method to set child nodes that are in this node's (navigation) data array by copying each entry
+Rename this e.g. 'populateChildNodes'
+*/
 
 public void setAllChildNodes(ArrayList<ClauseContainer> myArray) {
 	ArrayList<ClauseContainer> tempArray = new ArrayList<ClauseContainer>(); 
@@ -274,22 +354,41 @@ public void setAllChildNodes(ArrayList<ClauseContainer> myArray) {
 	this.myChildNodes=tempArray;
 }
 
+// - A DATA LAYER (API?) THAT ALLOWS NODE TO VARY PUBLIC DATA OUTPUT
+
+/* Public method output according to where the node is currently getting its data 
+(i.e. internal or external if 'follower' mode
+*/
+public String getDocName () {
+	return publicText(getdataDisplayNode().getthisDocname());
+}
+
+public String getHeading() {
+	return publicText(getdataDisplayNode().getthisHeading());
+}
+
+public String getShortname () {
+	return publicText(getdataDisplayNode().getthisShortname());
+}
+
+public String getOutputText() {
+	return publicText(getdataDisplayNode().getthisOutputText());
+}
+
+public String getNotes () {
+	return publicText(getdataDisplayNode().getthisNotes());
+}
+
+
+// --- PUBLIC METHODS ACCESSING PRIVATE DATA SPECIFICALLY FOR THIS NODE
+
 //set the text that will be the main descriptive or clause text in this node
 public void setNotes (String myString) {
 	this.docnotes = myString;
 }
 
-public String getNotes () {
-	return this.docnotes;
-}
-
-//set the text that will be the main text for identifying this node
-public void setDocName (String myString) {
-	this.docname = myString;
-}
-
-public String getDocName () {
-	return this.docname;
+public void setShortname (String myString) {
+	this.shortname = myString;
 }
 
 //set the text that will be the main text for identifying this node
@@ -297,25 +396,48 @@ public void setHeading (String myString) {
 	this.heading = myString;
 }
 
-public String getHeading () {
-	return this.heading;
-}
-
-public void setShortname (String myString) {
-	this.shortname = myString;
-}
-
-public String getShortname () {
-	return this.shortname;
-}
-
-//NODE'S OUTPUT TEXT FIELD
-public String getOutputText() {
-	return this.output;
+//set the text that will be the main text for identifying this node
+public void setDocName (String myString) {
+	this.docname = myString;
 }
 
 public void setOutputText(String myString) {
 	this.output = myString;
+}
+
+// --- PRIVATE METHODS ACCESSING PRIVATE DATA FOR THIS NODE
+
+private String publicText(String myString) {
+	return myString;
+	/*
+	if (isFollower()==true) {
+		return myString+" [Followed]";
+	}
+	else {
+		return myString;
+	}
+	*/
+}
+
+private String getthisNotes() {
+	return this.docnotes;
+}
+
+private String getthisDocname() {
+	return this.docname;
+}
+
+private String getthisHeading () {
+	return this.heading;
+}
+
+private String getthisShortname () {
+	return this.shortname;
+}
+
+//NODE'S OUTPUT TEXT FIELD
+private String getthisOutputText() {
+	return this.output;
 }
 
 //THIS NODE'S CLAUSE DATA (OBSOLETE)
