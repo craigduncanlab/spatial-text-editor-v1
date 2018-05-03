@@ -296,10 +296,6 @@ public void removeChildNode(ClauseContainer node) {
 	this.myChildNodes.remove(node);
 }
 
-public ArrayList<ClauseContainer> getChildNodes() {
-	return this.myChildNodes;
-}
-
 public Boolean NodeIsLeaf() {
 	return this.myChildNodes.isEmpty();
 }
@@ -383,6 +379,9 @@ public String getNotes () {
 	return publicText(getdataDisplayNode().getthisNotes());
 }
 
+public ArrayList<ClauseContainer> getChildNodes() {
+	return getdataDisplayNode().getthisChildNodes();
+}
 
 // --- PUBLIC METHODS ACCESSING PRIVATE DATA SPECIFICALLY FOR THIS NODE
 
@@ -437,6 +436,10 @@ private String getthisHeading () {
 
 private String getthisShortname () {
 	return this.shortname;
+}
+
+private ArrayList<ClauseContainer> getthisChildNodes() {
+	return this.myChildNodes;
 }
 
 //NODE'S OUTPUT TEXT FIELD

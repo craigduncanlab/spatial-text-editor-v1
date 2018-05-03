@@ -611,7 +611,7 @@ Refreshes stage from display node, but doesn't show if invisible*/
 
  private void displayChildNodeBoxes() {
     
-        ClauseContainer parentNode = displayNode;
+        ClauseContainer parentNode = getDisplayNode();
         //SpriteBox lastBox = new SpriteBox();
         ArrayList<ClauseContainer> childNodes = parentNode.getChildNodes();
         Iterator<ClauseContainer> myiterator = childNodes.iterator();
