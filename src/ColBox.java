@@ -8,7 +8,6 @@ import javafx.scene.paint.ImagePattern;
 
 public class ColBox extends Rectangle{   
     //set default or current colour here?
-    Color myColour; //colour object for this instance
     String boxcolour; //to hold String with colour description.
 
     /* Some sample colours:
@@ -24,9 +23,7 @@ public class ColBox extends Rectangle{
         this.setHeight(40);
         //setArcWidth(60);  //do this enough you get a circle.  option
         //setArcHeight(60);                
-        //-->setFill(myColour.deriveColor(0, 1.2, 1, 0.6));  //allows for transparency so order not so important
-        //setFill(myColour);
-        setStroke(Color.BLACK);
+        setStroke(Color.BLACK); //stroke is border colour
 
      }  
 
@@ -43,78 +40,76 @@ public class ColBox extends Rectangle{
         */
         //setArcWidth(60);  //do this enough you get a circle
         //setArcHeight(60);                
-        //--->setFill(myColour.deriveColor(0, 1.2, 1, 0.6));  //allows for transparency so order not so important
-        //setFill(myColour);
         setStroke(Color.BLACK);
      } 
 
      //TO DO: Use key, value pairs
      //See https://docs.oracle.com/javase/8/javafx/api/javafx/scene/paint/Color.html
 
-     public void setColour (String mycol) {
+      public void setColour (String mycol) {
+        Color myColour = colourPicker(mycol);
+        this.boxcolour=mycol;//not updated yet?
+        //update the Rectangle Colour for display; allows for transparency
+        setFill(myColour.deriveColor(0, 1.2, 1, 0.6));
+     } 
+
+     //this is public so can be generally useful to other objects
+     public Color colourPicker (String mycol) {
         if (mycol.equals("blue")) {
-            myColour = Color.BLUE;
-            this.boxcolour = mycol;
+            return Color.BLUE;
+        }
+        if (mycol.equals("black")) {
+            return Color.BLACK;
         }
         if (mycol.equals("darkblue")) {
-            myColour = Color.DARKBLUE;
-            this.boxcolour = mycol;
+            return Color.DARKBLUE;
         }
         if (mycol.equals("lemon")) {
-            myColour = Color.LEMONCHIFFON;
-            this.boxcolour = mycol;
+            return Color.LEMONCHIFFON;
         }
         if (mycol.equals("lightblue")) {
-            myColour = Color.LIGHTBLUE;
-            this.boxcolour = mycol;
+            return Color.LIGHTBLUE;
         }
         if (mycol.equals("green")) {
-            myColour = Color.GREEN;
-            this.boxcolour = mycol;
+            return Color.GREEN;
         }
          if (mycol.equals("yellow")) {
-            myColour = Color.YELLOW;
-            this.boxcolour = mycol;
+            return Color.YELLOW;
         }
         if (mycol.equals("red")) {
-            myColour = Color.RED;
-            this.boxcolour = mycol;
+           return Color.RED;
         }
         if (mycol.equals("pink")) {
-            myColour = Color.DEEPPINK;
-            this.boxcolour = mycol;
+           return Color.DEEPPINK;
+        }
+        //DARKSLATEGREY
+        if (mycol.equals("darkslate")) {
+            return Color.DARKSLATEGREY;
         }
         if (mycol.equals("maroon")) {
-            myColour = Color.MAROON;
-            this.boxcolour = mycol;
+            return Color.MAROON;
         }
         if (mycol.equals("darkgold")) {
-            myColour = Color.DARKGOLDENROD;
-            this.boxcolour = mycol;
+            return Color.DARKGOLDENROD;
         }
         if (mycol.equals("khaki")) {
-            myColour = Color.DARKKHAKI;
-            this.boxcolour = mycol;
+            return Color.DARKKHAKI;
         }
         if (mycol.equals("orange")) {
-            myColour = Color.ORANGE;
-            this.boxcolour = mycol;
+            return Color.ORANGE;
         }
         if (mycol.equals("salmon")) {
-            myColour = Color.SALMON;
-            this.boxcolour = mycol;
+           return Color.SALMON;
         }
         if (mycol.equals("gold")) {
-            myColour = Color.GOLD;
-            this.boxcolour = mycol;
+          return Color.GOLD;
         }
         if (mycol.equals("white")) {
-            myColour = Color.WHITE;
-            this.boxcolour = mycol;
+            return Color.WHITE;
         }
-
-        //update the Colour for display; allows for transparency
-        setFill(myColour.deriveColor(0, 1.2, 1, 0.6));
+        else {
+            return Color.BLACK;
+        }
      }
      public String getColour() {
         return this.boxcolour;

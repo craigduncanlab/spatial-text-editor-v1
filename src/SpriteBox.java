@@ -265,6 +265,7 @@ public class SpriteBox extends StackPane implements java.io.Serializable {
         myClause = new Clause(); //TO DO: remove this data item
         Font boxfont=Font.font ("Verdana", 10);
         boxlabel.setFont(boxfont);
+        boxlabel.setFill(myBox.colourPicker("black"));
         boxlabel.setWrappingWidth(130);
         this.setCursor(Cursor.HAND);
         this.getChildren().addAll(myBox,boxlabel); 
@@ -415,9 +416,11 @@ public class SpriteBox extends StackPane implements java.io.Serializable {
         }
         else if (thisNode.isFollower()==true) {
                 myBox.setColour(followerColour);
+                this.boxlabel.setFill(myBox.colourPicker("white"));
             }
         else {
                  myBox.setColour(defaultColour);
+                 this.boxlabel.setFill(myBox.colourPicker("black"));
             }        
         //to do : set shape based on node category too
         }
