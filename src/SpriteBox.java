@@ -143,14 +143,6 @@ public class SpriteBox extends StackPane implements java.io.Serializable {
     
 }
 
-
-
-    //default constructor with initial Clause included _ DEPRECATE
-    public SpriteBox(Clause inputClause) {
-        this.setup();
-        this.setClauseInLeafNode(inputClause);
-    }
-
     //default constructor with label
     public SpriteBox(String startLabel) {
     	this.setup();
@@ -431,35 +423,6 @@ public class SpriteBox extends StackPane implements java.io.Serializable {
         }
 
     /* ----  INTERNAL OBJECT DATA --- */
-
-    /** Method to set individual parameters of internal Clause in SpriteBox 
-    TO DO: Abandon/deprecate.  Get internal object, operate on that directly if necessary.
-    */
-
-    public void setInternalClause(String myLabel, String myHeading, String myText, String myCategory){
-        Clause tempClause = new Clause();
-        this.myClause.setClauseText(myText);
-        this.myClause.setClauselabel(myLabel);
-        this.myClause.setHeading(myHeading);
-        this.myClause.setCategory(myCategory);
-
-        setClauseInLeafNode(tempClause);
-    }
-
-    /* Add or remove internal Clause of contained node.
-    TO DO: remove duplicate clause object that is also in this SpriteBox.
-
-    */
-    public void setClauseInLeafNode(Clause inputClause){
-        this.myClause = inputClause;
-        if (inputClause.getLabel().length()>=50) {
-            myClause.setClauselabel(inputClause.getLabel().substring(0,47)+"...");
-        }
-        ClauseContainer thisNode = this.getBoxNode();
-        thisNode.addNodeClause(this.myClause);
-        this.setBoxNode(thisNode);
-        this.updateAppearance();
-        }
 
     public Clause getClause() {
         return this.myClause;
