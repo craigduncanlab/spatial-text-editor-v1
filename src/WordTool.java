@@ -351,17 +351,7 @@ TO DO 15.1.18 : utilise my classes from regex search API for data mining
 
   private ClauseContainer makeNewDefinitionNode(String label, String definition) {
     NodeCategory nodecat = new NodeCategory("definition",0,"green"); //mirror Main.java
-    ClauseContainer clauseNode = new ClauseContainer();
-    clauseNode.setDocName(label);
-    clauseNode.setNC(nodecat);
-    clauseNode.setHeading(label);
-    clauseNode.setNotes(definition);
-    clauseNode.setShortname(label);
-    clauseNode.setOutputText("output");
-    //clauseNode.setNodeCategory(nodecat.getCategory());
-    //clauseNode.setNodeLevel(nodecat.getLevel());
-    clauseNode.setType(nodecat.getCategory());
-    clauseNode.setAuthorName("Craig");
+    ClauseContainer clauseNode = new ClauseContainer(nodecat);
     return clauseNode;
   }
 
@@ -589,17 +579,7 @@ TO DO 15.1.18 : utilise my classes from regex search API for data mining
 
   private ClauseContainer makeNewClauseNode(String label) {
     NodeCategory nodecat = new NodeCategory("clause",0,"blue"); //mirror Main.java
-    ClauseContainer clauseNode = new ClauseContainer();
-    clauseNode.setDocName(label);
-    clauseNode.setNC(nodecat);
-    clauseNode.setHeading(label);
-    //clauseNode.setNotes(text);
-    clauseNode.setShortname(label);
-    clauseNode.setOutputText("output");
-    //clauseNode.setNodeCategory(nodecat.getCategory());
-    //clauseNode.setNodeLevel(nodecat.getLevel());
-    clauseNode.setType(nodecat.getCategory());
-    clauseNode.setAuthorName("Craig");
+    ClauseContainer clauseNode = new ClauseContainer(nodecat);
     return clauseNode;
   }
 

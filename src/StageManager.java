@@ -899,6 +899,10 @@ i.e. can resemble a text editor, or graphical tree, or functional text processor
 State variable (userNodeView) defines which version of UI to display.
 User can cycle through states of UI display through key press (CMD-Z)
 
+Should presence of update buttons be dependent on node not in "Follower" mode?
+i.e. should GUI/cycle options be varied for a follower node? 
+especially if it is a non-edit node?       
+
 */
 
 private void makeSceneForNodeEdit() {
@@ -982,16 +986,22 @@ EventHandler<ActionEvent> UpdateNodeText =
             String editedText=inputTextArea.getText();
             String editedOutput=outputTextArea.getText();
             //
-            getDisplayNode().setDocName(editedName);
-            //parentBox - should we insist on one?
-            SpriteBox pntBox = getParentBox();
-            if (pntBox!=null) {
-                pntBox.setLabel(editedName);
+            if (getDisplayNode().isFollower()==true) {
+                System.out.println("Won't update a node in follower mode");
             }
-            getDisplayNode().setHeading(editedHeading);
-            getDisplayNode().setNotes(editedText);
-            getDisplayNode().setOutputText(editedOutput);
-            //error checking - log
+            else { //update is text only
+                getDisplayNode().setDocName(editedName);
+                getDisplayNode().setHeading(editedHeading);
+                getDisplayNode().setNotes(editedText);
+                getDisplayNode().setOutputText(editedOutput);
+
+                //parentBox - should we insist on one?
+                SpriteBox pntBox = getParentBox();
+                if (pntBox!=null) {
+                    pntBox.setLabel(editedName);
+                }
+            }
+            //error checking - log.  Leave this to show error for attempts with follower nodes.
             if (getDisplayNode().getNotes().equals(editedText)) {
                 System.out.println("Node updated OK!");
             }
@@ -1143,6 +1153,17 @@ private Scene makeWorkspaceScene(Group myGroup) {
 public void setFollow(SpriteBox mySprite) {
     ClauseContainer parentLinkNode = mySprite.getBoxNode();
     getDisplayNode().setFollow(parentLinkNode);
+}
+
+//method sets unfollow mode, but won't change the stored parent link for now (allows toggle)
+public void unsetFollow() {
+    //ClauseContainer parentLinkNode = mySprite.getBoxNode();
+    getDisplayNode().unsetFollow();
+}
+
+//not used yet.  decide if it can toggle mode without parent specified.
+public void toggleFollow() {
+    
 }
 
 /* public function to add a box (as a child node) to this Viewer.

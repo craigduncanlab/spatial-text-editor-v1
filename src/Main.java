@@ -56,7 +56,7 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 //ArrayList etc
 import java.util.*;
-//For serialization IO (saving BoxContainer as flat data file)
+//For serialization IO 
 import java.io.ObjectOutputStream;
 import java.io.FileOutputStream;
 import java.io.ObjectInputStream;
@@ -105,52 +105,9 @@ public class Main extends Application {
     Stage ParentStage;
     //Main Stage (Workspace window) that owns all other Stages
     StageManager Stage_WS;
-    Stage WorkspaceStage;
-    //Group WorkspaceGroup; //deprecated
-    BoxContainer WorkspaceBoxes; //A serializable top-level container (optional)
-    ClauseContainer wsCollection = new ClauseContainer(); //for holding workspace contents (inside boxes)
-    //Opus = project collection.  Display Projects as Icons, as in a library.
-    StageManager Stage_PROJLIB;
-    StageManager Stage_TEST;
-    ClauseContainer projectLibNode = new ClauseContainer();
-    //ProjectOpen Stage (to display contents of each Project i.e. an open Project with Collection(s), MergeData etc)
-    StageManager Stage_PROJ;
-    ClauseContainer projectNode = new ClauseContainer(); //currently opened project
-    //To do: MergeDataWindow
-    //Collection Stage (to hold groups of libraries and documents).. i.e an open Collection.
-    StageManager Stage_COLL;
-    
-    ClauseContainer collectionNode = new ClauseContainer(); 
-    
-    //the curently open Collection.
-    //To hold groups of Clauses in SpriteBoxes (as needed) i.e. an Open Document.
-    StageManager Stage_DOC;
-    Stage DocumentStage;
-    Scene DocumentScene;
-    Group DocumentGroup;
-    String BoxFilename="document.ser";
-    ClauseContainer documentNode = new ClauseContainer(); 
-    
-    //Library Window (for display of the Open Library)
-    StageManager Stage_LIB;
-    Stage LibraryStage=null;
-    Scene LibraryScene;
-    Group LibraryGroup;
-    String LibFilename="library.ser";
-    ClauseContainer libraryNode = new ClauseContainer(); //library import/save
-    //ImportStage
-    StageManager Stage_Import;
-    Stage ImportStage;
-    Scene ImportScene; // scene for adding on textStage.
-    ScrollPane import_rootnode_scroll; //root Node for import stage
-
     //Text Output windows (no edits)
     StageManager Stage_Output;
-    StageManager Stage_Definitions = new StageManager();
     
-    //Display SpriteBoxes window(s)
-    Scene workspaceScene;  //<----used multiple times in different methods.  TO DO:  localise Scene variables.
-    //Group defGroup_root; //<---used for display Sprites in new stage
     //Extracted Definitions window (text)
     Stage defsTextStage;
     ScrollPane defsTextStage_root;
@@ -321,9 +278,11 @@ private void LoadNodeWS(String filename, StageManager mySM) {
                      ex.printStackTrace();
                 }
                 loaddocnum++;
+                /* deal with in constructor 
                 if (targetNode.getDocName().equals("")) {
                     targetNode.setDocName("LoadedNode"+Integer.toString(loaddocnum));
                 }
+                */
                 
                 //--> IF adding to workspace... mySM.newNodeForWorkspace(targetNode);
                 Stage_WS.setWSNode(targetNode);
@@ -357,9 +316,11 @@ private void LoadNode(String filename) {
                      ex.printStackTrace();
                 }
                 loaddocnum++;
+                /* deal with in constructor
                 if (targetNode.getDocName().equals("")) {
                     targetNode.setDocName("LoadedNode"+Integer.toString(loaddocnum));
                 }
+                */
                 OpenNodeStage.OpenNewNodeNow(targetNode,Stage_WS);
             }
 
@@ -519,60 +480,6 @@ private String getCommonWordsNow(String data) {
     return myTool.getCommonWordsFromString(data);
 }
 
-/* Setup text area with blank text to start.  To put default text in at time of constructing,
-TO DO: delete this and put scroller into node viewer.  */
-
-public void setupImportStage(StageManager myStageManager, Stage textStage, String myTitle) {
-
-        //This is the stage to be used but is not the JavaFX application default
-        textStage.setTitle(myTitle);
-        
-         //This Vbox only has 1 child, a text area, and no spacing setting.
-        //VBox vbox = new VBox(textArea);//unused
-        int totalwidth=900; //this is pixels?
-        
-        //config for window
-        double leftColWidth = 650;
-        double leftColHeight = 400;
-        double rightColWidth = 150;
-        /* Setup a horizontal box with two text areas, but put first in scrollpane to allow scrolling */
-        
-        TextArea textarea2 = new TextArea();
-        this.textArea2.setWrapText(true);
-        this.textArea2.setPrefWidth(rightColWidth);
-        
-        //put text in a scrollpane
-        this.textArea1.setWrapText(true);
-        this.textArea1.setPrefWidth(leftColWidth);
-        this.textArea1.setPrefHeight(leftColHeight);
-
-        //config the scrollpane and put textarea1(input) into it
-        ScrollPane textpane = new ScrollPane();
-        textpane.setContent(textArea1);
-        textpane.setPrefHeight(leftColHeight);  
-        textpane.setPrefWidth(leftColWidth);
-
-        //put scrollpane and text output area into an hbox
-        HBox hbox1 = new HBox(0,textpane,this.textArea2);
-        //put the horizontal boxes in a vertical box which will also be in a scrollpane
-        VBox vbox2 = new VBox(0,hbox1);
-        vbox2.setPrefWidth(totalwidth);
-        
-        // Lastly, attach vbox to root scrollpane and add to Scene
-        double windowWidth=400;
-        double windowHeight = 150;
-        import_rootnode_scroll = new ScrollPane();
-        import_rootnode_scroll.setContent(vbox2); 
-        this.ImportScene = new Scene(import_rootnode_scroll, windowWidth, windowHeight, Color.GREY); //width x height in pixels?  
-        //add Scene to Stage and position it
-        textStage.setScene(ImportScene);
-        textStage.sizeToScene(); 
-        //myStageManager.setInitStage(Stage_WS);
-        myStageManager.setStage(textStage); //maybe rename in Stage Manager
-        myStageManager.setSceneRoot(import_rootnode_scroll);
-        textStage.show();
-    }
-
 /*Method to add category views needed.
 As this will toggle views to stages, and each stage has a parent Stage_WS,
 Stage_WS should be defined before this call (i.e. not null)
@@ -716,8 +623,8 @@ private MenuBar makeMenuBar() {
         
         //DATA
         MenuItem setFollower = new MenuItem("setFollower");
-        MenuItem detachFollower = new MenuItem("clearFollower");
-        menuData.getItems().addAll(setFollower,detachFollower);
+        MenuItem unsetFollower = new MenuItem("unsetFollower");
+        menuData.getItems().addAll(setFollower,unsetFollower);
         //Method will save the current open node with focus.
 
         SaveNode.setOnAction(new EventHandler<ActionEvent>() {
@@ -796,6 +703,7 @@ private MenuBar makeMenuBar() {
 
         //DATA MENU
         setFollower.setOnAction(handleSetFollower);
+        unsetFollower.setOnAction(handleUnsetFollower);
 
         /* --- MENU BAR --- */
         menuBar.getMenus().addAll(menuViews, menuFile, menuNewNode,menuWorkspace, menuData, menuText, menuOutput);     
@@ -900,22 +808,6 @@ public void setupToolbarPanel(StageManager mySM) {
         myStage.show();
 
         //return toolbar_root;
-}
-
-private void setArea1Text(String fname) {
-        //get text from file and put in textarea 1
-        String myText=this.getTextfromFile(fname);
-        this.textArea1.setText(myText);
-
-}
-
-private void setArea2Text(String fname) {
-        //get stats from file and put in textarea 2
-        String myStats=this.getMostCommon(fname);
-        Stage_Import.setOutputText(myStats);
-        this.textArea2.setText(myStats);
-        //send some stats to console
-        this.printStatsfromFile(fname);
 }
 
 /* Method to see if any label or text contains legal 'role' words, for display purposes 
@@ -1297,12 +1189,6 @@ public void deleteSpriteGUI(SpriteBox mySprite) {
         }
         ClauseContainer nodeSample = NodeFromStatuteSampleText(sample);
         OpenNodeStage.addOpenNodeChildren(nodeSample);
-        /*
-        ClauseContainer focusNode=OpenNodeStage.getDisplayNode();
-        focusNode.addNodeChildren(nodeSample); //data
-        System.out.println("Updated child nodes for this node:"+focusNode.toString());
-        OpenNodeStage.updateOpenNodeView(); //view
-        */
         }
     };
     
@@ -1327,8 +1213,10 @@ public void deleteSpriteGUI(SpriteBox mySprite) {
             //Update the import stage common words count text area
             String gotcha = Main.this.textArea1.getText();
             String newTA = Main.this.getCommonWordsNow(gotcha);
+            /* TO DO: rewrite so that it is output of current OpenNode
             Stage_Import.setOutputText(newTA);
             Main.this.textArea2.setText(newTA);
+
             
            
             //new stage with scroll window to hold boxes created for common wods
@@ -1381,6 +1269,7 @@ public void deleteSpriteGUI(SpriteBox mySprite) {
                 b.setOnMouseDragged(DragBoxEventHandler);      
                 CountGroup_root.getChildren().add(b);
             }
+            */
         }
     };
     
@@ -1391,6 +1280,15 @@ public void deleteSpriteGUI(SpriteBox mySprite) {
         public void handle(ActionEvent event) {
             System.out.println("About to set follower...");
             setCurrentSpriteDataParent();
+            }
+        };
+
+        EventHandler<ActionEvent> handleUnsetFollower = 
+        new EventHandler<ActionEvent>() {
+        @Override 
+        public void handle(ActionEvent event) {
+            OpenNodeStage=Stage_WS.getCurrentFocus();
+            OpenNodeStage.unsetFollow(); //call node or GUI?
             }
         };
 

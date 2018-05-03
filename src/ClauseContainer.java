@@ -233,6 +233,10 @@ public void setFollow(ClauseContainer myParentLink) {
 	setDataMode("follower");
 }
 
+public void unsetFollow() {
+	setDataMode("own");
+}
+
 public ClauseContainer getFollow() {
 	return this.dataLinkParent;
 }

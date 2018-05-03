@@ -382,11 +382,13 @@ public class SpriteBox extends StackPane implements java.io.Serializable {
 
     public void doAlert() {
         this.isAlert=true;
-        myBox.setColour(alertColour);
+        //myBox.setColour(alertColour);
+        updateAppearance();
     }
      public void endAlert() {
         this.isAlert=false;
-        myBox.setColour(defaultColour);
+        //myBox.setColour(defaultColour);
+        updateAppearance();
     }
 
     // --------------------------------
@@ -416,9 +418,15 @@ public class SpriteBox extends StackPane implements java.io.Serializable {
         this.setLabel(thisNode.getDocName()); 
         this.SetColour(thisNode.getNodeColour());
         this.SetDefaultColour(thisNode.getNodeColour());
-        if (thisNode.isFollower()==true) {
-            myBox.setColour(followerColour);
+        if (this.isAlert==true) {
+           myBox.setColour(alertColour);
         }
+        else if (thisNode.isFollower()==true) {
+                myBox.setColour(followerColour);
+            }
+        else {
+                 myBox.setColour(defaultColour);
+            }        
         //to do : set shape based on node category too
         }
 
