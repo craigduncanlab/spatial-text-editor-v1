@@ -72,6 +72,7 @@ NodeCategory nodeCat = new NodeCategory();
 
 //NODE ASSOCIATIONS: i.e. Graph nodes along edges:
 ClauseContainer myParentNode; 
+ClauseContainer dataLinkParent; //the node to 'follow' for follow mode.
 ArrayList<ClauseContainer> myChildNodes = new ArrayList<ClauseContainer>();
 
 //This node's data and level in tree:
@@ -81,29 +82,43 @@ String nodecategory = "";
 int nodelevel = 0; //start at root 0 (project) allows future tree expansion
 int nodeGUIloc = 0; //to store Stage or GUI element where the node is located
 //(nodelocation can match Stage?)
+// store the node's preference for what view to start in.
+String userNodeView;
 
 //As of 26.4.18 - Make this node hold its own text, title (for now use docnotes as node text)
 //consequences: the concept of a 'clause' can be replaced by 
 //a) nodeCat to hold node category b) docnotes here to hold the text itself. 
 
-//Nodes to hold own predetermined category list?
-NodeCategory NC_notes = new NodeCategory ("notes",0,"khaki");
-NodeCategory NC_footnotes = new NodeCategory ("footnotes",0,"khaki");
-NodeCategory NC_clause = new NodeCategory ("clause",0,"blue");
-NodeCategory NC_def = new NodeCategory ("definition",0,"green");
-NodeCategory NC_testimony = new NodeCategory ("testimony",0,"lightblue");
-NodeCategory NC_witness = new NodeCategory ("witness",0,"lightblue");
-NodeCategory NC_fact = new NodeCategory ("fact",0,"lightblue");
-NodeCategory NC_event = new NodeCategory ("event",0,"lightblue");
-NodeCategory NC_library = new NodeCategory ("library",1,"lemon");
-NodeCategory NC_document = new NodeCategory ("document",1,"darkblue");
-NodeCategory NC_law = new NodeCategory ("law",0,"darkgold");
-NodeCategory NC_collection = new NodeCategory ("collection",2,"orange");
-NodeCategory NC_project = new NodeCategory ("project",3,"white");
-NodeCategory NC_WS = new NodeCategory ("workspace",99,"beige");
+/* 3.5.18 - introduce possibility of data link (parent).  
+i.e. separation of 
+(a) structure of related concent: child nodes for navigation/association
+(b) links for association (mirroring/styling) of data from another node.
+should this be all content, or just text?
+in effect, this node can carry a pointer to a parent node that will override specific contents
+a 'persistent' override will always override (i.e. box is just a shell: points to master copy somewhere?).
+i.e. the shell is subordinate/dependant: a 'linked box'.  How to show?
+Linked boxes content (displayNode) not directly editable, but can they open the parent data node?
+an 'apply once' will just refresh the static data (which elements of node?).
+(this is no different to a 'copy data' option for a selected target?)
+a 'refresh' option can reproduce nodes and refresh them from parent data links AT THAT TIME.
+if there is a parent link, when can local (static) data change?
+if data links at are node level, then opening a node will display the parent node content...
+----
+Maybe the 'displayNode', that is currently inside a StageManager (on Open) is not the only Node 'layer'
+i.e. there can be a contentNode and a display node inside a StageManager...
+(a parent data link, and static content/child data link?).
+The StageManager (node viewer) can decide which of these has priority at any time?
+i.e. you can switch on a data override, so that a node will display a parent OR a node can be edited as if it is independent.
+i.e. your GUI can help decide what state a node is on - follower node, or independent node.
+follower nodes are helpful for showing data, but when in follower mode, we say not editable.
+i.e.'userView' state is GUI level for layout.
+the 'dataMode' is follower or editable.  You can set to 'follower', then copy once, then go to editable.
+or you can leave it in follower mode.
+{This is really a user-level, flexible pointer system}.
+nb - if we store 'userView' in the node itself (rather than the StageManager), then even when the GUI recreates the scene, it can find the last setting for "UserView" and reinstate that as well.
+this way, we can pre-save the views for presentations.
 
-
-
+*/
 //empty constructor no arguments
 public ClauseContainer() {
 
@@ -155,6 +170,15 @@ public void setType(String myString) {
 
 public String getType() {
 	return this.ContainerType;
+}
+
+//DEFAULT USER VIEWS
+public String getUserView() {
+	return this.userNodeView;
+}
+
+public void setUserView(String myView) {
+	this.userNodeView=myView;
 }
 
 //---PARENT NODE DATA ---

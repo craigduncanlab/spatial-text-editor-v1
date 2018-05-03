@@ -154,8 +154,6 @@ EventHandler<MouseEvent> PressBox;
 EventHandler<MouseEvent> DragBox;
 //MenuBar
 MenuBar localmenubar;
-//User choice of view
-String userNodeView;
 
 /*
 Data collection will parallel GUI display of boxes. Provided stage manager can be serialised?
@@ -242,26 +240,31 @@ public StageManager(String title, NodeCategory myCategory, MenuBar myMenu, Event
 
 //GLOBAL view setting.  Make switch.
 private void cycleUserView() {
-    //handle null case
-    if (userNodeView==null) {
-        userNodeView="all";
+    //User choice of view stored in node
+    String myView = getDisplayNode().getUserView();
+    if (myView==null) {
+        myView="all";
+        }
+    switch (myView) {
+    
+        case "all" : 
+            getDisplayNode().setUserView("textonly");
+            updateOpenNodeView();
+            break;
+        case "textonly" :
+            getDisplayNode().setUserView("nodeboxesonly");
+            updateOpenNodeView();
+            break;
+        case "nodeboxesonly" :
+            getDisplayNode().setUserView("all");
+            updateOpenNodeView();
+            break;
+        default:
+            getDisplayNode().setUserView("all");
+            updateOpenNodeView();
+            break;
+        }
     }
-    if (userNodeView.equals("all")) {
-        userNodeView="textonly";
-        updateOpenNodeView();
-        return;
-    }
-    if (userNodeView.equals("textonly")) {
-        userNodeView="nodeboxesonly";
-        updateOpenNodeView();
-        return;
-    }
-    if (userNodeView.equals("nodeboxesonly")) {
-        userNodeView="all";
-        updateOpenNodeView();
-        return;
-    }
-}
 
 //any instance can return the global variable with focus stage
 public StageManager getCurrentFocus() {
@@ -525,17 +528,17 @@ private void updateOpenNodeView() {
         }
         */
     }
-    String pathText = parentSTR+"-->"+displayNode.getDocName()+"(viewing)"; 
+    String pathText = parentSTR+"-->"+getDisplayNode().getDocName()+"(viewing)"; 
     parentBoxText.setText(pathText);
     //REFRESHES ALL GUI DATA - EVEN IF NOT CURRENTLY VISIBLE
     
-        inputTextArea.setText(displayNode.getNotes());
+        inputTextArea.setText(getDisplayNode().getNotes());
 
-        shortnameTextArea.setText(displayNode.getDocName());
-        headingTextArea.setText(displayNode.getHeading());
+        shortnameTextArea.setText(getDisplayNode().getDocName());
+        headingTextArea.setText(getDisplayNode().getHeading());
         
         //output node contents
-        outputTextArea.setText(displayNode.getOutputText());
+        outputTextArea.setText(getDisplayNode().getOutputText());
     
         displayChildNodeBoxes();
 
@@ -862,13 +865,13 @@ private Scene makeSceneForBoxes(ScrollPane myPane) {
 /* Method to refresh GUI objects from underlying data (as saved) */
 
 private void refreshNodeViewScene() {
-        inputTextArea.setText(displayNode.getNotes());
+        inputTextArea.setText(getDisplayNode().getNotes());
 
-        shortnameTextArea.setText(displayNode.getDocName());
-        headingTextArea.setText(displayNode.getHeading());
+        shortnameTextArea.setText(getDisplayNode().getDocName());
+        headingTextArea.setText(getDisplayNode().getHeading());
         
         //output node contents
-        outputTextArea.setText(displayNode.getOutputText());
+        outputTextArea.setText(getDisplayNode().getOutputText());
         //redisplay boxes
         Group newGroup = new Group(); //new GUI node to show only new content.
         swapSpriteGroup(newGroup); //store the new GUI node for later use
@@ -907,22 +910,22 @@ private void makeSceneForNodeEdit() {
         //set view option
         VBox customView;
         //handle null case
-        if (userNodeView==null) {
-            userNodeView="all";
+        if (getDisplayNode().getUserView()==null) {
+            getDisplayNode().setUserView("all");
         }
-        if (userNodeView.equals("textonly")) {
-            System.out.println("Make Scene. User Node View: "+userNodeView);
+        if (getDisplayNode().getUserView().equals("textonly")) {
+            System.out.println("Make Scene. User Node View: "+getDisplayNode().getUserView());
             customView = new VBox(0,headingTextArea,inputTextArea,hboxButtons);
             setTitle(getDisplayNode().getDocName()+" - Text View");
         }
-        else if(userNodeView.equals("nodeboxesonly")) {
+        else if(getDisplayNode().getUserView().equals("nodeboxesonly")) {
             customView = new VBox(0,shortnameTextArea,hboxButtons,tempPane);
-            System.out.println("Make Scene. User Node View: "+userNodeView);
+            System.out.println("Make Scene. User Node View: "+getDisplayNode().getUserView());
             setTitle(getDisplayNode().getDocName()+" - Container View");
         }
             else {
             customView = new VBox(0,parentBoxText,shortnameTextArea,headingTextArea,inputTextArea,hboxButtons,tempPane,outputTextArea);
-            System.out.println("Make Scene. User Node View: "+userNodeView);
+            System.out.println("Make Scene. User Node View: "+getDisplayNode().getUserView());
             setTitle(getDisplayNode().getDocName()+" - Full View");
         }
         //vboxAll.setPrefWidth(200);
@@ -970,17 +973,17 @@ EventHandler<ActionEvent> UpdateNodeText =
             String editedText=inputTextArea.getText();
             String editedOutput=outputTextArea.getText();
             //
-            displayNode.setDocName(editedName);
+            getDisplayNode().setDocName(editedName);
             //parentBox - should we insist on one?
             SpriteBox pntBox = getParentBox();
             if (pntBox!=null) {
                 pntBox.setLabel(editedName);
             }
-            displayNode.setHeading(editedHeading);
-            displayNode.setNotes(editedText);
-            displayNode.setOutputText(editedOutput);
+            getDisplayNode().setHeading(editedHeading);
+            getDisplayNode().setNotes(editedText);
+            getDisplayNode().setOutputText(editedOutput);
             //error checking - log
-            if (displayNode.getNotes().equals(editedText)) {
+            if (getDisplayNode().getNotes().equals(editedText)) {
                 System.out.println("Node updated OK!");
             }
             else {
