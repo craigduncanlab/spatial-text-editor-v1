@@ -149,10 +149,12 @@ public class Main extends Application {
     //TO DO:
     //Enclose these inside Node class (clause container)
     
+    NodeCategory NC_World = new NodeCategory("World",0,"darkgrey");
     NodeCategory NC_notes = new NodeCategory("notes",0,"khaki");
     NodeCategory NC_footnotes = new NodeCategory ("footnotes",0,"khaki");
     NodeCategory NC_clause = new NodeCategory ("clause",0,"blue");
     NodeCategory NC_def = new NodeCategory ("definition",0,"green");
+    NodeCategory NC_Memory = new NodeCategory ("memory",0,"lightblue");
     NodeCategory NC_testimony = new NodeCategory ("testimony",0,"lightblue");
     NodeCategory NC_witness = new NodeCategory ("witness",0,"lightblue");
     NodeCategory NC_fact = new NodeCategory ("fact",0,"lightblue");
@@ -164,10 +166,10 @@ public class Main extends Application {
     NodeCategory NC_project = new NodeCategory ("project",3,"white");
     NodeCategory NC_WS = new NodeCategory ("workspace",99,"white");
     
-    ArrayList<NodeCategory> nodeCatList = new ArrayList<NodeCategory>(Arrays.asList(NC_notes,NC_footnotes,NC_clause,NC_def,NC_law,NC_fact,NC_event,NC_witness,NC_testimony));
+    ArrayList<NodeCategory> nodeCatList = new ArrayList<NodeCategory>(Arrays.asList(NC_World, NC_notes,NC_footnotes,NC_clause,NC_def,NC_law,NC_fact,NC_Memory,NC_event,NC_witness,NC_testimony));
 
     //To hold Stage with open node that is current
-    StageManager OpenNodeStage;
+    StageManager OpenNodeStage;  
     ClauseContainer NodeTarget;
 
 /*The main method uses the launch method of the Application class.
@@ -328,7 +330,7 @@ private void SaveNode(StageManager mySM) {
         ClauseContainer node = mySM.getDisplayNode();
         System.out.println("Saving:"+node.toString());
         //String filename = mySM.getFilename();
-        String filename = "loadnode.ser"; //static filename for now
+        String filename = Stage_WS.getFilename();
 
         FileOutputStream fos = null;
         ObjectOutputStream out = null;
@@ -524,15 +526,15 @@ private void addNewObjectItems (Menu myMenu) {
             public void handle(ActionEvent t) {
                 //New node..
                 ClauseContainer newNode = new ClauseContainer(myCat);
-                //Add new object to the category container
-                myCat.getCatViewer().OpenNewNodeNow(newNode,Stage_WS);
+                //Add new object to the category node
+                myCat.getCategoryNode().addChildNode(newNode);
                 //place a COPY (REF) of node in the relevant open node.  Testing...
                 OpenNodeStage=Stage_WS.getCurrentFocus(); //update focus id.
                 OpenNodeStage.OpenNewNodeNow(newNode,Stage_WS); // check they both update
                 /* place a NEW object in the relevant open node... */
                 //OpenNodeStage.OpenNewNodeNow(new ClauseContainer(myCat),Stage_WS);
                     System.out.println("Nodes ");
-                    System.out.println("Category Node: "+myCat.getCatViewer().getDisplayNode().getChildNodes().toString());
+                    System.out.println("Category Node: "+ myCat.getCategoryNode().getChildNodes().toString());
                     System.out.println("Context Node: "+OpenNodeStage.getDisplayNode().getChildNodes().toString());
             }
         });
@@ -887,7 +889,7 @@ private void placeCurrentSpriteOnStage(StageManager targetStage) {
     targetStage.addNewSpriteToStage(currentSprite);
 }
 
-//Set current Sprite's node as data link parent.  
+//Set current selected Sprite's node as data link parent.  
 
 private void setCurrentSpriteDataParent() {
     SpriteBox currentSprite = getCurrentSprite(); //not based on the button

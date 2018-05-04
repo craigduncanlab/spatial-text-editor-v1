@@ -194,11 +194,13 @@ public StageManager(StageManager parent, NodeCategory myCat, EventHandler PressB
     setPressBox(PressBox);
     setDragBox(DragBox);
     setKeyPress(NodeKeyHandler); //this can be different for workspace
-    //associate this Node Category with this StageManager (used with views etc)
-    myCat.setCatViewer(StageManager.this);
+    
     //data: new 'parent' node based on category alone
     setDisplayNode(new ClauseContainer(myCat,"The holding area for all nodes of this category",myCat.getCategory()));
     //focus
+    //associate this Node Category with this parentNode
+    myCat.setCategoryNode(getDisplayNode());
+    //
     currentFocus=StageManager.this; //set focus on creation
     parent.setCurrentFocus(StageManager.this);//this duplicated previous line since class variable?
     //

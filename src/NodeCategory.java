@@ -9,7 +9,7 @@ private static final long serialVersionUID = -64787598237212345L;
 int nodelevel = 0;
 String nodecategory = "";
 String colour = "";
-StageManager nodeCatViewer;
+ClauseContainer nodeCatNode;  //nb prevents serialisation?
 int doccount=0;
 //put document counter inside each node category object
 
@@ -40,12 +40,13 @@ public String getCategory() {
 	return this.nodecategory;
 }
 
-public void setCatViewer(StageManager myView) {
-	this.nodeCatViewer = myView;
+//
+public void setCategoryNode(ClauseContainer topNode) {
+	this.nodeCatNode = topNode;
 }
 
-public StageManager getCatViewer() {
-	return this.nodeCatViewer;
+public ClauseContainer getCategoryNode() {
+	return this.nodeCatNode;
 }
 
 public void setColour(String col) {

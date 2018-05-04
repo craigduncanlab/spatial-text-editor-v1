@@ -354,11 +354,15 @@ public void setAllChildNodes(ArrayList<ClauseContainer> myArray) {
 	this.myChildNodes=tempArray;
 }
 
-// - A DATA LAYER (API?) THAT ALLOWS NODE TO VARY PUBLIC DATA OUTPUT
+/*  --- THESE PUBLIC METHODS FORM A MINI API THAT EXPOSES A PUBLIC DATA LAYER (NODE) TO THE GUI ---
+This allows the node to choose to follow another node and make that data
+available to the GUI in preference to its own data.
+(i.e. its own data 'wrapper')
 
-/* Public method output according to where the node is currently getting its data 
-(i.e. internal or external if 'follower' mode
+Also enables the GUI to toggle the 'view' - i.e. to change the node's preference and save it.
+- must work in conjunction with setting a parent node to link to.
 */
+
 public String getDocName () {
 	return publicText(getdataDisplayNode().getthisDocname());
 }
