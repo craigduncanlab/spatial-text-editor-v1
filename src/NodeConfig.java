@@ -21,8 +21,7 @@ NodeCategory NC_def = new NodeCategory ("definition",0,"green");
 NodeCategory NC_Memory = new NodeCategory ("memory",0,"lightblue");
 NodeCategory NC_testimony = new NodeCategory ("testimony",0,"lightblue");
 NodeCategory NC_witness = new NodeCategory ("witness",0,"lightblue");
-NodeCategory NC_fact = new NodeCategory ("fact",0,"lightblue");
-NodeCategory NC_event = new NodeCategory ("event",0,"lightblue");
+
 //NodeCategory NC_library = new NodeCategory ("library",1,"lemon");
 NodeCategory NC_document = new NodeCategory ("document",1,"darkblue");
 NodeCategory NC_caselaw = new NodeCategory ("sourcelaw",0,"darkgold");
@@ -33,6 +32,11 @@ NodeCategory NC_statutelaw = new NodeCategory ("statutelaw",0,"darkgold");
 NodeCategory NC_Alien = new NodeCategory("Alien",0,"khaki");
 NodeCategory NC_Portia = new NodeCategory("Portia",0,"khaki");
 NodeCategory NC_Shylock = new NodeCategory("Shylock",0,"khaki");
+//
+NodeCategory NC_fact = new NodeCategory ("fact",0,"lightblue");
+NodeCategory NC_event = new NodeCategory ("event",0,"lightblue");
+NodeCategory NC_matter = new NodeCategory ("matter",0,"lightblue");
+NodeCategory NC_circumstance = new NodeCategory ("circumstance",0,"lightblue");
 
 private void initialiseNodeCategories() {
         
@@ -89,6 +93,14 @@ return new ArrayList<NodeCategory>(Arrays.asList(NC_Alien,NC_Portia,NC_Shylock))
 
 }
 
+public ArrayList<NodeCategory> getEvents() {
+
+ 
+return new ArrayList<NodeCategory>(Arrays.asList(NC_event, NC_fact,NC_matter,NC_circumstance));
+
+}
+
+//notice constructor can be at end, but convention is at start before methods
 public NodeConfig() {}
 
 

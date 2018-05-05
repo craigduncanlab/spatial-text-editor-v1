@@ -148,6 +148,7 @@ public class Main extends Application {
     Menu theWorldsMenu;
     Menu theNotesMenu;
     Menu theProtocolMenu;
+    Menu theEventsMenu;
 
 
     ArrayList<NodeCategory> nodeCatList;
@@ -694,6 +695,14 @@ private Menu getMenuNotes() {
     return this.theNotesMenu;
 }
 
+private void setMenuEvents() {
+    this.theEventsMenu = new Menu("Events");
+}
+
+private Menu getMenuEvents() {
+    return this.theEventsMenu;
+}
+
 //Menu MenuLaw = new Menu("Protocol(Law)");
 
 private void setMenuLaw() {
@@ -730,6 +739,10 @@ private MenuBar makeMenuBar() {
         //Menu menuCollection = new Menu("Collection");
         Menu menuFile = new Menu("File/Node");
         //Menu MenuLaw = new Menu("Protocol(Law)");
+        //
+        setMenuEvents();
+        Menu menuEvents = getMenuEvents();
+        //
         setMenuLaw();
         Menu MenuLaw = getMenuLaw();
         //Menu menuProjectLib = new Menu ("ProjectLib");
@@ -870,7 +883,7 @@ private MenuBar makeMenuBar() {
         unsetFollower.setOnAction(handleUnsetFollower);
 
         /* --- MENU BAR --- */
-        menuBar.getMenus().addAll(menuWorlds, menuFile, menuNewElement, menuNotes,MenuLaw, menuText, menuOutput,menuViews);     
+        menuBar.getMenus().addAll(menuWorlds, menuFile, menuNewElement, menuEvents, menuNotes,MenuLaw, menuText, menuOutput,menuViews);     
         
         //create an event filter so we can process mouse clicks on menubar (and ignore them!)
         menuBar.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
@@ -1137,6 +1150,7 @@ public void deleteSpriteGUI(SpriteBox mySprite) {
         addMenuWorldsItem(menuitem3,myNodeConfig.getMerchantNodes());
         //Menu menuNotes Items
         //setMenuNotes();
+        addMenuForNew(getMenuEvents(),myNodeConfig.getEvents());
         addMenuForNew(getMenuNotes(),myNodeConfig.getNotesNodes());
         addMenuForNew(getMenuLaw(),myNodeConfig.getLawNodes());
 
