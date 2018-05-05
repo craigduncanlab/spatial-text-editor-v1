@@ -198,7 +198,7 @@ public StageManager(StageManager parent, NodeCategory myCat, EventHandler PressB
     //data: new 'parent' node based on category alone
     setDisplayNode(new ClauseContainer(myCat,"The holding area for all nodes of this category",myCat.getCategory()));
     //focus
-    //associate this Node Category with this parentNode
+    //associate this Node Category with this parentNode TO DO: initialise in data
     myCat.setCategoryNode(getDisplayNode());
     //
     currentFocus=StageManager.this; //set focus on creation

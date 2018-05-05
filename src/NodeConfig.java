@@ -25,10 +25,14 @@ NodeCategory NC_fact = new NodeCategory ("fact",0,"lightblue");
 NodeCategory NC_event = new NodeCategory ("event",0,"lightblue");
 //NodeCategory NC_library = new NodeCategory ("library",1,"lemon");
 NodeCategory NC_document = new NodeCategory ("document",1,"darkblue");
-NodeCategory NC_law = new NodeCategory ("law",0,"darkgold");
+NodeCategory NC_caselaw = new NodeCategory ("sourcelaw",0,"darkgold");
+NodeCategory NC_statutelaw = new NodeCategory ("statutelaw",0,"darkgold");
 //NodeCategory NC_collection = new NodeCategory ("collection",2,"orange");
 //NodeCategory NC_project = new NodeCategory ("project",3,"white");
+//
 NodeCategory NC_Alien = new NodeCategory("Alien",0,"khaki");
+NodeCategory NC_Portia = new NodeCategory("Portia",0,"khaki");
+NodeCategory NC_Shylock = new NodeCategory("Shylock",0,"khaki");
 
 private void initialiseNodeCategories() {
         
@@ -45,28 +49,43 @@ It may be possible to add these in a child node to Worldview at some point,
 swapping the main node class (ClauseContainer) for this.
 */
 
+/*
+
 public ArrayList<NodeCategory> getLawNodes() {
 
 return new ArrayList<NodeCategory>(Arrays.asList(NC_notes,NC_footnotes,NC_clause,NC_def,NC_law,NC_fact,NC_Memory,NC_event,NC_witness,NC_testimony));
 
 }
+*/
+
+public ArrayList<NodeCategory> getLawNodes() {
+
+return new ArrayList<NodeCategory>(Arrays.asList(NC_caselaw,NC_statutelaw));
+
+}
 
 public ArrayList<NodeCategory> getLitNodes() {
 
-return new ArrayList<NodeCategory>(Arrays.asList(NC_notes,NC_footnotes,NC_law,NC_fact,NC_Memory,NC_event,NC_witness,NC_testimony));
+return new ArrayList<NodeCategory>(Arrays.asList(NC_fact,NC_Memory,NC_event,NC_witness,NC_testimony));
+
+}
+
+public ArrayList<NodeCategory> getNotesNodes() {
+
+return new ArrayList<NodeCategory>(Arrays.asList(NC_notes,NC_footnotes));
 
 }
 
 public ArrayList<NodeCategory> getCommercialNodes() {
 
-return new ArrayList<NodeCategory>(Arrays.asList(NC_document,NC_clause,NC_def,NC_notes,NC_footnotes,NC_law));
+return new ArrayList<NodeCategory>(Arrays.asList(NC_document,NC_clause,NC_def));
 
 }
 
 public ArrayList<NodeCategory> getMerchantNodes() {
 
  
-return new ArrayList<NodeCategory>(Arrays.asList(NC_Alien,NC_footnotes,NC_clause,NC_fact,NC_event));
+return new ArrayList<NodeCategory>(Arrays.asList(NC_Alien,NC_Portia,NC_Shylock));
 
 }
 

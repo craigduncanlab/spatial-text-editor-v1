@@ -146,6 +146,9 @@ public class Main extends Application {
     Menu theViewMenu;
     Menu theNewNodeMenu;
     Menu theWorldsMenu;
+    Menu theNotesMenu;
+    Menu theProtocolMenu;
+
 
     ArrayList<NodeCategory> nodeCatList;
 
@@ -521,7 +524,8 @@ This will utilises the stages already set up to put a new item in the Open stage
 (although what we really want to do is put new item in the Category Stage: so use this for place)
 The "NEW" aspect uses Stage_WS therefore be called by or after the addMenuViewsItems method.
 */
-private void addNewObjectItems (ArrayList<NodeCategory> myCatList) {
+/*
+private void addMenuCreateNew (ArrayList<NodeCategory> myCatList) {
         if (myCatList==null) {
             System.out.println("Error: 'New' menu not populated");
             return;
@@ -530,7 +534,7 @@ private void addNewObjectItems (ArrayList<NodeCategory> myCatList) {
             System.out.println("Categories to add to new:"+myCatList.toString());
         }
 
-        Menu myMenu = getMenuNewNode();
+        Menu myMenu = getmenuNewElement();
         System.out.println("New items menu");
         if (myMenu.getItems().isEmpty()) {
             System.out.println("Menu is currently empty");
@@ -559,10 +563,73 @@ private void addNewObjectItems (ArrayList<NodeCategory> myCatList) {
                 //place a COPY (REF) of node in the relevant open node.  Testing...
                 OpenNodeStage=Stage_WS.getCurrentFocus(); //update focus id.
                 OpenNodeStage.OpenNewNodeNow(newNode,Stage_WS); // check they both update
-                /* place a NEW object in the relevant open node... */
+                // place a NEW object in the relevant open node... 
                 //OpenNodeStage.OpenNewNodeNow(new ClauseContainer(myCat),Stage_WS);
                     System.out.println("Nodes ");
                     System.out.println("Category Node: "+ myCat.getCategoryNode().getChildNodes().toString());
+                    System.out.println("Context Node: "+OpenNodeStage.getDisplayNode().getChildNodes().toString());
+            }
+        });
+        }
+}
+*/
+
+/* Method to add the 'new' function to the menu.  
+This will utilises the stages already set up to put a new item in the Open stage
+(although what we really want to do is put new item in the Category Stage: so use this for place)
+The "NEW" aspect uses Stage_WS therefore be called by or after the addMenuViewsItems method.
+*/
+
+//populate a menu to create a new node, from a node category list
+private void addMenuForNew (Menu myMenu, ArrayList<NodeCategory> myCatList) {
+        if (myCatList==null) {
+            System.out.println("Error: 'New' menu not populated");
+            return;
+        }
+        else {
+            System.out.println("Categories to add to new:"+myCatList.toString());
+        }
+        if (myMenu==null) {
+            System.out.println("Error: Menu not defined");
+            return;
+        }
+        System.out.println("New items menu");
+        if (myMenu.getItems().isEmpty()) {
+            System.out.println("Menu is currently empty");
+        }
+        else {
+            System.out.println("Menu is not empty but cleaning...");
+            myMenu.getItems().clear();
+        }
+        if (myMenu.getItems().isEmpty()) {
+             System.out.println("Menu cleaning successful");
+        }
+
+        Iterator<NodeCategory> myIterator = myCatList.iterator(); //alternatively use Java method to see if in Array?
+            while (myIterator.hasNext()) {
+            NodeCategory myCat = myIterator.next();
+            System.out.println(myCat.getCategory());
+            MenuItem myNewViewItem = new MenuItem(myCat.getCategory());
+            myMenu.getItems().add(myNewViewItem);
+            //handlers
+            myNewViewItem.setOnAction(new EventHandler<ActionEvent>() {
+            public void handle(ActionEvent t) {
+                //New node..
+                ClauseContainer newNode = new ClauseContainer(myCat);
+                //Add new object to the category node
+                if (myCat.getCategoryNode()==null) {
+                    System.out.println("This node has no category node");
+                    //To DO: improve on this - make it data focussed not GUI
+                    StageManager myNewStage = new StageManager(Stage_WS, myCat, PressBoxEventHandler,DragBoxEventHandler); //to do: title.  Global?
+                }
+                myCat.getCategoryNode().addChildNode(newNode);
+                System.out.println("Category Node: "+ myCat.getCategoryNode().getChildNodes().toString());
+                //place a COPY (REF) of node in the relevant open node.  Testing...
+                OpenNodeStage=Stage_WS.getCurrentFocus(); //update focus id.
+                OpenNodeStage.OpenNewNodeNow(newNode,Stage_WS); // check they both update
+                /* place a NEW object in the relevant open node... */
+                //OpenNodeStage.OpenNewNodeNow(new ClauseContainer(myCat),Stage_WS);
+                    System.out.println("Nodes ");
                     System.out.println("Context Node: "+OpenNodeStage.getDisplayNode().getChildNodes().toString());
             }
         });
@@ -573,7 +640,8 @@ private void addNewObjectItems (ArrayList<NodeCategory> myCatList) {
 
 private void populateMenus(ArrayList<NodeCategory> nodelist) {
     addMenuViewsItems(nodelist); //need to do this after Stage_WS defined as it is parent for toggle views.
-    addNewObjectItems(nodelist);
+    //addMenuCreateNew(nodelist);
+    addMenuForNew(getmenuNewElement(),nodelist);
 }
 
 private void configWorldMenuItem(MenuItem myMenuItem, ArrayList<NodeCategory> nodelist) {
@@ -601,22 +669,42 @@ private Menu getMenuViews() {
     return this.theViewMenu;
 }
 
-private void setMenuWorlds() {
-    this.theWorldsMenu = new Menu("Worlds");
-}
+
 private void setMenuViews() {
     this.theViewMenu = new Menu("Views");
 }
 
-private void setMenuNewNode() {
-    this.theNewNodeMenu = new Menu("New");
+private void setmenuNewElement() {
+    this.theNewNodeMenu = new Menu("New Element"); //a new node (not a copy?)
+}
+
+private void setMenuWorlds() {
+    this.theWorldsMenu = new Menu("Worlds");
 }
 
 private Menu getMenuWorlds() {
     return this.theWorldsMenu;
 }
 
-private Menu getMenuNewNode() {
+private void setMenuNotes() {
+    this.theNotesMenu = new Menu("Notes");
+}
+
+private Menu getMenuNotes() {
+    return this.theNotesMenu;
+}
+
+//Menu MenuLaw = new Menu("Protocol(Law)");
+
+private void setMenuLaw() {
+    this.theProtocolMenu = new Menu("Law");
+}
+
+private Menu getMenuLaw() {
+    return this.theProtocolMenu;
+}
+
+private Menu getmenuNewElement() {
     return this.theNewNodeMenu;
 }
 
@@ -629,16 +717,21 @@ private MenuBar makeMenuBar() {
         MenuBar menuBar = new MenuBar();
         //Items for horizontal menu, vertical MenuItems for each
         
-        //Menu menuNewNode = new Menu("New");
+        //Menu menuNewElement = new Menu("New");
         Menu menuWorkspace = new Menu("Workspace");
         //
         setMenuWorlds();
         Menu menuWorlds = getMenuWorlds();
+
+        setMenuNotes();
+        Menu menuNotes = getMenuNotes();
         //
         //Menu menuDocument = new Menu("Document");
         //Menu menuCollection = new Menu("Collection");
         Menu menuFile = new Menu("File/Node");
-        Menu menuData = new Menu("Data");
+        //Menu MenuLaw = new Menu("Protocol(Law)");
+        setMenuLaw();
+        Menu MenuLaw = getMenuLaw();
         //Menu menuProjectLib = new Menu ("ProjectLib");
         //Menu menuLibrary = new Menu("Library");
         Menu menuOutput = new Menu("Output");
@@ -647,16 +740,16 @@ private MenuBar makeMenuBar() {
         //instance variables (content of these 2 is empty until ready to insert list and event handlers)
         setMenuViews();
         Menu menuViews = getMenuViews();
-        setMenuNewNode();
-        Menu menuNewNode = getMenuNewNode();
+        setmenuNewElement();
+        Menu menuNewElement = getmenuNewElement();
         
        
         //Menu menuWorlds = getMenuWorlds();
         //
         //TO DO: Place Menu with any Level 1 Category Nodes
         //
-        MenuItem SaveNode = new MenuItem("Save");
-        MenuItem LoadSavedNode = new MenuItem("Load");
+        MenuItem SaveNode = new MenuItem("SaveBox");
+        MenuItem LoadSavedNode = new MenuItem("LoadBox");
         MenuItem SaveColl = new MenuItem("Save");
         MenuItem LoadColl = new MenuItem("Load");
         MenuItem SaveWork = new MenuItem("Save");
@@ -677,12 +770,16 @@ private MenuBar makeMenuBar() {
         MenuItem GetClauses = new MenuItem("GetClauses");
         MenuItem GetSections = new MenuItem("GetSections");
         MenuItem NodeFromSelection = new MenuItem("Selection->ChildNode");
-         menuFile.getItems().addAll(LoadSavedNode,SaveNode);
-         menuWorkspace.getItems().addAll(
+         menuFile.getItems().addAll(SaveWork,
+            LoadWork,LoadSavedNode,SaveNode,
+            OutputWork,
+            PrintBoxes);
+         /*menuWorkspace.getItems().addAll(
             SaveWork,
             LoadWork,
             OutputWork,
             PrintBoxes);
+            */
         menuOutput.getItems().addAll(
             SaveOutput);
         menuText.getItems().addAll(
@@ -691,7 +788,7 @@ private MenuBar makeMenuBar() {
         //DATA
         MenuItem setFollower = new MenuItem("setFollower");
         MenuItem unsetFollower = new MenuItem("unsetFollower");
-        menuData.getItems().addAll(setFollower,unsetFollower);
+        //MenuLaw.getItems().addAll(setFollower,unsetFollower);
         //Method will save the current open node with focus.
 
         SaveNode.setOnAction(new EventHandler<ActionEvent>() {
@@ -773,7 +870,7 @@ private MenuBar makeMenuBar() {
         unsetFollower.setOnAction(handleUnsetFollower);
 
         /* --- MENU BAR --- */
-        menuBar.getMenus().addAll(menuWorlds, menuViews, menuFile, menuNewNode,menuWorkspace, menuData, menuText, menuOutput);     
+        menuBar.getMenus().addAll(menuWorlds, menuFile, menuNewElement, menuNotes,MenuLaw, menuText, menuOutput,menuViews);     
         
         //create an event filter so we can process mouse clicks on menubar (and ignore them!)
         menuBar.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
@@ -1038,10 +1135,10 @@ public void deleteSpriteGUI(SpriteBox mySprite) {
         addMenuWorldsItem(menuitem2,myNodeConfig.getCommercialNodes());
         MenuItem menuitem3 = new MenuItem("MerchantWorld");
         addMenuWorldsItem(menuitem3,myNodeConfig.getMerchantNodes());
-
-        //Temporary: demonstration nodes at start
-        Stage_WS.setCurrentFocus(Stage_WS);
-        OpenNodeStage = Stage_WS.getCurrentFocus();
+        //Menu menuNotes Items
+        //setMenuNotes();
+        addMenuForNew(getMenuNotes(),myNodeConfig.getNotesNodes());
+        addMenuForNew(getMenuLaw(),myNodeConfig.getLawNodes());
 
         //setup main toolbar for buttons
         Stage_Toolbar = new StageManager(Stage_WS,"Tools");
@@ -1050,6 +1147,12 @@ public void deleteSpriteGUI(SpriteBox mySprite) {
         /* Setup a general text Output Stage (for workspace?) */
         Stage_Output = new StageManager(Stage_WS,"Output");
         Stage_Output.setupTextOutputWindow();
+
+        //Temporary: demonstration nodes at start
+        Stage_WS.setCurrentFocus(Stage_WS);
+        OpenNodeStage = Stage_WS.getCurrentFocus();
+
+        
         
         //otherwise load them in with project to obtain current docnum etc.
 
