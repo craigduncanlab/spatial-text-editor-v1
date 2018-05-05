@@ -485,7 +485,7 @@ private void addMenuViewsItems(ArrayList<NodeCategory> myCatList) {
         Menu myMenu = getMenuViews();
         System.out.println("View items menu");
         if (myMenu.getItems().isEmpty()) {
-            System.out.println("Menu is currently null");
+            System.out.println("Menu is currently empty");
         }
         else {
             System.out.println("Menu is not empty but cleaning...");
@@ -533,7 +533,7 @@ private void addNewObjectItems (ArrayList<NodeCategory> myCatList) {
         Menu myMenu = getMenuNewNode();
         System.out.println("New items menu");
         if (myMenu.getItems().isEmpty()) {
-            System.out.println("Menu is currently null");
+            System.out.println("Menu is currently empty");
         }
         else {
             System.out.println("Menu is not empty but cleaning...");
@@ -1018,13 +1018,12 @@ public void deleteSpriteGUI(SpriteBox mySprite) {
         MenuBar myMenu = makeMenuBar();
         Stage_WS = new StageManager("Workspace", NC_WS, myMenu, PressBoxEventHandler, DragBoxEventHandler);  //sets up GUI for view
         OpenNodeStage = Stage_WS.getCurrentFocus();
-        //addMenuWorldsItems();
-        //addMenuViewsItems(getMenuViews()); //need to do this after Stage_WS defined as it is parent for toggle views.
-        //addNewObjectItems(getMenuNewNode()); //do this after View menu
+        //nodes and menus
+        NodeConfig myNodeConfig = new NodeConfig();
         MenuItem menuitem1 = new MenuItem("LawWorld");
-        addMenuWorldsItem(menuitem1,makeLawWorldCategories());
+        addMenuWorldsItem(menuitem1,myNodeConfig.getLawNodes());
         MenuItem menuitem2 = new MenuItem("MerchantWorld");
-        addMenuWorldsItem(menuitem2,makeMerchantWorldCategories());
+        addMenuWorldsItem(menuitem2,myNodeConfig.getMerchantNodes());
 
         //Temporary: demonstration nodes at start
         Stage_WS.setCurrentFocus(Stage_WS);
@@ -1054,50 +1053,7 @@ public void deleteSpriteGUI(SpriteBox mySprite) {
 
     */
 
-    /* The following code initialises the NodeCategories. 
-    These can be saved with world view (so doc count is maintained).
-    It may be possible to add these in a child node to Worldview at some point,
-    swapping the main node class (ClauseContainer) for this.
-    */
-    private ArrayList<NodeCategory> makeLawWorldCategories() {
-
-    NodeCategory NC_World = new NodeCategory("World",0,"darkgrey");
-    NodeCategory NC_notes = new NodeCategory("notes",0,"khaki");
-    NodeCategory NC_footnotes = new NodeCategory ("footnotes",0,"khaki");
-    NodeCategory NC_clause = new NodeCategory ("clause",0,"blue");
-    NodeCategory NC_def = new NodeCategory ("definition",0,"green");
-    NodeCategory NC_Memory = new NodeCategory ("memory",0,"lightblue");
-    NodeCategory NC_testimony = new NodeCategory ("testimony",0,"lightblue");
-    NodeCategory NC_witness = new NodeCategory ("witness",0,"lightblue");
-    NodeCategory NC_fact = new NodeCategory ("fact",0,"lightblue");
-    NodeCategory NC_event = new NodeCategory ("event",0,"lightblue");
-    //NodeCategory NC_library = new NodeCategory ("library",1,"lemon");
-    NodeCategory NC_document = new NodeCategory ("document",1,"darkblue");
-    NodeCategory NC_law = new NodeCategory ("law",0,"darkgold");
-    //NodeCategory NC_collection = new NodeCategory ("collection",2,"orange");
-    //NodeCategory NC_project = new NodeCategory ("project",3,"white");
-
-    System.out.println ("Made new category list");
-    return new ArrayList<NodeCategory>(Arrays.asList(NC_World, NC_notes,NC_footnotes,NC_clause,NC_def,NC_law,NC_fact,NC_Memory,NC_event,NC_witness,NC_testimony));
     
-    //NewChildNodeForOpenNode(NC_library);
-    //NewChildNodeForOpenNode(NC_project);
-
-    }
-
-    private ArrayList<NodeCategory> makeMerchantWorldCategories() {
-
-        NodeCategory NC_World2 = new NodeCategory("World",0,"darkgrey");
-        NodeCategory NC_Alien = new NodeCategory("Alien",0,"khaki");
-        NodeCategory NC_fn2 = new NodeCategory ("footnotes",0,"khaki");
-        NodeCategory NC_clause2 = new NodeCategory ("clause",0,"blue");
-        NodeCategory NC_fact2 = new NodeCategory ("fact",0,"lightblue");
-        NodeCategory NC_event2 = new NodeCategory ("event",0,"lightblue");
-        
-        //to do: rename
-    return new ArrayList<NodeCategory>(Arrays.asList(NC_World2, NC_Alien,NC_fn2,NC_clause2,NC_fact2,NC_event2));
-    
-    }
 
     /* Event handler added to box with clause content */
 
