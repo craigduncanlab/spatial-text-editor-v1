@@ -569,11 +569,19 @@ private void addNewObjectItems (ArrayList<NodeCategory> myCatList) {
         }
 }
 
+//standard method to add view/new node items under these menus based on node categories in this worldview
+
+private void populateMenus(ArrayList<NodeCategory> nodelist) {
+    addMenuViewsItems(nodelist); //need to do this after Stage_WS defined as it is parent for toggle views.
+    addNewObjectItems(nodelist);
+}
+
 private void configWorldMenuItem(MenuItem myMenuItem, ArrayList<NodeCategory> nodelist) {
      myMenuItem.setOnAction(new EventHandler<ActionEvent>() {
      public void handle(ActionEvent t) {
-                addMenuViewsItems(nodelist); //need to do this after Stage_WS defined as it is parent for toggle views.
-                addNewObjectItems(nodelist);
+                populateMenus(nodelist);
+                Stage_WS.setCurrentFocus(Stage_WS);
+                OpenNodeStage = Stage_WS.getCurrentFocus();
             }
         });
 }
@@ -1017,9 +1025,13 @@ public void deleteSpriteGUI(SpriteBox mySprite) {
         //
         MenuBar myMenu = makeMenuBar();
         Stage_WS = new StageManager("Workspace", NC_WS, myMenu, PressBoxEventHandler, DragBoxEventHandler);  //sets up GUI for view
+        Stage_WS.setCurrentFocus(Stage_WS);
         OpenNodeStage = Stage_WS.getCurrentFocus();
         //nodes and menus
         NodeConfig myNodeConfig = new NodeConfig();
+        MenuItem defaultWM = new MenuItem("Default");
+        populateMenus(myNodeConfig.getDefaultNodes());
+        addMenuWorldsItem(defaultWM,myNodeConfig.getDefaultNodes());
         MenuItem menuitem1 = new MenuItem("LawWorld");
         addMenuWorldsItem(menuitem1,myNodeConfig.getLawNodes());
         MenuItem menuitem2 = new MenuItem("MerchantWorld");
@@ -1027,7 +1039,8 @@ public void deleteSpriteGUI(SpriteBox mySprite) {
 
         //Temporary: demonstration nodes at start
         Stage_WS.setCurrentFocus(Stage_WS);
-        
+        OpenNodeStage = Stage_WS.getCurrentFocus();
+
         //setup main toolbar for buttons
         Stage_Toolbar = new StageManager(Stage_WS,"Tools");
         setupToolbarPanel(Stage_Toolbar);

@@ -34,6 +34,11 @@ private void initialiseNodeCategories() {
         
     }
 
+public ArrayList<NodeCategory> getDefaultNodes() {
+
+return new ArrayList<NodeCategory>(Arrays.asList(NC_World));
+}
+
 /* The following code initialises the NodeCategories. 
 These can be saved with world view (so doc count is maintained).
 It may be possible to add these in a child node to Worldview at some point,
@@ -42,14 +47,14 @@ swapping the main node class (ClauseContainer) for this.
 
 public ArrayList<NodeCategory> getLawNodes() {
 
-return new ArrayList<NodeCategory>(Arrays.asList(NC_World, NC_notes,NC_footnotes,NC_clause,NC_def,NC_law,NC_fact,NC_Memory,NC_event,NC_witness,NC_testimony));
+return new ArrayList<NodeCategory>(Arrays.asList(NC_notes,NC_footnotes,NC_clause,NC_def,NC_law,NC_fact,NC_Memory,NC_event,NC_witness,NC_testimony));
 
 }
 
 public ArrayList<NodeCategory> getMerchantNodes() {
 
  
-return new ArrayList<NodeCategory>(Arrays.asList(NC_World, NC_Alien,NC_footnotes,NC_clause,NC_fact,NC_event));
+return new ArrayList<NodeCategory>(Arrays.asList(NC_Alien,NC_footnotes,NC_clause,NC_fact,NC_event));
 
 }
 
