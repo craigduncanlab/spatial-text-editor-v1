@@ -1032,10 +1032,12 @@ public void deleteSpriteGUI(SpriteBox mySprite) {
         MenuItem defaultWM = new MenuItem("Default");
         populateMenus(myNodeConfig.getDefaultNodes());
         addMenuWorldsItem(defaultWM,myNodeConfig.getDefaultNodes());
-        MenuItem menuitem1 = new MenuItem("LawWorld");
-        addMenuWorldsItem(menuitem1,myNodeConfig.getLawNodes());
-        MenuItem menuitem2 = new MenuItem("MerchantWorld");
-        addMenuWorldsItem(menuitem2,myNodeConfig.getMerchantNodes());
+        MenuItem menuitem1 = new MenuItem("Litigation");
+        addMenuWorldsItem(menuitem1,myNodeConfig.getLitNodes());
+        MenuItem menuitem2 = new MenuItem("Commercial");
+        addMenuWorldsItem(menuitem2,myNodeConfig.getCommercialNodes());
+        MenuItem menuitem3 = new MenuItem("MerchantWorld");
+        addMenuWorldsItem(menuitem3,myNodeConfig.getMerchantNodes());
 
         //Temporary: demonstration nodes at start
         Stage_WS.setCurrentFocus(Stage_WS);

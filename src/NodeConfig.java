@@ -12,7 +12,7 @@ public class NodeConfig extends Collection implements java.io.Serializable {
 //mark this class this to allow for changes to variables in class (refactoring)
 private static final long serialVersionUID = -647978698708496L;
 
-//each object contains default list
+//full list of config options 
 NodeCategory NC_World = new NodeCategory("World",0,"darkgrey");
 NodeCategory NC_notes = new NodeCategory("notes",0,"khaki");
 NodeCategory NC_footnotes = new NodeCategory ("footnotes",0,"khaki");
@@ -40,7 +40,7 @@ return new ArrayList<NodeCategory>(Arrays.asList(NC_World));
 }
 
 /* The following code initialises the NodeCategories. 
-These can be saved with world view (so doc count is maintained).
+These should be saved with world view (so doc count is maintained).
 It may be possible to add these in a child node to Worldview at some point,
 swapping the main node class (ClauseContainer) for this.
 */
@@ -48,6 +48,18 @@ swapping the main node class (ClauseContainer) for this.
 public ArrayList<NodeCategory> getLawNodes() {
 
 return new ArrayList<NodeCategory>(Arrays.asList(NC_notes,NC_footnotes,NC_clause,NC_def,NC_law,NC_fact,NC_Memory,NC_event,NC_witness,NC_testimony));
+
+}
+
+public ArrayList<NodeCategory> getLitNodes() {
+
+return new ArrayList<NodeCategory>(Arrays.asList(NC_notes,NC_footnotes,NC_law,NC_fact,NC_Memory,NC_event,NC_witness,NC_testimony));
+
+}
+
+public ArrayList<NodeCategory> getCommercialNodes() {
+
+return new ArrayList<NodeCategory>(Arrays.asList(NC_document,NC_clause,NC_def,NC_notes,NC_footnotes,NC_law));
 
 }
 
