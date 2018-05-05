@@ -575,6 +575,7 @@ public void setWSNode(ClauseContainer myNode) {
     setFilename(myFileLabel+".ser"); //default
     Group newGroup = new Group(); //new GUI node to show only new content.
     swapSpriteGroup(newGroup); //store the new GUI node for later use
+    //resetSpriteorigin(); //not needed as in displaychildnodeboxes
     displayChildNodeBoxes(); //update WS view with new child boxes only
 }
 
@@ -614,6 +615,7 @@ Refreshes stage from display node, but doesn't show if invisible*/
  private void displayChildNodeBoxes() {
     
         ClauseContainer parentNode = getDisplayNode();
+        resetSpriteOrigin();//to ensure they are at top
         //SpriteBox lastBox = new SpriteBox();
         ArrayList<ClauseContainer> childNodes = parentNode.getChildNodes();
         Iterator<ClauseContainer> myiterator = childNodes.iterator();
@@ -1188,6 +1190,7 @@ private void addSpriteToStage(SpriteBox mySprite) {
     getSpriteGroup().getChildren().add(mySprite); //GUI tree 
     System.out.println("Current sprite group is "+getSpriteGroup().toString()); 
     positionSpriteOnStage(mySprite);
+    advanceSpritePosition();
     setFocusBox(mySprite); //local information
     mySprite.setStageLocation(StageManager.this); //give Sprite the object for use later.
 }
@@ -1302,7 +1305,7 @@ public void positionSpriteOnStage(SpriteBox mySprite) {
         if (mySprite!=null) {  //might be no current sprite if not dbl clicked
                 mySprite.endAlert();
         }
-        advanceSpritePosition();
+        //advanceSpritePosition();
         mySprite.setTranslateX(spriteX);
         mySprite.setTranslateY(spriteY); 
         mySprite.setStageLocation(StageManager.this); //needed if stage is not o/w tracked

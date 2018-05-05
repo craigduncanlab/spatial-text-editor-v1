@@ -9,10 +9,8 @@ private static final long serialVersionUID = -64787598237212345L;
 int nodelevel = 0;
 String nodecategory = "";
 String colour = "";
-ClauseContainer nodeCatNode;  //nb prevents serialisation?
-int doccount=0;
-//put document counter inside each node category object
-
+ClauseContainer nodeCatNode;  
+int doccount; 
 
 public NodeCategory() {
 	
@@ -32,13 +30,6 @@ public int getLevel() {
 	return this.nodelevel;
 }
 
-public void setCategory(String myCat) {
-	this.nodecategory = myCat;
-}
-
-public String getCategory() {
-	return this.nodecategory;
-}
 
 //
 public void setCategoryNode(ClauseContainer topNode) {
@@ -47,6 +38,17 @@ public void setCategoryNode(ClauseContainer topNode) {
 
 public ClauseContainer getCategoryNode() {
 	return this.nodeCatNode;
+}
+
+//These are all able to be added to the general node function
+//An array of the node categories can be shared by all nodes.
+
+public void setCategory(String myCat) {
+	this.nodecategory = myCat;
+}
+
+public String getCategory() {
+	return this.nodecategory;
 }
 
 public void setColour(String col) {
@@ -61,8 +63,9 @@ public int getDocCount() {
     return this.doccount;
 }
 
-public void resetDocCount() {
-    this.doccount=0;
+//not used yet
+private void resetDocCount() {
+    doccount=0;
 }
 
 public int advanceDocCount() {

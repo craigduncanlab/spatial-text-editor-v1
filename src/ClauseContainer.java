@@ -94,6 +94,9 @@ ClauseContainer dataLinkParent; //the node to 'follow' for follow mode.
 ClauseContainer dataDisplayNode; //the data this Node will display 
 ArrayList<ClauseContainer> myChildNodes = new ArrayList<ClauseContainer>();
 
+//NODE CATEGORIES (FOR WORLD NODES) TO DO: Turn into a ClauseContainer array
+ArrayList<NodeCategory> nodeCatList = new ArrayList<NodeCategory>();
+
 //This node's data and level in tree:
 Clause dataClause = new Clause(); 
 

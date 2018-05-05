@@ -145,28 +145,9 @@ public class Main extends Application {
     //Menu to hold view toggle functions, but configure as needed.
     Menu theViewMenu;
     Menu theNewNodeMenu;
+    Menu theWorldsMenu;
 
-    //TO DO:
-    //Enclose these inside Node class (clause container)
-    
-    NodeCategory NC_World = new NodeCategory("World",0,"darkgrey");
-    NodeCategory NC_notes = new NodeCategory("notes",0,"khaki");
-    NodeCategory NC_footnotes = new NodeCategory ("footnotes",0,"khaki");
-    NodeCategory NC_clause = new NodeCategory ("clause",0,"blue");
-    NodeCategory NC_def = new NodeCategory ("definition",0,"green");
-    NodeCategory NC_Memory = new NodeCategory ("memory",0,"lightblue");
-    NodeCategory NC_testimony = new NodeCategory ("testimony",0,"lightblue");
-    NodeCategory NC_witness = new NodeCategory ("witness",0,"lightblue");
-    NodeCategory NC_fact = new NodeCategory ("fact",0,"lightblue");
-    NodeCategory NC_event = new NodeCategory ("event",0,"lightblue");
-    NodeCategory NC_library = new NodeCategory ("library",1,"lemon");
-    NodeCategory NC_document = new NodeCategory ("document",1,"darkblue");
-    NodeCategory NC_law = new NodeCategory ("law",0,"darkgold");
-    NodeCategory NC_collection = new NodeCategory ("collection",2,"orange");
-    NodeCategory NC_project = new NodeCategory ("project",3,"white");
-    NodeCategory NC_WS = new NodeCategory ("workspace",99,"white");
-    
-    ArrayList<NodeCategory> nodeCatList = new ArrayList<NodeCategory>(Arrays.asList(NC_World, NC_notes,NC_footnotes,NC_clause,NC_def,NC_law,NC_fact,NC_Memory,NC_event,NC_witness,NC_testimony));
+    ArrayList<NodeCategory> nodeCatList;
 
     //To hold Stage with open node that is current
     StageManager OpenNodeStage;  
@@ -487,11 +468,37 @@ As this will toggle views to stages, and each stage has a parent Stage_WS,
 Stage_WS should be defined before this call (i.e. not null)
 The new StageManager (viewer/app) will create a new display node (data) for this category
 at time of creating viewer.
+
+//.getItems() method of Menu returns an ObservableList, which has useful add, remove, clear, isEmpty methods
 */
 
-private void addMenuViewsItems(Menu myMenu) {
+private void addMenuViewsItems(ArrayList<NodeCategory> myCatList) {
 
-         Iterator<NodeCategory> myIterator = nodeCatList.iterator(); //alternatively use Java method to see if in Array?
+        if (myCatList==null) {
+            System.out.println("Error: 'View' menu not populated");
+            return;
+        }
+        else {
+            System.out.println("Categories to add to view:"+myCatList.toString());
+        }
+
+        Menu myMenu = getMenuViews();
+        System.out.println("View items menu");
+        if (myMenu.getItems().isEmpty()) {
+            System.out.println("Menu is currently null");
+        }
+        else {
+            System.out.println("Menu is not empty but cleaning...");
+            myMenu.getItems().clear();
+        }
+        if (myMenu.getItems().isEmpty()) {
+             System.out.println("Menu cleaning successful");
+        }
+        else {
+            System.out.println("Views Menu cleaning unsuccessful");
+        }
+        
+         Iterator<NodeCategory> myIterator = myCatList.iterator(); //alternatively use Java method to see if in Array?
             while (myIterator.hasNext()) {
             NodeCategory myCat = myIterator.next();
             //System.out.println(myCat.getCategory());
@@ -514,8 +521,29 @@ This will utilises the stages already set up to put a new item in the Open stage
 (although what we really want to do is put new item in the Category Stage: so use this for place)
 The "NEW" aspect uses Stage_WS therefore be called by or after the addMenuViewsItems method.
 */
-private void addNewObjectItems (Menu myMenu) {
-        Iterator<NodeCategory> myIterator = nodeCatList.iterator(); //alternatively use Java method to see if in Array?
+private void addNewObjectItems (ArrayList<NodeCategory> myCatList) {
+        if (myCatList==null) {
+            System.out.println("Error: 'New' menu not populated");
+            return;
+        }
+        else {
+            System.out.println("Categories to add to new:"+myCatList.toString());
+        }
+
+        Menu myMenu = getMenuNewNode();
+        System.out.println("New items menu");
+        if (myMenu.getItems().isEmpty()) {
+            System.out.println("Menu is currently null");
+        }
+        else {
+            System.out.println("Menu is not empty but cleaning...");
+            myMenu.getItems().clear();
+        }
+        if (myMenu.getItems().isEmpty()) {
+             System.out.println("Menu cleaning successful");
+        }
+
+        Iterator<NodeCategory> myIterator = myCatList.iterator(); //alternatively use Java method to see if in Array?
             while (myIterator.hasNext()) {
             NodeCategory myCat = myIterator.next();
             System.out.println(myCat.getCategory());
@@ -538,28 +566,50 @@ private void addNewObjectItems (Menu myMenu) {
                     System.out.println("Context Node: "+OpenNodeStage.getDisplayNode().getChildNodes().toString());
             }
         });
-
         }
 }
+
+private void configWorldMenuItem(MenuItem myMenuItem, ArrayList<NodeCategory> nodelist) {
+     myMenuItem.setOnAction(new EventHandler<ActionEvent>() {
+     public void handle(ActionEvent t) {
+                addMenuViewsItems(nodelist); //need to do this after Stage_WS defined as it is parent for toggle views.
+                addNewObjectItems(nodelist);
+            }
+        });
+}
+
 /*
-menuNewNode.getItems().addAll(NewDef,NewClause,NewNote,NewFootnote,NewWitness,NewTestimony,NewEvent,NewFact,NewLaw,NewDoc,NewLibrary,NewCollection,NewProject);
-        
+Menu and Menu items have methods available to Observable List:
+https://docs.oracle.com/javase/8/javafx/api/javafx/collections/ObservableList.html
 */
+
+private void addMenuWorldsItem(MenuItem myMenuItem, ArrayList<NodeCategory> nodelist) {
+    //menuWorlds.getItems().addAll(menuitem1,menuitem2);
+    getMenuWorlds().getItems().add(myMenuItem);
+    configWorldMenuItem(myMenuItem,nodelist);
+}
 
 private Menu getMenuViews() {
     return this.theViewMenu;
 }
 
+private void setMenuWorlds() {
+    this.theWorldsMenu = new Menu("Worlds");
+}
 private void setMenuViews() {
     this.theViewMenu = new Menu("Views");
 }
 
-private Menu getMenuNewNode() {
-    return this.theNewNodeMenu;
-}
-
 private void setMenuNewNode() {
     this.theNewNodeMenu = new Menu("New");
+}
+
+private Menu getMenuWorlds() {
+    return this.theWorldsMenu;
+}
+
+private Menu getMenuNewNode() {
+    return this.theNewNodeMenu;
 }
 
 
@@ -573,12 +623,16 @@ private MenuBar makeMenuBar() {
         
         //Menu menuNewNode = new Menu("New");
         Menu menuWorkspace = new Menu("Workspace");
-        Menu menuDocument = new Menu("Document");
-        Menu menuCollection = new Menu("Collection");
+        //
+        setMenuWorlds();
+        Menu menuWorlds = getMenuWorlds();
+        //
+        //Menu menuDocument = new Menu("Document");
+        //Menu menuCollection = new Menu("Collection");
         Menu menuFile = new Menu("File/Node");
         Menu menuData = new Menu("Data");
-        Menu menuProjectLib = new Menu ("ProjectLib");
-        Menu menuLibrary = new Menu("Library");
+        //Menu menuProjectLib = new Menu ("ProjectLib");
+        //Menu menuLibrary = new Menu("Library");
         Menu menuOutput = new Menu("Output");
         Menu menuText = new Menu("Text");
         
@@ -587,6 +641,9 @@ private MenuBar makeMenuBar() {
         Menu menuViews = getMenuViews();
         setMenuNewNode();
         Menu menuNewNode = getMenuNewNode();
+        
+       
+        //Menu menuWorlds = getMenuWorlds();
         //
         //TO DO: Place Menu with any Level 1 Category Nodes
         //
@@ -708,7 +765,7 @@ private MenuBar makeMenuBar() {
         unsetFollower.setOnAction(handleUnsetFollower);
 
         /* --- MENU BAR --- */
-        menuBar.getMenus().addAll(menuViews, menuFile, menuNewNode,menuWorkspace, menuData, menuText, menuOutput);     
+        menuBar.getMenus().addAll(menuWorlds, menuViews, menuFile, menuNewNode,menuWorkspace, menuData, menuText, menuOutput);     
         
         //create an event filter so we can process mouse clicks on menubar (and ignore them!)
         menuBar.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
@@ -946,7 +1003,7 @@ public void deleteSpriteGUI(SpriteBox mySprite) {
        
         /* This only affects the primary stage set by the application */
         primaryStage.setTitle("Powerdock App");
-        primaryStage.show();
+        primaryStage.hide();
         //primaryStage.close(); //why?
         
         ParentStageSM = new StageManager();
@@ -954,16 +1011,23 @@ public void deleteSpriteGUI(SpriteBox mySprite) {
         ParentStageSM.setStage(ParentStage);
         ParentStageSM.setTitle("Powerdock");
 
+        //general application nodes
+        NodeCategory NC_WS = new NodeCategory ("workspace",99,"white");
+        //nodeCatList = makeLawWorldCategories(); <---optional, to restore NodeCats
         //
         MenuBar myMenu = makeMenuBar();
         Stage_WS = new StageManager("Workspace", NC_WS, myMenu, PressBoxEventHandler, DragBoxEventHandler);  //sets up GUI for view
-        addMenuViewsItems(getMenuViews()); //need to do this after Stage_WS defined as it is parent for toggle views.
-        addNewObjectItems(getMenuNewNode()); //do this after View menu
-       
+        OpenNodeStage = Stage_WS.getCurrentFocus();
+        //addMenuWorldsItems();
+        //addMenuViewsItems(getMenuViews()); //need to do this after Stage_WS defined as it is parent for toggle views.
+        //addNewObjectItems(getMenuNewNode()); //do this after View menu
+        MenuItem menuitem1 = new MenuItem("LawWorld");
+        addMenuWorldsItem(menuitem1,makeLawWorldCategories());
+        MenuItem menuitem2 = new MenuItem("MerchantWorld");
+        addMenuWorldsItem(menuitem2,makeMerchantWorldCategories());
+
         //Temporary: demonstration nodes at start
         Stage_WS.setCurrentFocus(Stage_WS);
-        NewChildNodeForOpenNode(NC_library);
-        NewChildNodeForOpenNode(NC_project);
         
         //setup main toolbar for buttons
         Stage_Toolbar = new StageManager(Stage_WS,"Tools");
@@ -973,7 +1037,66 @@ public void deleteSpriteGUI(SpriteBox mySprite) {
         Stage_Output = new StageManager(Stage_WS,"Output");
         Stage_Output.setupTextOutputWindow();
         
+        //otherwise load them in with project to obtain current docnum etc.
+
         //TO DO: Setup another 'Stage' for file input, creation of toolbars etc.
+    }
+
+    /* private method to initialise Node categories if needed 
+    nb  the view/new object menus need to be conditional on there being node categories loaded in.
+    4.5.18
+    If the 'Workspace loads in the categories'  e.g. as part of a worldview, then
+    specific worlds and projects can own the categories, instead of the application.
+    Alternatively, have main project instatiate Worlds that can be chosen as a node from main menu
+    Then when this is 'selected', it comes with its own categories of 'objects' to populate that world.
+    (this will then dynamically change the Views/New menus)
+    This will require a 'worldlist' to populate the menus.
+
+    */
+
+    /* The following code initialises the NodeCategories. 
+    These can be saved with world view (so doc count is maintained).
+    It may be possible to add these in a child node to Worldview at some point,
+    swapping the main node class (ClauseContainer) for this.
+    */
+    private ArrayList<NodeCategory> makeLawWorldCategories() {
+
+    NodeCategory NC_World = new NodeCategory("World",0,"darkgrey");
+    NodeCategory NC_notes = new NodeCategory("notes",0,"khaki");
+    NodeCategory NC_footnotes = new NodeCategory ("footnotes",0,"khaki");
+    NodeCategory NC_clause = new NodeCategory ("clause",0,"blue");
+    NodeCategory NC_def = new NodeCategory ("definition",0,"green");
+    NodeCategory NC_Memory = new NodeCategory ("memory",0,"lightblue");
+    NodeCategory NC_testimony = new NodeCategory ("testimony",0,"lightblue");
+    NodeCategory NC_witness = new NodeCategory ("witness",0,"lightblue");
+    NodeCategory NC_fact = new NodeCategory ("fact",0,"lightblue");
+    NodeCategory NC_event = new NodeCategory ("event",0,"lightblue");
+    //NodeCategory NC_library = new NodeCategory ("library",1,"lemon");
+    NodeCategory NC_document = new NodeCategory ("document",1,"darkblue");
+    NodeCategory NC_law = new NodeCategory ("law",0,"darkgold");
+    //NodeCategory NC_collection = new NodeCategory ("collection",2,"orange");
+    //NodeCategory NC_project = new NodeCategory ("project",3,"white");
+
+    System.out.println ("Made new category list");
+    return new ArrayList<NodeCategory>(Arrays.asList(NC_World, NC_notes,NC_footnotes,NC_clause,NC_def,NC_law,NC_fact,NC_Memory,NC_event,NC_witness,NC_testimony));
+    
+    //NewChildNodeForOpenNode(NC_library);
+    //NewChildNodeForOpenNode(NC_project);
+
+    }
+
+    private ArrayList<NodeCategory> makeMerchantWorldCategories() {
+
+        NodeCategory NC_World2 = new NodeCategory("World",0,"darkgrey");
+        NodeCategory NC_Alien = new NodeCategory("Alien",0,"khaki");
+        NodeCategory NC_fn2 = new NodeCategory ("footnotes",0,"khaki");
+        NodeCategory NC_clause2 = new NodeCategory ("clause",0,"blue");
+        NodeCategory NC_fact2 = new NodeCategory ("fact",0,"lightblue");
+        NodeCategory NC_event2 = new NodeCategory ("event",0,"lightblue");
+        
+        //to do: rename
+    return new ArrayList<NodeCategory>(Arrays.asList(NC_World2, NC_Alien,NC_fn2,NC_clause2,NC_fact2,NC_event2));
+    
     }
 
     /* Event handler added to box with clause content */
