@@ -157,7 +157,7 @@ public ClauseContainer(String category) {
 The label is used to set document name and heading 
 In turn, document name will be used for the viewer title when Node is opened. */
 
-public ClauseContainer(NodeCategory nodecat, String nodetext, String label) {
+public ClauseContainer(NodeCategory nodecat, ClauseContainer parentNode, String nodetext, String label) {
 	setNC(nodecat);
 	setNotes(nodetext);
 	//setDocName(nodecat.getCategory()); //default
@@ -170,13 +170,16 @@ public ClauseContainer(NodeCategory nodecat, String nodetext, String label) {
     setDocName(label);
     setHeading(label);
     setShortname(label);
-    dataLinkParent= new ClauseContainer();
+    dataLinkParent= new ClauseContainer(); //detached from main tree?
+    setParentNode(parentNode);
 }
 
 //constructor 2 - a default container based on category 
+//parent node is updated for this node.
+//nb if a child of the master data node (visually represented as Stage_WS)
 //checks current docnum for this stage and advances it.
 //TO DO: advance docnumber based on category.
-public ClauseContainer (NodeCategory nodecat) {
+public ClauseContainer (NodeCategory nodecat, ClauseContainer parentNode) {
 	int docNum = nodecat.advanceDocCount();
     setDocName(nodecat.getCategory()+docNum);
     setNC(nodecat);
@@ -185,7 +188,24 @@ public ClauseContainer (NodeCategory nodecat) {
     setOutputText("output");
     setType(nodecat.getCategory());
     setAuthorName("Craig");
-    dataLinkParent= new ClauseContainer();
+    dataLinkParent = new ClauseContainer();
+    setParentNode(parentNode);
+}
+
+//constructor 3 - constructor for word tool node creation
+//parent node not set here (it's unknown) - will be set when added to display
+
+public ClauseContainer (NodeCategory nodecat) {
+	int docNum = nodecat.advanceDocCount();
+    setDocName(nodecat.getCategory()+docNum);
+    setNC(nodecat);
+    setHeading("default");
+    setShortname(nodecat.getCategory()+docNum);
+    setOutputText("output");
+    setType(nodecat.getCategory());
+    setAuthorName("Craig");
+    dataLinkParent = new ClauseContainer();
+    //setParentNode(parentNode);
 }
 
 //META
@@ -268,6 +288,21 @@ public Boolean isFollower() {
 
 
 //---PARENT (NAVIGATION) NODE DATA ---
+
+public void addParentNode(ClauseContainer parentNode) {
+	if (parentNode==null) {
+		System.out.println("Error: problem with parentNode");
+	}
+	else {
+		this.myParentNode = parentNode;
+		myParentNode.setChildNode(ClauseContainer.this);
+	}
+}
+
+public void setChildNode(ClauseContainer childNode) {
+	this.myChildNodes.add(childNode);
+}
+
 public void setParentNode(ClauseContainer node) {
 	this.myParentNode = node;
 }

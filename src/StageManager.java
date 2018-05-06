@@ -188,7 +188,7 @@ public StageManager(StageManager parent, String myTitle) {
 }
 
 //standard open node viewer constructor, with only category and no content passed on.  Title?
-public StageManager(StageManager parent, NodeCategory myCat, EventHandler PressBox, EventHandler DragBox) {
+public StageManager(StageManager parent, ClauseContainer myNode, EventHandler PressBox, EventHandler DragBox) {
     //view
     setJavaFXStageParent(parent);
     setPressBox(PressBox);
@@ -196,10 +196,7 @@ public StageManager(StageManager parent, NodeCategory myCat, EventHandler PressB
     setKeyPress(NodeKeyHandler); //this can be different for workspace
     
     //data: new 'parent' node based on category alone
-    setDisplayNode(new ClauseContainer(myCat,"The holding area for all nodes of this category",myCat.getCategory()));
-    //focus
-    //associate this Node Category with this parentNode TO DO: initialise in data
-    myCat.setCategoryNode(getDisplayNode());
+    setDisplayNode(myNode);
     //
     currentFocus=StageManager.this; //set focus on creation
     parent.setCurrentFocus(StageManager.this);//this duplicated previous line since class variable?
@@ -227,17 +224,18 @@ public StageManager(StageManager parent, SpriteBox myBox, EventHandler PressBox,
 //workspace constructor.  Filename details will be inherited from loaded node.
 //Passes MenuBar from main application for now
 //Passes general eventhandlers from Main (at present, also uses these for the boxes)
-public StageManager(String title, NodeCategory myCategory, MenuBar myMenu, EventHandler PressBox, EventHandler DragBox) {
+public StageManager(String title, NodeCategory myCategory, ClauseContainer baseNode, MenuBar myMenu, EventHandler PressBox, EventHandler DragBox) {
     //view
     setTitle(title);
     setMenuBar(myMenu);
     setPressBox(PressBox);
     setDragBox(DragBox);
     newWorkstageFromGroup();
-    currentFocus=StageManager.this; //set focus on creation  
+    currentFocus=StageManager.this; //set focus on creation 
+    setWSNode(baseNode); 
     //data
     //ClauseContainer WorkspaceNode = ;
-    setWSNode(new ClauseContainer(myCategory,"The workspace is base node of project.","myWorkspace")); //data
+    //setWSNode(new ClauseContainer(myCategory,"The workspace is base node of project.","myWorkspace")); //data
 }
 
 //GLOBAL view setting.  Make switch.
@@ -590,11 +588,11 @@ public ClauseContainer Node() {
 }
 
 //set the parent node for Nodes enclosed in boxes (i.e. level above)
-public void setRefParentNode(ClauseContainer myParentID) {
+private void setRefParentNode(ClauseContainer myParentID) {
     this.reference_ParentNode = myParentID;
 }
 
-public ClauseContainer getRefParentNode() {
+private ClauseContainer getRefParentNode() {
     return this.reference_ParentNode;
 }
 
@@ -1210,7 +1208,7 @@ public void selectedAsChildNode() {
     String sampleText = getSelectedInputText();
     //construct new node using available inputs (i.e. suitable constructor)
     NodeCategory NC_clause = new NodeCategory ("clause",0,"blue"); //mirror main
-    ClauseContainer myNode = new ClauseContainer(NC_clause,sampleText,sampleText.substring(0,8));
+    ClauseContainer myNode = new ClauseContainer(NC_clause,getDisplayNode(),sampleText,sampleText.substring(0,8));
     //
     newNodeAsChildNode(myNode); //data and view for node viewer
 }
@@ -1272,8 +1270,8 @@ private void newNodeForWorkspace(ClauseContainer myNode) {
 //Method to add a single child node to the open node in this view and update parent node (data)
 
 private void addChildNodeToDisplayNode(ClauseContainer myChildNode) {
-        getDisplayNode().addChildNode(myChildNode);
-        myChildNode.setParentNode(getDisplayNode());
+    getDisplayNode().addChildNode(myChildNode);
+    myChildNode.setParentNode(getDisplayNode());
 }
 
 /* Method to add node as child node of parent AND update/display all nodes */
@@ -1302,19 +1300,19 @@ public ArrayList<Object> getContentsArray() {
 
 public void positionSpriteOnStage(SpriteBox mySprite) {
         
-        if (mySprite!=null) {  //might be no current sprite if not dbl clicked
-                mySprite.endAlert();
-        }
-        //advanceSpritePosition();
-        mySprite.setTranslateX(spriteX);
-        mySprite.setTranslateY(spriteY); 
-        mySprite.setStageLocation(StageManager.this); //needed if stage is not o/w tracked
-        if (mySprite.getStageLocation()!=StageManager.this) {
-            System.out.println("Problem with adding sprite:"+mySprite.toString());
-        }
-        else {
-            System.out.println("Positioned sprite at:"+mySprite.toString()+" ("+spriteX+","+spriteY+")");
-        }
+    if (mySprite!=null) {  //might be no current sprite if not dbl clicked
+            mySprite.endAlert();
+    }
+    //advanceSpritePosition();
+    mySprite.setTranslateX(spriteX);
+    mySprite.setTranslateY(spriteY); 
+    mySprite.setStageLocation(StageManager.this); //needed if stage is not o/w tracked
+    if (mySprite.getStageLocation()!=StageManager.this) {
+        System.out.println("Problem with adding sprite:"+mySprite.toString());
+    }
+    else {
+        System.out.println("Positioned sprite at:"+mySprite.toString()+" ("+spriteX+","+spriteY+")");
+    }
 }
 
 public void resetSpriteOrigin() {

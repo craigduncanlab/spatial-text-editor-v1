@@ -156,6 +156,8 @@ public class Main extends Application {
     //To hold Stage with open node that is current
     StageManager OpenNodeStage;  
     ClauseContainer NodeTarget;
+    //to hold Master Node for project i.e. data
+    ClauseContainer masterNode = new ClauseContainer();
 
 /*The main method uses the launch method of the Application class.
 https://docs.oracle.com/javase/8/javafx/api/javafx/application/Application.html
@@ -272,7 +274,8 @@ private void LoadNodeWS(String filename, StageManager mySM) {
                 */
                 
                 //--> IF adding to workspace... mySM.newNodeForWorkspace(targetNode);
-                Stage_WS.setWSNode(targetNode);
+                masterNode.addChildNode(targetNode);
+                Stage_WS.setWSNode(masterNode);
             }
 
 /*
@@ -330,15 +333,6 @@ private void SaveNode(StageManager mySM) {
         }
     }
 
-//method to set parent node based on stage for child node on stage
-//TO DO: Rewrite so that nodes handle this internally
-private void setParentChild(StageManager targetSM, SpriteBox mySprite) {
-    ClauseContainer parentNode = targetSM.getRefParentNode();
-    ClauseContainer thisNode = mySprite.getBoxNode();
-    thisNode.setParentNode(parentNode);
-    parentNode.addChildNode(thisNode);
-}
-
 /*
 Adds a box with generic data for a category of node.
 The node is added as a child node and passed as box to open node viewer.
@@ -367,7 +361,7 @@ private void NewChildNodeForOpenNode(NodeCategory nodecat) {
 
     //ClauseContainer newNode =  new ClauseContainer(nodecat);
     System.out.println("About to open new node with Stage_WS: "+Stage_WS.toString());
-    OpenNodeStage.OpenNewNodeNow(new ClauseContainer(nodecat),Stage_WS);
+    OpenNodeStage.OpenNewNodeNow(new ClauseContainer(nodecat,masterNode),Stage_WS);
 }
 
 //place Sprite on Target stage if open otherwise workspace
@@ -507,8 +501,8 @@ private void addMenuViewsItems(ArrayList<NodeCategory> myCatList) {
             NodeCategory myCat = myIterator.next();
             //System.out.println(myCat.getCategory());
             MenuItem myNewViewItem = new MenuItem(myCat.getCategory());
-            //
-            StageManager myNewStage = new StageManager(Stage_WS, myCat, PressBoxEventHandler,DragBoxEventHandler); //to do: title.  Global?
+            ClauseContainer myCatNode = new ClauseContainer(myCat, masterNode, "The holding area for all nodes of this category",myCat.getCategory());
+            StageManager myNewStage = new StageManager(Stage_WS, myCatNode, PressBoxEventHandler,DragBoxEventHandler); //to do: title.  Global?
             myMenu.getItems().add(myNewViewItem);
             //handlers
             myNewViewItem.setOnAction(new EventHandler<ActionEvent>() {
@@ -615,14 +609,14 @@ private void addMenuForNew (Menu myMenu, ArrayList<NodeCategory> myCatList) {
             //handlers
             myNewViewItem.setOnAction(new EventHandler<ActionEvent>() {
             public void handle(ActionEvent t) {
-                //New node..
-                ClauseContainer newNode = new ClauseContainer(myCat);
                 //Add new object to the category node
                 if (myCat.getCategoryNode()==null) {
-                    System.out.println("This node has no category node");
-                    //To DO: improve on this - make it data focussed not GUI
-                    StageManager myNewStage = new StageManager(Stage_WS, myCat, PressBoxEventHandler,DragBoxEventHandler); //to do: title.  Global?
+                    System.out.println("This category item has no category node");
+                    myCat.setCategoryNode(new ClauseContainer(myCat,masterNode));
+                    //To set up a stage to display myCat invisibly when menu is created...
+                    //StageManager myNewStage = new StageManager(Stage_WS, myCat, PressBoxEventHandler,DragBoxEventHandler); //to do: title.  Global?
                 }
+                ClauseContainer newNode = new ClauseContainer(myCat,myCat.getCategoryNode());
                 myCat.getCategoryNode().addChildNode(newNode);
                 System.out.println("Category Node: "+ myCat.getCategoryNode().getChildNodes().toString());
                 //place a COPY (REF) of node in the relevant open node.  Testing...
@@ -662,7 +656,7 @@ https://docs.oracle.com/javase/8/javafx/api/javafx/collections/ObservableList.ht
 
 private void addMenuWorldsItem(MenuItem myMenuItem, ArrayList<NodeCategory> nodelist) {
     //menuWorlds.getItems().addAll(menuitem1,menuitem2);
-    getMenuWorlds().getItems().add(myMenuItem);
+    getMenuWorlds().getItems().add(myMenuItem); //add submenu
     configWorldMenuItem(myMenuItem,nodelist);
 }
 
@@ -799,8 +793,8 @@ private MenuBar makeMenuBar() {
             WordCount,GetDefText,GetDefs,GetClauses,GetSections,NodeFromSelection);
         
         //DATA
-        MenuItem setFollower = new MenuItem("setFollower");
-        MenuItem unsetFollower = new MenuItem("unsetFollower");
+        //MenuItem setFollower = new MenuItem("setFollower");
+        //MenuItem unsetFollower = new MenuItem("unsetFollower");
         //MenuLaw.getItems().addAll(setFollower,unsetFollower);
         //Method will save the current open node with focus.
 
@@ -879,8 +873,8 @@ private MenuBar makeMenuBar() {
         NodeFromSelection.setOnAction(makeSelectedChildNode);
 
         //DATA MENU
-        setFollower.setOnAction(handleSetFollower);
-        unsetFollower.setOnAction(handleUnsetFollower);
+        //setFollower.setOnAction(handleSetFollower);
+        //unsetFollower.setOnAction(handleUnsetFollower);
 
         /* --- MENU BAR --- */
         menuBar.getMenus().addAll(menuWorlds, menuFile, menuNewElement, menuEvents, menuNotes,MenuLaw, menuText, menuOutput,menuViews);     
@@ -1134,7 +1128,7 @@ public void deleteSpriteGUI(SpriteBox mySprite) {
         //nodeCatList = makeLawWorldCategories(); <---optional, to restore NodeCats
         //
         MenuBar myMenu = makeMenuBar();
-        Stage_WS = new StageManager("Workspace", NC_WS, myMenu, PressBoxEventHandler, DragBoxEventHandler);  //sets up GUI for view
+        Stage_WS = new StageManager("Workspace", NC_WS, masterNode, myMenu, PressBoxEventHandler, DragBoxEventHandler);  //sets up GUI for view
         Stage_WS.setCurrentFocus(Stage_WS);
         OpenNodeStage = Stage_WS.getCurrentFocus();
         //nodes and menus
@@ -1360,6 +1354,7 @@ public void deleteSpriteGUI(SpriteBox mySprite) {
             //TO DO: add node to openstage
             //To do: call this from inside StageManager instance
             ClauseContainer nodeSample = NodeFromDefinitionsSampleText(sample);
+            //handle data node updates through the Stage object
             OpenNodeStage.addOpenNodeChildren(nodeSample);
         }
     };

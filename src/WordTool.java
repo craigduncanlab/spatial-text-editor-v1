@@ -312,7 +312,8 @@ TO DO 15.1.18 : utilise my classes from regex search API for data mining
 
     public ClauseContainer getDefsMatches(String mydata, String myPattern) {
 
-    ClauseContainer myContainer = new ClauseContainer();   
+    NodeCategory nodecat = new NodeCategory("definition",0,"green");
+    ClauseContainer myContainer = new ClauseContainer(nodecat);   
     //---Regex
     String output="";
     //This works for quoted definitions only:
@@ -339,21 +340,26 @@ TO DO 15.1.18 : utilise my classes from regex search API for data mining
              String text = matcher.group(2);
              matchCount++; 
              //this should be new ClauseContainer now: 27.4.18
-             ClauseContainer myDef = makeNewDefinitionNode(label,text);
-             myContainer.addChildNode(myDef);
+             //ClauseContainer myDef = makeNewDefinitionNode(label,text);
+             //myContainer.addChildNode(myDef);
+             //This should create node and update parent node in tree as well
+             ClauseContainer clauseNode = new ClauseContainer(nodecat,myContainer,text,label);
+             //clauseNode.setNotes(text);
+             myContainer.addChildNode(clauseNode);
           }
         }
       //this.updateClauseFreq(myContainer,mydata);
       return myContainer;
     }
 
-  //Make new node to be a child node of node returned.
+  /*Make new node to be a child node of node returned.
 
   private ClauseContainer makeNewDefinitionNode(String label, String definition) {
     NodeCategory nodecat = new NodeCategory("definition",0,"green"); //mirror Main.java
     ClauseContainer clauseNode = new ClauseContainer(nodecat);
     return clauseNode;
   }
+  */
 
   /* Method to update the frequency count of the current set of definitions for the given String 
     This will search on the Clause "Label", but it should probably search on Heading, which is specific to the clause;
@@ -485,9 +491,8 @@ TO DO 15.1.18 : utilise my classes from regex search API for data mining
              //Clause myC  = new Clause();
              //Clause myC = new Clause(headingString,headingString,"","clause");
              NodeCategory NC_clause = new NodeCategory ("clause",0,"blue"); //mirror main
-             ClauseContainer myC = new ClauseContainer(NC_clause,"text",headingString);
+             ClauseContainer myC = new ClauseContainer(NC_clause,myContainer);
              myClauseList.add(headingString);
-             myContainer.addChildNode(myC);
           }
         }
     System.out.println("Finished Statute Heading search");

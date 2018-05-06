@@ -14,8 +14,11 @@ private static final long serialVersionUID = -647978698708496L;
 
 //full list of config options 
 NodeCategory NC_World = new NodeCategory("World",0,"darkgrey");
+//
 NodeCategory NC_notes = new NodeCategory("notes",0,"khaki");
 NodeCategory NC_footnotes = new NodeCategory ("footnotes",0,"khaki");
+NodeCategory NC_docprecis = new NodeCategory ("doc precis",0,"khaki");
+//
 NodeCategory NC_clause = new NodeCategory ("clause",0,"blue");
 NodeCategory NC_def = new NodeCategory ("definition",0,"green");
 NodeCategory NC_Memory = new NodeCategory ("memory",0,"lightblue");
@@ -24,14 +27,16 @@ NodeCategory NC_witness = new NodeCategory ("witness",0,"lightblue");
 
 //NodeCategory NC_library = new NodeCategory ("library",1,"lemon");
 NodeCategory NC_document = new NodeCategory ("document",1,"darkblue");
-NodeCategory NC_caselaw = new NodeCategory ("sourcelaw",0,"darkgold");
+NodeCategory NC_caselaw = new NodeCategory ("caselaw",0,"darkgold");
 NodeCategory NC_statutelaw = new NodeCategory ("statutelaw",0,"darkgold");
 //NodeCategory NC_collection = new NodeCategory ("collection",2,"orange");
 //NodeCategory NC_project = new NodeCategory ("project",3,"white");
 //
 NodeCategory NC_Alien = new NodeCategory("Alien",0,"khaki");
-NodeCategory NC_Portia = new NodeCategory("Portia",0,"khaki");
-NodeCategory NC_Shylock = new NodeCategory("Shylock",0,"khaki");
+
+NodeCategory NC_State = new NodeCategory("State",0,"darkblue");
+//
+NodeCategory NC_Trader = new NodeCategory("Trader",0,"white");
 //
 NodeCategory NC_fact = new NodeCategory ("fact",0,"lightblue");
 NodeCategory NC_event = new NodeCategory ("event",0,"lightblue");
@@ -76,7 +81,7 @@ return new ArrayList<NodeCategory>(Arrays.asList(NC_fact,NC_Memory,NC_event,NC_w
 
 public ArrayList<NodeCategory> getNotesNodes() {
 
-return new ArrayList<NodeCategory>(Arrays.asList(NC_notes,NC_footnotes));
+return new ArrayList<NodeCategory>(Arrays.asList(NC_notes,NC_docprecis,NC_footnotes));
 
 }
 
@@ -89,7 +94,7 @@ return new ArrayList<NodeCategory>(Arrays.asList(NC_document,NC_clause,NC_def));
 public ArrayList<NodeCategory> getMerchantNodes() {
 
  
-return new ArrayList<NodeCategory>(Arrays.asList(NC_Alien,NC_Portia,NC_Shylock));
+return new ArrayList<NodeCategory>(Arrays.asList(NC_Alien,NC_State,NC_Trader));
 
 }
 
