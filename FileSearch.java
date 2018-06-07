@@ -57,7 +57,9 @@ private int filecheck(String fileref) {
 
 
 //read dictionary file for concept descriptions
+
 private int readDictionary() {
+
 	String fileref="dictionary.txt";
 	try {
 	Scanner sc = new Scanner(new File(fileref)).useDelimiter(",|\\n"); //delimiter: stop at end of file
@@ -82,7 +84,6 @@ private int readDictionary() {
 	}
 	System.out.println("dictionary entries:"+content.length);
 	this.dictItems=content;
-	System.out.println(fileref+" content obtained");
 	} catch (Throwable t)
 	{
 		t.printStackTrace();
@@ -121,6 +122,12 @@ private int fileread(int fc, int di) {
 	return 1;
 	}
 
+/*
+search the passed String, count number of matches of searchstring
+try and avoid text inside html tags (e.g. 'font-family') by checking prefix is space or <
+return number of matches
+*/	
+
 private int checkmatch(String filename,String myFile,String searchString) {
 
 	String reportfile=searchString+".txt";
@@ -133,7 +140,7 @@ private int checkmatch(String filename,String myFile,String searchString) {
 	int newstart=file_LC.indexOf(search_LC,startidx);
 	
 	//find all occurences of searchstring in file
-        while (newstart!=-1) {
+    while (newstart!=-1) {
 		System.out.println("Match");
 		String gettext = file_LC.substring(newstart-1,newstart+search_LC.length()+1);
 		System.out.println("Search-1: "+search_LC+" context : "+gettext);
@@ -152,7 +159,10 @@ private int checkmatch(String filename,String myFile,String searchString) {
 		return matchcnt;
 	}  
 
+//write wordcounts (2D array; instance variable) to CSV file; append
+
 private void writewordcounts(int rows, int cols) {
+
 	try{ 
 	PrintStream console = System.out;
 	PrintStream outfile = new PrintStream(new FileOutputStream("searchstats.csv",true));
@@ -178,7 +188,10 @@ private void writewordcounts(int rows, int cols) {
 		}
 }
 
+//write match statistics to individual files based on keyword
+
 private void searchoutput(String searchString, String filename, int matchcnt) {
+
 	String logString=searchString+" found in :"+filename+" "+matchcnt+" times";
 	String reportfile="output/"+searchString+".txt";
 	try {
@@ -195,7 +208,9 @@ private void searchoutput(String searchString, String filename, int matchcnt) {
 		}
 }
 
-public int checkbound(int lastRecord) {
+//check the highest number of last record (1.html...n.html) in search folder
+
+private int checkbound(int lastRecord) {
 
 	int result=0;
 	while (result==0 && lastRecord>0) {
@@ -210,7 +225,10 @@ public int checkbound(int lastRecord) {
 	return lastRecord;
 }
 
-    public void startAL() {
+//START HERE
+
+public void startAL() {
+
 	readDictionary();
 	System.out.println(dictItems.toString());
 	int lastRecord=checkbound(this.maxbound);
@@ -221,11 +239,13 @@ public int checkbound(int lastRecord) {
 		dictionarySearch(lastRecord,y);
 	}	
 	// Use stored value for output stream
-        System.setOut(console);
+    System.setOut(console);
 	System.out.println(wordcounts.toString());
 	writewordcounts(lastRecord,dictItems.length);
-        System.out.println("END!");
+    System.out.println("END!");
 }
+
+//perform search for dictionary word in all search folder files, based on index in argument
 
 private void dictionarySearch(int lastRecord, int di) {
 
@@ -234,7 +254,9 @@ private void dictionarySearch(int lastRecord, int di) {
 	}
 }
 
-    public static void main(String[] args) throws Exception {
+//Argument options if starting this independently from command line
+
+public static void main(String[] args) throws Exception {
 	/*if (args.length!=2) {
 		System.out.println ("Start with: FileSearch SEARCHTERM MAXRECORDS");
 		return;
