@@ -913,8 +913,10 @@ private void makeSceneForNodeEdit() {
         ScrollPane tempPane = makeScrollGroup();
         tempPane.setPannable(true);
         tempPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.valueOf("ALWAYS"));
-        tempPane.setVmax(440);
-        tempPane.setPrefSize(300, 300);
+        tempPane.setVmax(550);
+        int winWidth=600;
+        int winHeight=500;
+        tempPane.setPrefSize(winWidth, winHeight);
         setTextAreaLayout();
         //Button for saving clauses
         Button btnUpdate = new Button();
@@ -938,19 +940,21 @@ private void makeSceneForNodeEdit() {
         }
         if (getDisplayNode().getUserView().equals("textonly")) {
             customView = new VBox(0,headingTextArea,inputTextArea,hboxButtons);
+             customView.setPrefSize(winWidth,winHeight+100);
             setTitle(getTitleText(" - Text View"));
         }
         else if(getDisplayNode().getUserView().equals("nodeboxesonly")) {
             customView = new VBox(0,shortnameTextArea,hboxButtons,tempPane);
+             customView.setPrefSize(winWidth,winHeight+200);
             setTitle(getTitleText(" - Container View"));
         }
             else {
             customView = new VBox(0,parentBoxText,shortnameTextArea,headingTextArea,inputTextArea,hboxButtons,tempPane,outputTextArea);
             setTitle(getTitleText(" - Full View"));
         }
-        //vboxAll.setPrefWidth(200);
         //
         Pane largePane = new Pane();
+        largePane.setPrefSize(winWidth, winHeight+300);
         largePane.getChildren().add(customView); 
         Scene tempScene = new Scene (largePane,nodeViewWidth,nodeViewHeight); //default width x height (px)
         //add event handler for mouse event
