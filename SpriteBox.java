@@ -62,14 +62,15 @@ public class SpriteBox extends StackPane implements java.io.Serializable {
     //Not class variables as they are not 'static'
     ColBox myBox;
     ClauseContainer BoxNode; //generic holder of content
-    Clause myClause;
-    ClauseContainer myDocument;
+    Clause myClause;  //To do: remove this data type
+    ClauseContainer myDocument; //UNUSED
     String Category=""; //will be Clause, Definition etc
     Text boxlabel = new Text ("new box");//Default label text for every SpriteBox
     String contents;  // Text for the SpriteBox outside of Clause objects.  Currently unused.
     double Xpos = 0;
     double Ypos = 0;
     Boolean isAlert=false;
+    //To do : review need for location variables
     Boolean OnStage=false;
     Boolean InProject=false;
     Boolean InProjectLib=false;
@@ -77,6 +78,7 @@ public class SpriteBox extends StackPane implements java.io.Serializable {
     Boolean InCollection=false;
     Boolean InDocumentStage=false;
     Boolean OtherStage=false;
+    //
     String defaultColour="";
     String alertColour="red";
     String followerColour="pink";
@@ -99,7 +101,10 @@ public class SpriteBox extends StackPane implements java.io.Serializable {
         this.setup();
     }
 
-    //Box constructor with Box for Existing Node (not ChildNode)?  To do.  Pass in info for event handlers needed.
+    /*
+    Box constructor with Box for Existing Node (not ChildNode)?  
+    Not used by Main or StageManager.  Redundant?
+    */
 
     public SpriteBox(ClauseContainer node, StageManager mySM) {
     
@@ -114,7 +119,10 @@ public class SpriteBox extends StackPane implements java.io.Serializable {
     setOnMouseDragged(DragBoxEventHandler);   //ditto
 }
 
-//Box constructor that takes puts a (ClauseContainer)Node inside as the Box's node.
+/*
+Box constructor that puts a (ClauseContainer)Node inside as the Box's node.
+Called from StageManager objects 
+*/
 
     public SpriteBox(EventHandler PressBox, EventHandler DragBox, ClauseContainer node) {
     
@@ -247,9 +255,10 @@ public class SpriteBox extends StackPane implements java.io.Serializable {
         }
 }
 
-    /*Return the ClauseContainer inside (if ClauseContainer) REDUNDANT */
+    /*Return the ClauseContainer inside (if ClauseContainer) REDUNDANT 
+    Now private to test external dependencies */
 
-    public ClauseContainer getCC() {
+    private ClauseContainer getCC() {
         if(this.BoxNode instanceof ClauseContainer) {
             return (ClauseContainer)this.BoxNode;
         }
@@ -262,7 +271,7 @@ public class SpriteBox extends StackPane implements java.io.Serializable {
 
     public void setup() {
         myBox = new ColBox();   //Uses defaults.
-        myClause = new Clause(); //TO DO: remove this data item
+        myClause = new Clause(); //TO DO: remove this data item.  ClauseContainer set in constructor
         Font boxfont=Font.font ("Verdana", 10);
         boxlabel.setFont(boxfont);
         boxlabel.setFill(myBox.colourPicker("black"));
@@ -271,7 +280,7 @@ public class SpriteBox extends StackPane implements java.io.Serializable {
         this.getChildren().addAll(myBox,boxlabel); 
     }
 
-     /* SUPERFICIAL SPRITE APPEARANCE */
+     /* SUPERFICIAL SPRITE APPEARANCE AND STORE LOCATION */
 
     public double[] getXY() {
         return new double[]{this.Xpos,this.Ypos};
@@ -425,7 +434,7 @@ public class SpriteBox extends StackPane implements java.io.Serializable {
         //to do : set shape based on node category too
         }
 
-    /* ----  INTERNAL OBJECT DATA --- */
+    /* ----  INTERNAL OBJECT DATA ---  ALL OF THE METHODS BELOW NOW REDUNDANT? */
 
     public Clause getClause() {
         return this.myClause;

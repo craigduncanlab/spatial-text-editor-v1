@@ -42,6 +42,8 @@ NodeCategory NC_fact = new NodeCategory ("fact",0,"lightblue");
 NodeCategory NC_event = new NodeCategory ("event",0,"lightblue");
 NodeCategory NC_matter = new NodeCategory ("matter",0,"lightblue");
 NodeCategory NC_circumstance = new NodeCategory ("circumstance",0,"lightblue");
+//
+NodeCategory NC_dict = new NodeCategory ("dictionary",88,"white");
 
 private void initialiseNodeCategories() {
         
@@ -93,8 +95,13 @@ return new ArrayList<NodeCategory>(Arrays.asList(NC_document,NC_clause,NC_def));
 
 public ArrayList<NodeCategory> getMerchantNodes() {
 
- 
 return new ArrayList<NodeCategory>(Arrays.asList(NC_Alien,NC_State,NC_Trader));
+
+}
+
+public ArrayList<NodeCategory> getDictionaryNodes() {
+
+return new ArrayList<NodeCategory>(Arrays.asList(NC_dict));
 
 }
 

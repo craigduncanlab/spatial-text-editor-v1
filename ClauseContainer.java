@@ -5,6 +5,7 @@ import java.util.*;
 
 /* By Craig Duncan 1.12.2017 (based on Definitions Container made 21.11.2017)
 This will store Clause objects, not the 'SpriteBox' that may enclose specific Clauses.
+[10.6.18 - this is now a data node, and a 'super node' in the sense it has lots of functions and data fields]
 
 You can use a ClauseContainer to quickly read of Clauses and then create SpriteBoxes for them in GUI.
 Or create empty SpriteBoxes and populate with Clauses from a list?
@@ -34,7 +35,7 @@ However, we can still enforce Stages only showing certain levels of objects if N
 However, if each Node stores a 'level' then it will allow some search and save for particular kinds of nodes later, regadless of where they are located in the GUI.
 
 27.4.18
-Testing the idea that every node is a functional workspace.
+Testing the idea that every node is [has data elements to make] a functional workspace.
 i.e. it has input (text data) and output (text) areas, both can be displayed in GUI.
 The GUI can then apply any of the general operations on text to any node (do not need a specific importer window - just use the current node text area).
 This repurposes any space, makes the environment flexible and nodes are functional
@@ -63,6 +64,9 @@ So if the data mode is set to "own", it will its own data.
 This will also allow the 'followed' node to be copied into own data periodically.
 Storing the parent data node for following will maintain that information for the node's benefit.
 This is useful for obtaining GUI-access to data in other contexts, and for precedent creation etc.
+
+10.6.18
+Include counter field for dictionary work
 
 */
 
@@ -107,6 +111,8 @@ int nodeGUIloc = 0; //to store Stage or GUI element where the node is located
 // store the node's preference for what GUI view & data view to start in.
 String userNodeView;
 String followerMode;
+//counters
+int count=0; //general purpose counter for node
 
 //As of 26.4.18 - Make this node hold its own text, title (for now use docnotes as node text)
 //consequences: the concept of a 'clause' can be replaced by 
@@ -426,6 +432,14 @@ public ArrayList<ClauseContainer> getChildNodes() {
 }
 
 // --- PUBLIC METHODS ACCESSING PRIVATE DATA SPECIFICALLY FOR THIS NODE
+
+public void setCount(int mycount) {
+	this.count = mycount;
+}
+
+public int getCount() {
+	return this.count;
+}
 
 //set the text that will be the main descriptive or clause text in this node
 public void setNotes (String myString) {

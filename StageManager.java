@@ -187,7 +187,7 @@ public StageManager(StageManager parent, String myTitle) {
     //cycleUserView();
 }
 
-//standard open node viewer constructor, with only category and no content passed on.  Title?
+//standard open node viewer constructor.  Used by 'OpenRedNodeNow' method in Main
 public StageManager(StageManager parent, ClauseContainer myNode, EventHandler PressBox, EventHandler DragBox) {
     //view
     setJavaFXStageParent(parent);
@@ -206,6 +206,7 @@ public StageManager(StageManager parent, ClauseContainer myNode, EventHandler Pr
 }
 
 //standard open node viewer constructor using an existing Spritebox with node 
+//TO DO: extract node from spritebox first, then use other constructor?
 public StageManager(StageManager parent, SpriteBox myBox, EventHandler PressBox, EventHandler DragBox) {
     setJavaFXStageParent(parent);
     setParentBox(myBox); //data 

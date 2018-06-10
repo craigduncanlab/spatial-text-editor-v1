@@ -223,7 +223,7 @@ private ClauseContainer NodeFromStatuteSampleText(String mydata) {
 
 //---COMMON DOCUMENT / SPRITEBOX REQUESTS
 
-//To do: make this redundant
+/* Redundant
 
 private Clause getDefaultNodeData() {
     String label = "New document"; //unused
@@ -234,6 +234,7 @@ private Clause getDefaultNodeData() {
     return myClause;
 }
 
+//unused?  All new SpriteBox created by StageManager now
 private SpriteBox boxNodeForStage(ClauseContainer node, StageManager mySM) {
     
     SpriteBox b = new SpriteBox(node,mySM);
@@ -241,7 +242,7 @@ private SpriteBox boxNodeForStage(ClauseContainer node, StageManager mySM) {
     b.setOnMouseDragged(DragBoxEventHandler);
     return b;
 }
-
+*/
 //LOAD, SAVE AND NEW FOR NODES - EVENT HANDLERS
 
 //for Stage_WS
@@ -279,8 +280,8 @@ private void LoadNodeWS(String filename, StageManager mySM) {
             }
 
 /*
-Method Loads Node into Open Node - for all nodes other than Stage_WS
-ALthough this currently uses the same filename the context in app can change.
+Method Loads Node into Open Node on Open Stage - for all nodes other than Stage_WS
+Although this currently uses the same filename the context in app can change.
 */
 private void LoadNode(String filename) {
                 //update the Target to the currentStage
@@ -341,7 +342,7 @@ Define discrete stages and delegagte to appropriate objects:
 1. Create Node
 2. Make Node a Child Node of the Open Node
 3. Let Open Node viewer update both open node and presentation of child nodes as box objects
-(last step is separateion of data/view concerns)
+(last step is separation of data/view concerns)
 
 //The Workspace is always 'open' but not used unless space clicked on first.
 
@@ -365,6 +366,7 @@ private void NewChildNodeForOpenNode(NodeCategory nodecat) {
 }
 
 //place Sprite on Target stage if open otherwise workspace
+//NOW REDUNDANT AS STAGE MANAGER WILL ADD BOX USING NODE (SEP OF CONCERNS)
 
 private void placeSpriteOnTargetStage(SpriteBox mySprite, StageManager targetStage) {
         //targetStage.placeSpriteOnStage(...)//show stage always
@@ -572,7 +574,7 @@ private void addMenuCreateNew (ArrayList<NodeCategory> myCatList) {
 /* Method to add the 'new' function to the menu.  
 This will utilises the stages already set up to put a new item in the Open stage
 (although what we really want to do is put new item in the Category Stage: so use this for place)
-The "NEW" aspect uses Stage_WS therefore be called by or after the addMenuViewsItems method.
+The "NEW" aspect uses Stage_WS therefore should be called by or after the addMenuViewsItems method.
 */
 
 //populate a menu to create a new node, from a node category list
@@ -777,6 +779,7 @@ private MenuBar makeMenuBar() {
         MenuItem GetClauses = new MenuItem("GetClauses");
         MenuItem GetSections = new MenuItem("GetSections");
         MenuItem NodeFromSelection = new MenuItem("Selection->ChildNode");
+        MenuItem DictTempl = new MenuItem("DictionaryTemplate");
          menuFile.getItems().addAll(SaveWork,
             LoadWork,LoadSavedNode,SaveNode,
             OutputWork,
@@ -790,7 +793,7 @@ private MenuBar makeMenuBar() {
         menuOutput.getItems().addAll(
             SaveOutput);
         menuText.getItems().addAll(
-            WordCount,GetDefText,GetDefs,GetClauses,GetSections,NodeFromSelection);
+            WordCount,GetDefText,GetDefs,GetClauses,GetSections,DictTempl,NodeFromSelection);
         
         //DATA
         //MenuItem setFollower = new MenuItem("setFollower");
@@ -871,6 +874,7 @@ private MenuBar makeMenuBar() {
         GetClauses.setOnAction(makeClauseBoxesFromText);
         GetSections.setOnAction(makeBoxesFromStatuteText);
         NodeFromSelection.setOnAction(makeSelectedChildNode);
+        DictTempl.setOnAction(makeDictNode);
 
         //DATA MENU
         //setFollower.setOnAction(handleSetFollower);
@@ -1037,6 +1041,8 @@ General method to place sprite on Stage.  Uses Stage Manager class
 Since data nodes are to mirror GUI, update parent child relations here too
 27.4.18 - change approach so that it adds this node (rather than box) as sub-node to another node.
 The node viewer will then be responsible for display of child nodes (e.g. boxes)
+7.6.18 - used by 'copy sprite to destination'.  TO DO:  copy node, send to stage managers to handle.'
+e.g. targetStage.OpenNewNodeNow? or targetStage.PlaceNodeNow...needs work
 */
 
 private void placeSpriteOnStage(SpriteBox mySprite, StageManager targetStage) {
@@ -1058,7 +1064,8 @@ private void placeCurrentSpriteOnStage(StageManager targetStage) {
     targetStage.addNewSpriteToStage(currentSprite);
 }
 
-//Set current selected Sprite's node as data link parent.  
+//Set current selected Sprite's node as data link parent. 
+//REDUNDANT.  WAS USED BY EVENT HANDLER 
 
 private void setCurrentSpriteDataParent() {
     SpriteBox currentSprite = getCurrentSprite(); //not based on the button
@@ -1142,6 +1149,8 @@ public void deleteSpriteGUI(SpriteBox mySprite) {
         addMenuWorldsItem(menuitem2,myNodeConfig.getCommercialNodes());
         MenuItem menuitem3 = new MenuItem("MerchantWorld");
         addMenuWorldsItem(menuitem3,myNodeConfig.getMerchantNodes());
+        MenuItem menuitem4 = new MenuItem("DictionaryTemplate");
+        addMenuWorldsItem(menuitem4,myNodeConfig.getDictionaryNodes());
         //Menu menuNotes Items
         //setMenuNotes();
         addMenuForNew(getMenuEvents(),myNodeConfig.getEvents());
@@ -1542,6 +1551,19 @@ public void deleteSpriteGUI(SpriteBox mySprite) {
                 System.out.println("Stage WS Focus :"+ Stage_WS.getCurrentFocus());
              }
             OpenNodeStage.selectedAsChildNode();
+            }
+        };
+
+        //to call function to make dictionary template as needed
+        EventHandler<ActionEvent> makeDictNode = 
+        new EventHandler<ActionEvent>() {
+        @Override 
+        public void handle(ActionEvent event) {
+            //use the persistent Stage_WS instance to get the current stage (class variable)
+            OpenNodeStage = Stage_WS.getCurrentFocus();
+            FileSearch myFS = new FileSearch();
+            ClauseContainer dictNode = myFS.getDictionaryTemplate();
+            OpenNodeStage.OpenNewNodeNow(dictNode,Stage_WS);
             }
         };
 }
