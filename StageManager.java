@@ -135,10 +135,6 @@ String category="";
 ClauseContainer displayNode = new ClauseContainer();
 int doccount=0; //document counter for this stage
 
-//NODE VIEWER DIMENSIONS
-int nodeViewWidth = 600;
-int nodeViewHeight = 600;
-
 //NODE'S TEXT CONTENT
 //For storing main text output area for this Stage (if any)
 //As of 26.4.2018: make this the default area to hold the node's own text (for stages that display a frame that is also an open node).  Always editable.
@@ -399,11 +395,6 @@ private void configDefaultScroller(ScrollPane myScroll) {
 }
 
 //JAVA FX TEXT AREAS - GETTERS AND SETTERS
-public void setTextAreaLayout() {
-    headingTextArea.setPrefRowCount(1);
-    shortnameTextArea.setPrefRowCount(1);
-    //inputTextArea  = makeTextArea();
-}
 
 public void setOutputText(String myText) {
     outputTextArea.setText(myText);
@@ -910,14 +901,19 @@ especially if it is a non-edit node?
 
 private void makeSceneForNodeEdit() {
         
-        ScrollPane tempPane = makeScrollGroup();
-        tempPane.setPannable(true);
-        tempPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.valueOf("ALWAYS"));
-        tempPane.setVmax(550);
-        int winWidth=600;
-        int winHeight=500;
-        tempPane.setPrefSize(winWidth, winHeight);
-        setTextAreaLayout();
+        ScrollPane boxPane = makeScrollGroup();
+        boxPane.setPannable(true);
+        boxPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.valueOf("ALWAYS"));
+        boxPane.setVmax(500);
+        //NODE VIEWER DIMENSIONS
+        int winWidth=650;
+        int winHeight=700;
+        boxPane.setPrefSize(winWidth, winHeight-300);
+        //TEXT AREAS
+        inputTextArea.setPrefRowCount(7);
+        headingTextArea.setPrefRowCount(1);
+        shortnameTextArea.setPrefRowCount(1);
+        outputTextArea.setPrefRowCount(10);
         //Button for saving clauses
         Button btnUpdate = new Button();
         btnUpdate.setText("Update");
@@ -933,30 +929,31 @@ private void makeSceneForNodeEdit() {
         //
         parentBoxText = new Text();
         //set view option
-        VBox customView;
+        VBox vertFrame;
         //handle null case
         if (getDisplayNode().getUserView()==null) {
             getDisplayNode().setUserView("all");
         }
         if (getDisplayNode().getUserView().equals("textonly")) {
-            customView = new VBox(0,headingTextArea,inputTextArea,hboxButtons);
-             customView.setPrefSize(winWidth,winHeight+100);
+            vertFrame = new VBox(0,headingTextArea,inputTextArea,hboxButtons);
+             vertFrame.setPrefSize(winWidth,winHeight);
             setTitle(getTitleText(" - Text View"));
         }
         else if(getDisplayNode().getUserView().equals("nodeboxesonly")) {
-            customView = new VBox(0,shortnameTextArea,hboxButtons,tempPane);
-             customView.setPrefSize(winWidth,winHeight+200);
+            vertFrame = new VBox(0,shortnameTextArea,hboxButtons,boxPane);
+            vertFrame.setPrefSize(winWidth,winHeight);
             setTitle(getTitleText(" - Container View"));
         }
             else {
-            customView = new VBox(0,parentBoxText,shortnameTextArea,headingTextArea,inputTextArea,hboxButtons,tempPane,outputTextArea);
+            vertFrame = new VBox(0,parentBoxText,shortnameTextArea,headingTextArea,inputTextArea,hboxButtons,boxPane,outputTextArea);
             setTitle(getTitleText(" - Full View"));
+            vertFrame.setPrefSize(winWidth,winHeight);
         }
         //
         Pane largePane = new Pane();
-        largePane.setPrefSize(winWidth, winHeight+300);
-        largePane.getChildren().add(customView); 
-        Scene tempScene = new Scene (largePane,nodeViewWidth,nodeViewHeight); //default width x height (px)
+        largePane.setPrefSize(winWidth, winHeight);
+        largePane.getChildren().add(vertFrame); 
+        Scene tempScene = new Scene (largePane,winWidth,winHeight); //default width x height (px)
         //add event handler for mouse event
         tempScene.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
          @Override
