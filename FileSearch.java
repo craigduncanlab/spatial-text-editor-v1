@@ -20,7 +20,10 @@ String[] dictItems;
 int[][] wordcounts;
 String searchfolder = "../austlii/";
 
-
+//empty constructor (for calling from Main)
+public FileSearch(){
+ 
+}
 //constructor
 public FileSearch(String searchString, int max){
  
@@ -55,6 +58,49 @@ private int filecheck(String fileref) {
 	return 1;
 }
 
+//return a graph node holding the current dictionary as a graph of subnodes
+public ClauseContainer getDictionaryTemplate() {
+	return readDictLines();
+}
+
+//this creates a graph (i.e. nodes) for the dictionary - a graph template for storing word data for source documents
+
+private ClauseContainer readDictLines() {
+	String fileref="dictionary.txt";
+	NodeCategory NC_dict = new NodeCategory ("dictionary",88,"white");
+	ClauseContainer dictionaryNode = new ClauseContainer();
+	try {
+		Scanner scanner1 = new Scanner(new File(fileref));
+		if (scanner1==null) {
+			System.out.println("No text/html content");
+			return null;
+		}
+		int nl=0;
+		while (scanner1.hasNextLine()) {
+			nl++;
+			String thisRow=scanner1.nextLine();
+			Scanner scanner2= new Scanner(thisRow).useDelimiter(",");
+			//create node for first word in row
+			String hdword = scanner2.next();
+			ClauseContainer wordNode = new ClauseContainer(NC_dict,dictionaryNode,hdword,hdword);
+			dictionaryNode.addChildNode(wordNode);
+			//create child nodes for rest of words in row
+			while (scanner2.hasNext()) {
+				String rowword = scanner2.next();
+				wordNode.addChildNode(new ClauseContainer(NC_dict,wordNode,rowword,rowword));
+			}
+		scanner2.close();
+		}
+		scanner1.close();
+	}
+	catch (Throwable t)
+	{
+		t.printStackTrace();
+		//System.exit(0);
+		return null;
+	}
+	return dictionaryNode;
+}
 
 //read dictionary file for concept descriptions
 
