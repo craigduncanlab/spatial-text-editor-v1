@@ -58,6 +58,87 @@ private int filecheck(String fileref) {
 	return 1;
 }
 
+public ClauseContainer getDictionaryWithCounts() {
+	return readDictCounts("1.html");
+}
+
+
+//this creates a graph (i.e. nodes) for the dictionary - a graph template for storing word data for source documents
+
+private ClauseContainer readDictCounts(String filename) {
+	String fileref="dictionary.txt";
+	String boxlabel = "DictionaryTemplate";
+	NodeCategory NC_dict = new NodeCategory ("dictionary",88,"white");
+	ClauseContainer dictionaryNode = new ClauseContainer(NC_dict);
+	dictionaryNode.setDocName(boxlabel);
+	try {
+		Scanner scanner1 = new Scanner(new File(fileref));
+		if (scanner1==null) {
+			System.out.println("No text/html content");
+			return null;
+		}
+		int nl=0;
+		while (scanner1.hasNextLine()) {
+			nl++;
+			String thisRow=scanner1.nextLine();
+			Scanner scanner2= new Scanner(thisRow).useDelimiter(",");
+			//create node for first word in row
+			String hdword = scanner2.next();
+			ClauseContainer wordNode = new ClauseContainer(NC_dict,dictionaryNode,hdword,hdword);
+			wordNode=wordcount(wordNode,filename);
+			//only add child node if count >0
+			if(wordNode.getCount()>0) {
+				dictionaryNode.addChildNode(wordNode);
+			}
+			//create child nodes for rest of words in row
+			while (scanner2.hasNext()) {
+				String rowword = scanner2.next();
+				ClauseContainer anotherNode=new ClauseContainer(NC_dict,wordNode,rowword,rowword);
+				anotherNode=wordcount(anotherNode,filename);
+				//only add child node if count >0
+				if(anotherNode.getCount()>0) {
+					wordNode.addChildNode(anotherNode);
+				}
+			}
+		scanner2.close();
+		}
+		scanner1.close();
+	}
+	catch (Throwable t)
+	{
+		t.printStackTrace();
+		//System.exit(0);
+		return null;
+	}
+	return dictionaryNode;
+}
+
+private ClauseContainer wordcount(ClauseContainer thisNode, String fileref) {
+
+	//String fileref=Integer.toString(fc)+".html";
+	String filepath=this.searchfolder+fileref;
+	//String searchString = dictItems[di];
+	String searchString = thisNode.getHeading();
+        try {
+	String content = new Scanner(new File(filepath)).useDelimiter("\\Z").next(); //delimiter: stop at end of file
+	if (content==null) {
+		System.out.println("No text/html content");
+		return thisNode;
+	}
+	//System.out.println(content);
+	System.out.println(fileref+" content obtained");
+	int count = checkmatch(fileref,content,searchString);
+	thisNode.setCount(count);
+	thisNode.setDocName(thisNode.getHeading()+"("+Integer.toString(count)+")");
+	} catch (Throwable t)
+	{
+		t.printStackTrace();
+		//System.exit(0);
+		return thisNode;
+	}
+	return thisNode;
+	}
+
 //return a graph node holding the current dictionary as a graph of subnodes
 public ClauseContainer getDictionaryTemplate() {
 	return readDictLines();
@@ -67,8 +148,10 @@ public ClauseContainer getDictionaryTemplate() {
 
 private ClauseContainer readDictLines() {
 	String fileref="dictionary.txt";
+	String boxlabel = "DictionaryTemplate";
 	NodeCategory NC_dict = new NodeCategory ("dictionary",88,"white");
-	ClauseContainer dictionaryNode = new ClauseContainer();
+	ClauseContainer dictionaryNode = new ClauseContainer(NC_dict);
+	dictionaryNode.setDocName(boxlabel);
 	try {
 		Scanner scanner1 = new Scanner(new File(fileref));
 		if (scanner1==null) {
@@ -139,7 +222,9 @@ private int readDictionary() {
 	return 1;
 	}
 
-/* returns 0 if no file found or error; 1 if file found 
+/* austlii fileread
+
+returns 0 if no file found or error; 1 if file found 
  prints copy of .html file to disk if found
  prints file name to searchstring file if searchstring found
 */

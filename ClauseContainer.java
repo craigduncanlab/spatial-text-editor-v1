@@ -455,7 +455,7 @@ public void setHeading (String myString) {
 	this.heading = myString;
 }
 
-//set the text that will be the main text for identifying this node
+//set the text that will be the main text for identifying this node (and using on SpriteBox label)
 public void setDocName (String myString) {
 	this.docname = myString;
 }
