@@ -911,6 +911,10 @@ especially if it is a non-edit node?
 private void makeSceneForNodeEdit() {
         
         ScrollPane tempPane = makeScrollGroup();
+        tempPane.setPannable(true);
+        tempPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.valueOf("ALWAYS"));
+        tempPane.setVmax(440);
+        tempPane.setPrefSize(300, 300);
         setTextAreaLayout();
         //Button for saving clauses
         Button btnUpdate = new Button();

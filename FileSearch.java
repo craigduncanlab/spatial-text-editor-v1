@@ -58,8 +58,21 @@ private int filecheck(String fileref) {
 	return 1;
 }
 
-public ClauseContainer getDictionaryWithCounts() {
-	return readDictCounts("1.html");
+public ClauseContainer getAustliiWithCounts() {
+	NodeCategory NC_dict = new NodeCategory ("dictionary",88,"white");
+	ClauseContainer AustliiNode = new ClauseContainer(NC_dict);
+	AustliiNode.setDocName("Austlii2018");
+	int lastRecord=checkbound(this.maxbound);
+	for (int fc=1;fc<lastRecord;fc++) {
+		String myfile = Integer.toString(fc)+".html";
+		ClauseContainer myNode=getDictionaryWithCounts(myfile);
+		AustliiNode.addChildNode(myNode);
+	}
+	return AustliiNode;
+}
+
+public ClauseContainer getDictionaryWithCounts(String myfile) {
+	return readDictCounts(myfile);
 }
 
 
@@ -67,10 +80,10 @@ public ClauseContainer getDictionaryWithCounts() {
 
 private ClauseContainer readDictCounts(String filename) {
 	String fileref="dictionary.txt";
-	String boxlabel = "DictionaryTemplate";
+	//String boxlabel = "DictionaryTemplate";
 	NodeCategory NC_dict = new NodeCategory ("dictionary",88,"white");
 	ClauseContainer dictionaryNode = new ClauseContainer(NC_dict);
-	dictionaryNode.setDocName(boxlabel);
+	dictionaryNode.setDocName(filename);
 	try {
 		Scanner scanner1 = new Scanner(new File(fileref));
 		if (scanner1==null) {
@@ -87,8 +100,10 @@ private ClauseContainer readDictCounts(String filename) {
 			ClauseContainer wordNode = new ClauseContainer(NC_dict,dictionaryNode,hdword,hdword);
 			wordNode=wordcount(wordNode,filename);
 			//only add child node if count >0
+			int parentSet=0;
 			if(wordNode.getCount()>0) {
 				dictionaryNode.addChildNode(wordNode);
+				parentSet=1;
 			}
 			//create child nodes for rest of words in row
 			while (scanner2.hasNext()) {
@@ -96,7 +111,13 @@ private ClauseContainer readDictCounts(String filename) {
 				ClauseContainer anotherNode=new ClauseContainer(NC_dict,wordNode,rowword,rowword);
 				anotherNode=wordcount(anotherNode,filename);
 				//only add child node if count >0
-				if(anotherNode.getCount()>0) {
+				if(anotherNode.getCount()>0 && parentSet==1) {
+					wordNode.addChildNode(anotherNode);
+				}
+				//add the parent Node to dictionary if one of the sub-words is found
+				if(anotherNode.getCount()>0 && parentSet==0) {
+					dictionaryNode.addChildNode(wordNode);
+					parentSet=1;
 					wordNode.addChildNode(anotherNode);
 				}
 			}

@@ -781,6 +781,7 @@ private MenuBar makeMenuBar() {
         MenuItem NodeFromSelection = new MenuItem("Selection->ChildNode");
         MenuItem DictTempl = new MenuItem("DictionaryTemplate");
         MenuItem DictTemplCounts =  new MenuItem("DictionaryTemplateCounts");
+        MenuItem AustliiCounts =  new MenuItem("AustliiCounts");
          menuFile.getItems().addAll(SaveWork,
             LoadWork,LoadSavedNode,SaveNode,
             OutputWork,
@@ -794,7 +795,7 @@ private MenuBar makeMenuBar() {
         menuOutput.getItems().addAll(
             SaveOutput);
         menuText.getItems().addAll(
-            WordCount,GetDefText,GetDefs,GetClauses,GetSections,DictTempl,DictTemplCounts,NodeFromSelection);
+            WordCount,GetDefText,GetDefs,GetClauses,GetSections,DictTempl,DictTemplCounts,AustliiCounts,NodeFromSelection);
         
         //DATA
         //MenuItem setFollower = new MenuItem("setFollower");
@@ -877,6 +878,8 @@ private MenuBar makeMenuBar() {
         NodeFromSelection.setOnAction(makeSelectedChildNode);
         DictTempl.setOnAction(makeDictNode);
         DictTemplCounts.setOnAction(makeDictCountsNode);
+        AustliiCounts.setOnAction(makeAustliiCountsNode);
+
 
         //DATA MENU
         //setFollower.setOnAction(handleSetFollower);
@@ -1578,8 +1581,22 @@ public void deleteSpriteGUI(SpriteBox mySprite) {
             //use the persistent Stage_WS instance to get the current stage (class variable)
             OpenNodeStage = Stage_WS.getCurrentFocus();
             FileSearch myFS = new FileSearch();
-            ClauseContainer dictNode = myFS.getDictionaryWithCounts();
+            String myfile = "1.html";
+            ClauseContainer dictNode = myFS.getDictionaryWithCounts(myfile);
             OpenNodeStage.OpenNewNodeNow(dictNode,Stage_WS);
+            }
+        };
+
+        //to call function to make an austlii folder (.html) node with word counts inside
+        EventHandler<ActionEvent> makeAustliiCountsNode = 
+        new EventHandler<ActionEvent>() {
+        @Override 
+        public void handle(ActionEvent event) {
+            //use the persistent Stage_WS instance to get the current stage (class variable)
+            OpenNodeStage = Stage_WS.getCurrentFocus();
+            FileSearch myFS = new FileSearch();
+            ClauseContainer austliiNode = myFS.getAustliiWithCounts();
+            OpenNodeStage.OpenNewNodeNow(austliiNode,Stage_WS);
             }
         };
 }
