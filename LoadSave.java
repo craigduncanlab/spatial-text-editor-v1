@@ -75,6 +75,8 @@ TextArea inputTextArea = new TextArea();
 String searchfolder = "../templates/";
 //target Stage information
 StageManager targetSM = new StageManager();
+//current dialogue
+Stage myStage;
 
 //contructor
 public LoadSave () {
@@ -111,15 +113,15 @@ private VBox vertSetup(HBox myhbox) {
 
 //return a graph node holding the current dictionary as a graph of subnodes
 private ClauseContainer getTemplate(String filename) {
-	String filepath=this.searchfolder+filename;
-	return readTemplate(filepath);
+	return readTemplate(filename);
 }
 
-private ClauseContainer readTemplate(String fileref) {
+private ClauseContainer readTemplate(String filename) {
+	String fileref=this.searchfolder+filename;
 	String boxlabel = "Template";
 	NodeCategory NC_templ = new NodeCategory ("template",77,"gold");
 	ClauseContainer templateNode = new ClauseContainer(NC_templ);
-	templateNode.setDocName(boxlabel);
+	templateNode.setDocName(filename);
 	try {
 		Scanner scanner1 = new Scanner(new File(fileref));
 		if (scanner1==null) {
@@ -162,20 +164,22 @@ public void makeLoadSave(StageManager targetSM) {
 //create dialogue box and display
 
 private void makeDialogue() {
-	int winWidth=300;
-	int winHeight=200;
+	String mytitle = "Load/Save Template";
+	int winWidth=200;
+	int winHeight=100;
 	double x = 500;
 	double y = 500;
-	Stage myStage = new Stage();
+	this.myStage = new Stage();
 	VBox vertFrame=vertSetup(buttonSetup());
 	Pane largePane = new Pane();
     largePane.setPrefSize(winWidth, winHeight);
     largePane.getChildren().add(vertFrame); 
-    Scene tempScene = new Scene (largePane,winWidth+100,winHeight+100); //default width x height (px)
-    myStage.setScene(tempScene);
-    myStage.setX(x);
-   	myStage.setY(y);
-   	myStage.show();
+    Scene tempScene = new Scene (largePane,winWidth,winHeight+100); //default width x height (px)
+    this.myStage.setScene(tempScene);
+    this.myStage.setX(x);
+   	this.myStage.setY(y);
+   	this.myStage.setTitle(mytitle);
+   	this.myStage.show();
    	//return myStage;
 }
 
@@ -204,8 +208,7 @@ EventHandler<ActionEvent> clickCancel =
         new EventHandler<ActionEvent>() {
         @Override 
         public void handle(ActionEvent event) {
-            //TO DO: close window
-            return;
+            LoadSave.this.myStage.close(); //closes this object 
           }
       };
 
