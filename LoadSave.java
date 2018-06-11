@@ -70,9 +70,6 @@ ScrollPane spriteScrollPane;
 Pane spritePane;
 Scene localScene;
 TextArea inputTextArea = new TextArea();
-
-//File IO locations
-String searchfolder = "../templates/";
 //target Stage information
 StageManager targetSM = new StageManager();
 //current dialogue
@@ -110,51 +107,6 @@ private VBox vertSetup(HBox myhbox) {
 	return myvbox;
 }
 
-
-//return a graph node holding the current dictionary as a graph of subnodes
-private ClauseContainer getTemplate(String filename) {
-	return readTemplate(filename);
-}
-
-private ClauseContainer readTemplate(String filename) {
-	String fileref=this.searchfolder+filename;
-	String boxlabel = "Template";
-	NodeCategory NC_templ = new NodeCategory ("template",77,"gold");
-	ClauseContainer templateNode = new ClauseContainer(NC_templ);
-	templateNode.setDocName(filename);
-	try {
-		Scanner scanner1 = new Scanner(new File(fileref));
-		if (scanner1==null) {
-			System.out.println("No text/html content");
-			return null;
-		}
-		int nl=0;
-		while (scanner1.hasNextLine()) {
-			nl++;
-			String thisRow=scanner1.nextLine();
-			Scanner scanner2= new Scanner(thisRow).useDelimiter(",");
-			//create node for first word in row
-			String hdword = scanner2.next();
-			ClauseContainer wordNode = new ClauseContainer(NC_templ,templateNode,hdword,hdword);
-			templateNode.addChildNode(wordNode);
-			//create child nodes for rest of words in row
-			while (scanner2.hasNext()) {
-				String rowword = scanner2.next();
-				wordNode.addChildNode(new ClauseContainer(NC_templ,wordNode,rowword,rowword));
-			}
-		scanner2.close();
-		}
-		scanner1.close();
-	}
-	catch (Throwable t)
-	{
-		t.printStackTrace();
-		//System.exit(0);
-		return null;
-	}
-	return templateNode;
-}
-
 public void makeLoadSave(StageManager targetSM) {
 	this.targetSM= targetSM; //store for later
 	//make this dialogue
@@ -188,7 +140,8 @@ EventHandler<ActionEvent> clickOpen =
         @Override 
         public void handle(ActionEvent event) {
             String filename=inputTextArea.getText()+".pdt";
-            ClauseContainer newNode = getTemplate(filename); 
+            TemplateUtil myUtil = new TemplateUtil();
+            ClauseContainer newNode = myUtil.getTemplate(filename); 
             if (newNode!=null) {
                 LoadSave.this.targetSM.OpenNewNodeNow(newNode,LoadSave.this.targetSM);
             }
