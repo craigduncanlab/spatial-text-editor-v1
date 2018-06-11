@@ -81,15 +81,11 @@ public LoadSave () {
 
 }
 
-private HBox buttonSetup() {
+private HBox SaveButtonSetup() {
 	Button btnSave = new Button();
 	Button btnCancel = new Button();
 	Button btnOpen = new Button();
 	//
-	btnOpen.setText("Open");
-    btnOpen.setTooltip(new Tooltip ("Open file"));
-    btnOpen.setOnAction(clickOpen);
-    //
     btnSave.setText("Save");
     btnSave.setTooltip(new Tooltip ("Save highlighted as template file"));
     btnSave.setOnAction(clickSave);
@@ -98,7 +94,24 @@ private HBox buttonSetup() {
     btnCancel.setTooltip(new Tooltip ("Cancel file"));
     btnCancel.setOnAction(clickCancel);
     //
-	HBox hboxButton = new HBox(0,btnOpen,btnSave,btnCancel);
+	HBox hboxButton = new HBox(0,btnSave,btnCancel);
+	return hboxButton;
+}
+
+private HBox LoadButtonSetup() {
+	Button btnSave = new Button();
+	Button btnCancel = new Button();
+	Button btnOpen = new Button();
+	//
+	btnOpen.setText("Open");
+    btnOpen.setTooltip(new Tooltip ("Open file"));
+    btnOpen.setOnAction(clickOpen);
+    //
+    btnCancel.setText("Cancel");
+    btnCancel.setTooltip(new Tooltip ("Cancel file"));
+    btnCancel.setOnAction(clickCancel);
+    //
+	HBox hboxButton = new HBox(0,btnOpen,btnCancel);
 	return hboxButton;
 }
 
@@ -108,23 +121,36 @@ private VBox vertSetup(HBox myhbox) {
 	return myvbox;
 }
 
-public void makeLoadSave(StageManager targetSM, ClauseContainer myNode) {
+public void makeSave(StageManager targetSM, ClauseContainer myNode) {
 	this.targetSM = targetSM; //store for later
 	this.targetNode = myNode; //store for later
 	//make this dialogue
-	makeDialogue();
+	makeDialogue("Save Template",0);
+}
+
+public void makeLoad(StageManager targetSM) {
+	this.targetSM = targetSM; //store for later
+	//this.targetNode = null; //store for later
+	//make this dialogue
+	makeDialogue("Load Template",1);
 }
 
 //create dialogue box and display
 
-private void makeDialogue() {
-	String mytitle = "Load/Save Template";
+private void makeDialogue(String title, int option) {
 	int winWidth=200;
 	int winHeight=100;
 	double x = 500;
 	double y = 500;
 	this.myStage = new Stage();
-	VBox vertFrame=vertSetup(buttonSetup());
+	HBox myHBox = new HBox();
+	if (option==0) {
+		myHBox=SaveButtonSetup();
+	}
+	if (option==1) {
+		myHBox=LoadButtonSetup();
+	}
+	VBox vertFrame=vertSetup(myHBox);
 	Pane largePane = new Pane();
     largePane.setPrefSize(winWidth, winHeight);
     largePane.getChildren().add(vertFrame); 
@@ -132,9 +158,14 @@ private void makeDialogue() {
     this.myStage.setScene(tempScene);
     this.myStage.setX(x);
    	this.myStage.setY(y);
-   	this.myStage.setTitle(mytitle);
+   	this.myStage.setTitle(title);
+   	this.myStage.initOwner(this.targetSM.getStage());//set parent to workstage Stage
    	this.myStage.show();
    	//return myStage;
+}
+
+public void Close() {
+	this.myStage.close();
 }
 
 EventHandler<ActionEvent> clickOpen = 
@@ -143,9 +174,11 @@ EventHandler<ActionEvent> clickOpen =
         public void handle(ActionEvent event) {
             TemplateUtil myUtil = new TemplateUtil();
             String filename=inputTextArea.getText();
-            ClauseContainer newNode = myUtil.getTemplate(filename); 
+            //ClauseContainer newNode = myUtil.getTemplate(filename); 
+            ClauseContainer newNode = myUtil.getStructuredData(filename); 
             if (newNode!=null) {
                 LoadSave.this.targetSM.OpenNewNodeNow(newNode,LoadSave.this.targetSM);
+                LoadSave.this.Close();
             }
           }
       };
@@ -161,6 +194,7 @@ EventHandler<ActionEvent> clickSave =
 	        TemplateUtil myUtil = new TemplateUtil();
 	        myUtil.saveTemplate(thisNode,filename);
 	        System.out.println("Save template completed");
+	        LoadSave.this.Close();
           }
       };
 EventHandler<ActionEvent> clickCancel = 

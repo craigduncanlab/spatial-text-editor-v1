@@ -72,39 +72,36 @@ private ClauseContainer readSimpleTemplate(String filename) {
 //Node 0 will be the root node, to be returned.
 
 public ClauseContainer getStructuredData(String filename) {
-	HashMap myStructure = readStructure(filename);
-	return readfillData(myStructure,filename);
+	ClauseContainer[] myNodeBase =readNodeData(filename);
+	readStructure(myNodeBase,filename);
+	return myNodeBase[0];
 }
 
 
 //fill the graph structure with the stored data, then return first entry (root data node)
-private ClauseContainer readfillData(HashMap graphmap, String filename) {
+private ClauseContainer[] readNodeData(String filename) {
 	String fileref=this.searchfolder+filename+".pdd";
-	//
+	ClauseContainer[] newNodeBase=new ClauseContainer[300];
 	try {
 		Scanner scanner1 = new Scanner(new File(fileref));
 		if (scanner1==null) {
 			System.out.println("No text/html content");
-			return null;
+			return newNodeBase;
 		}
 		while (scanner1.hasNextLine()) {
 			String thisRow=scanner1.nextLine();
 			Scanner scanner2= new Scanner(thisRow).useDelimiter(","); //change to benign delimiter
-			//create node for first word in row
 			String hdword = scanner2.next();
 			int noderef = Integer.valueOf(hdword);
-			ClauseContainer thisNode = (ClauseContainer)graphmap.get(noderef);
-			//data from row: docname, heading, notes 
-			while (scanner2.hasNext()) {
-				String name = scanner2.next();
-				String heading = scanner2.next();
-				String notes = scanner2.next();
-				thisNode.setDocName(name);
-				thisNode.setHeading(heading);
-    			//thisNode.setShortname(heading);
-    			thisNode.setNotes(notes);
-			}
-		scanner2.close();
+			String name = scanner2.next();
+			String heading = scanner2.next();
+			String notes = scanner2.next();
+			NodeCategory NC_templ = new NodeCategory ("template",77,"gold");
+			newNodeBase[noderef] = new ClauseContainer(NC_templ);
+			newNodeBase[noderef].setDocName(name);
+			newNodeBase[noderef].setHeading(heading);
+			newNodeBase[noderef].setNotes(notes);
+			scanner2.close();
 		}
 		scanner1.close();
 	}
@@ -112,53 +109,39 @@ private ClauseContainer readfillData(HashMap graphmap, String filename) {
 	{
 		t.printStackTrace();
 		//System.exit(0);
-		return null;
+		return newNodeBase;
 	}
 
 	//
-	return (ClauseContainer)graphmap.get(0); //return root node, with its references to other nodes
+	return newNodeBase; //return root node, with its references to other nodes
 }
 
 //rebuild hierarchical graph structure for use with data file
-private HashMap readStructure(String filename) {
+private void readStructure(ClauseContainer[] nodebase, String filename) {
+	//ClauseContainer[] nodebase = new ClauseContainer[300];
 	int nodeindex=0;
 	String fileref=this.searchfolder+filename+".pdg";
-	String boxlabel = "Template";
-	NodeCategory NC_templ = new NodeCategory ("template",77,"gold");
-	ClauseContainer templateNode = new ClauseContainer(NC_templ);
-	templateNode.setDocName(filename);
-	int noderef = 0;
-	graphmap.put(noderef,templateNode);
+	//
 	try {
 		Scanner scanner1 = new Scanner(new File(fileref));
 		if (scanner1==null) {
 			System.out.println("No text/html content");
-			return null;
+			//return nodebase;
 		}
-		int nl=0;
 		while (scanner1.hasNextLine()) {
-			nl++;
 			String thisRow=scanner1.nextLine();
 			Scanner scanner2= new Scanner(thisRow).useDelimiter(",");
-			//create node for first word in row
+			//create node for first node in row
 			String hdword = scanner2.next();
-			noderef = Integer.valueOf(hdword);
-			if (noderef==0) {
-					System.out.println("Error in graph structure at line:"+nl);
-			}
-			ClauseContainer wordNode = new ClauseContainer(NC_templ,templateNode,hdword,hdword);
-			graphmap.put(noderef,wordNode);
-			templateNode.addChildNode(wordNode);
-			//create child nodes for rest of words in row
+			int nodeID = Integer.valueOf(hdword);
 			while (scanner2.hasNext()) {
 				String rowword = scanner2.next();
 				int childref = Integer.valueOf(rowword);
 				if (childref==0) {
-					System.out.println("Error in graph structure at line:"+nl+" in row :"+hdword);
+					System.out.println("Error in graph structure at nodeID:"+nodeID+" in row :"+hdword);
 				}
-				ClauseContainer myChildNode = new ClauseContainer(NC_templ,wordNode,rowword,rowword);
-				wordNode.addChildNode(myChildNode);
-				graphmap.put(childref,myChildNode);
+				nodebase[nodeID].addChildNode(nodebase[childref]);
+				nodebase[childref].setParentNode(nodebase[nodeID]);
 			}
 		scanner2.close();
 		}
@@ -168,9 +151,9 @@ private HashMap readStructure(String filename) {
 	{
 		t.printStackTrace();
 		//System.exit(0);
-		return null;
+		//return nodebase;
 	}
-	return graphmap;
+	//return nodebase;
 }
 
 

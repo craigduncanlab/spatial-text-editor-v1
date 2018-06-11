@@ -779,6 +779,7 @@ private MenuBar makeMenuBar() {
         MenuItem GetClauses = new MenuItem("GetClauses");
         MenuItem GetSections = new MenuItem("GetSections");
         MenuItem NodeFromSelection = new MenuItem("Selection->ChildNode");
+        MenuItem SaveTempl = new MenuItem("Save Template");
         MenuItem LoadTempl = new MenuItem("Load Template");
         MenuItem DictTempl = new MenuItem("DictionaryTemplate");
         MenuItem DictTemplCounts =  new MenuItem("DictionaryTemplateCounts");
@@ -796,7 +797,7 @@ private MenuBar makeMenuBar() {
         menuOutput.getItems().addAll(
             SaveOutput);
         menuText.getItems().addAll(
-            WordCount,GetDefText,GetDefs,GetClauses,GetSections,LoadTempl,DictTempl,DictTemplCounts,AustliiCounts,NodeFromSelection);
+            WordCount,GetDefText,GetDefs,GetClauses,GetSections,LoadTempl,SaveTempl,DictTempl,DictTemplCounts,AustliiCounts,NodeFromSelection);
         
         //DATA
         //MenuItem setFollower = new MenuItem("setFollower");
@@ -877,6 +878,7 @@ private MenuBar makeMenuBar() {
         GetClauses.setOnAction(makeClauseBoxesFromText);
         GetSections.setOnAction(makeBoxesFromStatuteText);
         NodeFromSelection.setOnAction(makeSelectedChildNode);
+        SaveTempl.setOnAction(saveTemplate);
         LoadTempl.setOnAction(loadTemplate);
         DictTempl.setOnAction(makeDictNode);
         DictTemplCounts.setOnAction(makeDictCountsNode);
@@ -1596,10 +1598,27 @@ public void deleteSpriteGUI(SpriteBox mySprite) {
         public void handle(ActionEvent event) {
             //use the persistent Stage_WS instance to get the current stage (class variable)
             LoadSave myLS = new LoadSave();
-            ClauseContainer thisNode = Main.this.getCurrentSprite().getBoxNode();
-            myLS.makeLoadSave(Stage_WS, thisNode);
-         }
+            myLS.makeLoad(Stage_WS);
+            }
         };
+
+        //save template
+        EventHandler<ActionEvent> saveTemplate = 
+        new EventHandler<ActionEvent>() {
+        @Override 
+        public void handle(ActionEvent event) {
+            //use the persistent Stage_WS instance to get the current stage (class variable)
+            LoadSave myLS = new LoadSave();
+            ClauseContainer thisNode;
+                    if (Main.this.getCurrentSprite()!=null) {
+                        thisNode = Main.this.getCurrentSprite().getBoxNode();
+                        myLS.makeSave(Stage_WS,thisNode);
+                    }
+                    else {
+                       myLS.Close();
+                    }
+                }
+            }; 
 
         //to call function to make an austlii folder (.html) node with word counts inside
         EventHandler<ActionEvent> makeAustliiCountsNode = 
