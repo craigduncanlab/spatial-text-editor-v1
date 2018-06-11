@@ -779,6 +779,7 @@ private MenuBar makeMenuBar() {
         MenuItem GetClauses = new MenuItem("GetClauses");
         MenuItem GetSections = new MenuItem("GetSections");
         MenuItem NodeFromSelection = new MenuItem("Selection->ChildNode");
+        MenuItem LoadTempl = new MenuItem("Load Template");
         MenuItem DictTempl = new MenuItem("DictionaryTemplate");
         MenuItem DictTemplCounts =  new MenuItem("DictionaryTemplateCounts");
         MenuItem AustliiCounts =  new MenuItem("AustliiCounts");
@@ -795,7 +796,7 @@ private MenuBar makeMenuBar() {
         menuOutput.getItems().addAll(
             SaveOutput);
         menuText.getItems().addAll(
-            WordCount,GetDefText,GetDefs,GetClauses,GetSections,DictTempl,DictTemplCounts,AustliiCounts,NodeFromSelection);
+            WordCount,GetDefText,GetDefs,GetClauses,GetSections,LoadTempl,DictTempl,DictTemplCounts,AustliiCounts,NodeFromSelection);
         
         //DATA
         //MenuItem setFollower = new MenuItem("setFollower");
@@ -876,6 +877,7 @@ private MenuBar makeMenuBar() {
         GetClauses.setOnAction(makeClauseBoxesFromText);
         GetSections.setOnAction(makeBoxesFromStatuteText);
         NodeFromSelection.setOnAction(makeSelectedChildNode);
+        LoadTempl.setOnAction(loadTemplate);
         DictTempl.setOnAction(makeDictNode);
         DictTemplCounts.setOnAction(makeDictCountsNode);
         AustliiCounts.setOnAction(makeAustliiCountsNode);
@@ -1585,6 +1587,17 @@ public void deleteSpriteGUI(SpriteBox mySprite) {
             ClauseContainer dictNode = myFS.getDictionaryWithCounts(myfile);
             OpenNodeStage.OpenNewNodeNow(dictNode,Stage_WS);
             }
+        };
+
+        //to load a new template to workspace
+        EventHandler<ActionEvent> loadTemplate = 
+        new EventHandler<ActionEvent>() {
+        @Override 
+        public void handle(ActionEvent event) {
+            //use the persistent Stage_WS instance to get the current stage (class variable)
+            LoadSave myLS = new LoadSave();
+            myLS.makeLoadSave(Stage_WS);
+         }
         };
 
         //to call function to make an austlii folder (.html) node with word counts inside

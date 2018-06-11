@@ -113,6 +113,7 @@ String userNodeView;
 String followerMode;
 //counters
 int count=0; //general purpose counter for node
+int branchcount=0; //general purpose counter for this branch of node
 
 //As of 26.4.18 - Make this node hold its own text, title (for now use docnotes as node text)
 //consequences: the concept of a 'clause' can be replaced by 
@@ -439,6 +440,14 @@ public void setCount(int mycount) {
 
 public int getCount() {
 	return this.count;
+}
+
+public void setBranchCount(int mycount) {
+	this.branchcount = mycount;
+}
+
+public int getBranchCount() {
+	return this.branchcount;
 }
 
 //set the text that will be the main descriptive or clause text in this node

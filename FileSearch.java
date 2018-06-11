@@ -83,7 +83,6 @@ private ClauseContainer readDictCounts(String filename) {
 	//String boxlabel = "DictionaryTemplate";
 	NodeCategory NC_dict = new NodeCategory ("dictionary",88,"white");
 	ClauseContainer dictionaryNode = new ClauseContainer(NC_dict);
-	dictionaryNode.setDocName(filename);
 	try {
 		Scanner scanner1 = new Scanner(new File(fileref));
 		if (scanner1==null) {
@@ -113,15 +112,20 @@ private ClauseContainer readDictCounts(String filename) {
 				//only add child node if count >0
 				if(anotherNode.getCount()>0 && parentSet==1) {
 					wordNode.addChildNode(anotherNode);
+					wordNode.setBranchCount(wordNode.getBranchCount()+anotherNode.getCount());
+					dictionaryNode.setBranchCount(dictionaryNode.getBranchCount()+anotherNode.getCount());
 				}
 				//add the parent Node to dictionary if one of the sub-words is found
 				if(anotherNode.getCount()>0 && parentSet==0) {
 					dictionaryNode.addChildNode(wordNode);
 					parentSet=1;
 					wordNode.addChildNode(anotherNode);
+					wordNode.setBranchCount(wordNode.getBranchCount()+anotherNode.getCount());
+					dictionaryNode.setBranchCount(dictionaryNode.getBranchCount()+anotherNode.getCount());
 				}
 			}
 		scanner2.close();
+		wordNode.setDocName(hdword+"("+wordNode.getCount()+")"+"["+wordNode.getBranchCount()+"]");
 		}
 		scanner1.close();
 	}
@@ -131,6 +135,7 @@ private ClauseContainer readDictCounts(String filename) {
 		//System.exit(0);
 		return null;
 	}
+	dictionaryNode.setDocName(filename+"["+dictionaryNode.getBranchCount()+"]");
 	return dictionaryNode;
 }
 
