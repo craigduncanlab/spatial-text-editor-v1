@@ -74,6 +74,7 @@ TextArea inputTextArea = new TextArea();
 StageManager targetSM = new StageManager();
 //current dialogue
 Stage myStage;
+ClauseContainer targetNode = new ClauseContainer();
 
 //contructor
 public LoadSave () {
@@ -90,7 +91,7 @@ private HBox buttonSetup() {
     btnOpen.setOnAction(clickOpen);
     //
     btnSave.setText("Save");
-    btnSave.setTooltip(new Tooltip ("Save file"));
+    btnSave.setTooltip(new Tooltip ("Save highlighted as template file"));
     btnSave.setOnAction(clickSave);
     //
     btnCancel.setText("Cancel");
@@ -107,8 +108,9 @@ private VBox vertSetup(HBox myhbox) {
 	return myvbox;
 }
 
-public void makeLoadSave(StageManager targetSM) {
-	this.targetSM= targetSM; //store for later
+public void makeLoadSave(StageManager targetSM, ClauseContainer myNode) {
+	this.targetSM = targetSM; //store for later
+	this.targetNode = myNode; //store for later
 	//make this dialogue
 	makeDialogue();
 }
@@ -139,8 +141,8 @@ EventHandler<ActionEvent> clickOpen =
         new EventHandler<ActionEvent>() {
         @Override 
         public void handle(ActionEvent event) {
-            String filename=inputTextArea.getText()+".pdt";
             TemplateUtil myUtil = new TemplateUtil();
+            String filename=inputTextArea.getText();
             ClauseContainer newNode = myUtil.getTemplate(filename); 
             if (newNode!=null) {
                 LoadSave.this.targetSM.OpenNewNodeNow(newNode,LoadSave.this.targetSM);
@@ -152,9 +154,13 @@ EventHandler<ActionEvent> clickSave =
         new EventHandler<ActionEvent>() {
         @Override 
         public void handle(ActionEvent event) {
-            String filename=inputTextArea.getText()+".pdt";
-            //TO DO
-            return;
+	        //
+	        StageManager myStage=LoadSave.this.targetSM.getCurrentFocus();
+	        ClauseContainer thisNode = LoadSave.this.targetNode;
+	        String filename=inputTextArea.getText();
+	        TemplateUtil myUtil = new TemplateUtil();
+	        myUtil.saveTemplate(thisNode,filename);
+	        System.out.println("Save template completed");
           }
       };
 EventHandler<ActionEvent> clickCancel = 

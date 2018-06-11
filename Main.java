@@ -1596,7 +1596,8 @@ public void deleteSpriteGUI(SpriteBox mySprite) {
         public void handle(ActionEvent event) {
             //use the persistent Stage_WS instance to get the current stage (class variable)
             LoadSave myLS = new LoadSave();
-            myLS.makeLoadSave(Stage_WS);
+            ClauseContainer thisNode = Main.this.getCurrentSprite().getBoxNode();
+            myLS.makeLoadSave(Stage_WS, thisNode);
          }
         };
 

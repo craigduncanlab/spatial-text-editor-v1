@@ -86,6 +86,8 @@ String docnotes=""; //to hold Document notes
 String shortname="";
 String heading="";
 String date="";
+//this node's local reference for input/ouput
+int noderef=0;
 //NODE OUTPUT FIELDS
 String output="";
 
@@ -378,7 +380,8 @@ public void removeClause(Clause oldClause) {
 }
 
 //rename this function - it returns all child nodes, but not data
-//redundant: use getChildNodes instead.
+//redundant: use getChildNodesimport java.net.*;
+
 public ArrayList<ClauseContainer> getClauseArray() {
 	return this.myChildNodes;
 }
@@ -440,6 +443,14 @@ public void setCount(int mycount) {
 
 public int getCount() {
 	return this.count;
+}
+
+public void setNodeRef(int myindex) {
+	this.noderef = myindex;
+}
+
+public int getNodeRef() {
+	return this.noderef;
 }
 
 public void setBranchCount(int mycount) {
