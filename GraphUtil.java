@@ -19,30 +19,8 @@ public GraphUtil() {
 }
 
 /*
-private ClauseContainer[] makeGraphArray(HashMap myMap) {
-	Integer[] keys = new Integer[myMap.size()];
-	ClauseContainer[] values = new ClauseContainer[myMap.size()];
-	int index = 0;
-	for (Map.Entry<Integer,ClauseContainer> mapEntry : myMap.entrySet()) {
-	    keys[index] = mapEntry.getKey();
-	    values[index] = mapEntry.getValue();
-	    //write out to file
-	    index++;
-	}
-	return values;
-}
-
-//write output
-private void writeGraphArray(HashMap myMap) {
-	
-	for (Map.Entry<Integer,ClauseContainer> mapEntry : myMap.entrySet()) {
-	    Integer nodeIndex = mapEntry.getKey();
-	    ClauseContainer myNode = mapEntry.getValue();
-	    //write out to file
-	}
-}
+method to obtain list of graph nodes in sequence, starting with the selected node/box
 */
-//main method to obtain list of graph nodes in sequence
 
 public ClauseContainer[] getGraphNodeOrder(ClauseContainer myNode) {
 	updateNodeRefs(myNode);
@@ -63,7 +41,7 @@ private void updateNodeRefs(ClauseContainer myRootNode) {
 	}
 }
 
-//put children on queue and give them a node index
+//put child nodes on queue and give them a node index
 private void addChildrenQueue(ClauseContainer thisNode) {
 	if (thisNode.NodeIsLeaf()==true) {
 		return;
