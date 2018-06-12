@@ -1132,6 +1132,11 @@ public void deleteSpriteGUI(SpriteBox mySprite) {
         ParentStageSM.setStage(ParentStage);
         ParentStageSM.setTitle("Powerdock");
 
+        //master Node for save all workspace
+         masterNode.setDocName("Workspace");
+         masterNode.setHeading("Workspace(saved)");
+         masterNode.setShortname("default");
+
         //general application nodes
         NodeCategory NC_WS = new NodeCategory ("workspace",99,"white");
         //nodeCatList = makeLawWorldCategories(); <---optional, to restore NodeCats
@@ -1347,8 +1352,11 @@ public void deleteSpriteGUI(SpriteBox mySprite) {
             public void handle(ActionEvent t) {
                 //create a new node
                 NodeCategory NC_default = new NodeCategory("default",33,"darkblue");
-                //new node with category and masterNode as parent
-                ClauseContainer newDataNode = new ClauseContainer(NC_default,Main.this.masterNode);
+                //find current node
+                OpenNodeStage=Stage_WS.getCurrentFocus();
+                ClauseContainer parentNode = OpenNodeStage.getDisplayNode();
+                //new node with category and currentNode as parent
+                ClauseContainer newDataNode = new ClauseContainer(NC_default,parentNode);
                 
                 //place a COPY (REF) of node in the relevant open node.  Testing...
                 OpenNodeStage=Stage_WS.getCurrentFocus(); //update focus id.

@@ -860,7 +860,7 @@ private Scene makeSceneForBoxes(ScrollPane myPane) {
 
 private void refreshNodeViewScene() {
         inputTextArea.setText(getDisplayNode().getNotes());
-
+        inputTextArea.setWrapText(true);
         shortnameTextArea.setText(getDisplayNode().getDocName());
         headingTextArea.setText(getDisplayNode().getHeading());
         
@@ -911,6 +911,7 @@ private void makeSceneForNodeEdit() {
         boxPane.setPrefSize(winWidth, winHeight-300);
         //TEXT AREAS
         inputTextArea.setPrefRowCount(7);
+        inputTextArea.setWrapText(true);
         headingTextArea.setPrefRowCount(1);
         shortnameTextArea.setPrefRowCount(1);
         outputTextArea.setPrefRowCount(10);

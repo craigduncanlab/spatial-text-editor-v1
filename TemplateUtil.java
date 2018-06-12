@@ -83,14 +83,14 @@ private ClauseContainer[] readNodeData(String filename) {
 	String fileref=this.searchfolder+filename+".pdd";
 	ClauseContainer[] newNodeBase=new ClauseContainer[300];
 	try {
-		Scanner scanner1 = new Scanner(new File(fileref));
+		Scanner scanner1 = new Scanner(new File(fileref)).useDelimiter("@EOR"); //instead of \n
 		if (scanner1==null) {
 			System.out.println("No text/html content");
 			return newNodeBase;
 		}
-		while (scanner1.hasNextLine()) {
-			String thisRow=scanner1.nextLine();
-			Scanner scanner2= new Scanner(thisRow).useDelimiter(","); //change to benign delimiter
+		while (scanner1.hasNext()) {
+			String thisRow=scanner1.next();
+			Scanner scanner2= new Scanner(thisRow).useDelimiter("@@P"); //change to benign delimiter
 			String hdword = scanner2.next();
 			int noderef = Integer.valueOf(hdword);
 			String name = scanner2.next();
@@ -189,6 +189,17 @@ private void cleantemplate(String filename) {
 
 private void cleanfile(String reportfile) {
 	try {
+
+	PrintWriter pw = new PrintWriter(reportfile);
+	pw.close();
+	}
+		catch (Throwable t)
+		{
+			t.printStackTrace();
+			return;
+		}
+/*
+	try {
 	PrintStream console = System.out;
 	PrintStream outstream = new PrintStream(new FileOutputStream(reportfile,false));
 	System.setOut(outstream);
@@ -202,6 +213,7 @@ private void cleanfile(String reportfile) {
 			t.printStackTrace();
 			return;
 		}
+		*/
 }
 
 private void writeStructOutput(ClauseContainer myNode, String filename) {
@@ -211,7 +223,7 @@ private void writeStructOutput(ClauseContainer myNode, String filename) {
 	PrintStream outstream = new PrintStream(new FileOutputStream(reportfile,true));
 	System.setOut(outstream);
 	String logString = Integer.toString(myNode.getNodeRef())+","+getChildrenList(myNode);
-	System.out.println(logString);
+	System.out.println(logString); //this needs a CR/LF so use println
 	outstream.close();
 	System.setOut(console);
 	}
@@ -244,8 +256,8 @@ private void writeDataOutput(ClauseContainer myNode, String filename) {
 	PrintStream console = System.out;
 	PrintStream outstream = new PrintStream(new FileOutputStream(reportfile,true));
 	System.setOut(outstream);
-	String logString = Integer.toString(myNode.getNodeRef())+","+myNode.getDocName()+","+myNode.getHeading()+","+myNode.getNotes()+",";
-	System.out.println(logString);
+	String logString = Integer.toString(myNode.getNodeRef())+"@@P"+myNode.getDocName()+"@@P"+myNode.getHeading()+"@@P"+myNode.getNotes()+"@@P@EOR";
+	System.out.print(logString); //don't use println.  No CR needed.
 	outstream.close();
 	System.setOut(console);
 	}
