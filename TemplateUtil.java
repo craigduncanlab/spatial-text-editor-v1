@@ -158,6 +158,9 @@ private void readStructure(ClauseContainer[] nodebase, String filename) {
 
 
 public void saveTemplate(ClauseContainer myNode, String filename) {
+	//
+	cleantemplate(filename);
+	//
 	GraphUtil myGraphUtil = new GraphUtil();
 	ClauseContainer[] myGraphSeq = myGraphUtil.getGraphNodeOrder(myNode);
 	System.out.println("container length: "+myGraphSeq.length);
@@ -179,6 +182,30 @@ public void saveTemplate(ClauseContainer myNode, String filename) {
 	write the contents of each node in the hashmap to a .pdd file with each row being index, then data
 */
 
+
+private void cleantemplate(String filename) {
+	String reportfile="../templates/"+filename+".pdd";
+	cleanfile(reportfile);
+	reportfile="../templates/"+filename+".pdg";
+	cleanfile(reportfile);
+}
+
+private void cleanfile(String reportfile) {
+	try {
+	PrintStream console = System.out;
+	PrintStream outstream = new PrintStream(new FileOutputStream(reportfile,false));
+	System.setOut(outstream);
+	String logString = "";
+	System.out.println(logString);
+	outstream.close();
+	System.setOut(console);
+	}
+		catch (Throwable t)
+		{
+			t.printStackTrace();
+			return;
+		}
+}
 
 private void writeStructOutput(ClauseContainer myNode, String filename) {
 	String reportfile="../templates/"+filename+".pdg";
