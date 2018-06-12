@@ -221,28 +221,6 @@ private ClauseContainer NodeFromStatuteSampleText(String mydata) {
     return clauseCarton;
 } 
 
-//---COMMON DOCUMENT / SPRITEBOX REQUESTS
-
-/* Redundant
-
-private Clause getDefaultNodeData() {
-    String label = "New document"; //unused
-    String text = "Some text";
-    String heading = "A heading";
-    String category = "clause"; //for now - check it later
-    Clause myClause = new Clause(label,heading,text,category); 
-    return myClause;
-}
-
-//unused?  All new SpriteBox created by StageManager now
-private SpriteBox boxNodeForStage(ClauseContainer node, StageManager mySM) {
-    
-    SpriteBox b = new SpriteBox(node,mySM);
-    b.setOnMousePressed(PressBoxEventHandler); //internalise?
-    b.setOnMouseDragged(DragBoxEventHandler);
-    return b;
-}
-*/
 //LOAD, SAVE AND NEW FOR NODES - EVENT HANDLERS
 
 //for Stage_WS
@@ -672,7 +650,7 @@ private void setMenuViews() {
 }
 
 private void setmenuNewElement() {
-    this.theNewNodeMenu = new Menu("New Element"); //a new node (not a copy?)
+    this.theNewNodeMenu = new Menu("New"); //a new node (not a copy?)
 }
 
 private void setMenuWorlds() {
@@ -720,20 +698,38 @@ private MenuBar makeMenuBar() {
         
         //MENUBAR SETUP
         MenuBar menuBar = new MenuBar();
-        //Items for horizontal menu, vertical MenuItems for each
+        // --- FILE MENU ---
+        Menu menuFile = new Menu("File");
+        MenuItem OpenTempl = new MenuItem("Open Template");
+        MenuItem SaveTempl = new MenuItem("Save Template");
+        MenuItem SaveAllTempl = new MenuItem("Save All");
+        MenuItem OutputWork = new MenuItem("Output as Text");
+        MenuItem PrintBoxes = new MenuItem("PrintBoxes");
+        PrintBoxes.setOnAction(new EventHandler<ActionEvent>() {
+        public void handle(ActionEvent t) {
+                //call the 'print function' on the BoxContainer object (for now)
+                //WorkspaceBoxes.ContentsDump();
+                //TO DO: ADD SERIALISATION OR FUNCTION CALL
+            }
+        });    
         
+        menuFile.getItems().addAll(OpenTempl,SaveTempl,SaveAllTempl,
+            OutputWork,
+            PrintBoxes);
+        //Items for horizontal menu, vertical MenuItems for each
+        /*
         //Menu menuNewElement = new Menu("New");
-        Menu menuWorkspace = new Menu("Workspace");
+        //Menu menuWorkspace = new Menu("Workspace");
         //
-        setMenuWorlds();
-        Menu menuWorlds = getMenuWorlds();
+        //setMenuWorlds();
+        //Menu menuWorlds = getMenuWorlds();
 
         setMenuNotes();
         Menu menuNotes = getMenuNotes();
         //
         //Menu menuDocument = new Menu("Document");
         //Menu menuCollection = new Menu("Collection");
-        Menu menuFile = new Menu("File/Node");
+        
         //Menu MenuLaw = new Menu("Protocol(Law)");
         //
         setMenuEvents();
@@ -743,8 +739,8 @@ private MenuBar makeMenuBar() {
         Menu MenuLaw = getMenuLaw();
         //Menu menuProjectLib = new Menu ("ProjectLib");
         //Menu menuLibrary = new Menu("Library");
-        Menu menuOutput = new Menu("Output");
-        Menu menuText = new Menu("Text");
+        
+        
         
         //instance variables (content of these 2 is empty until ready to insert list and event handlers)
         setMenuViews();
@@ -757,20 +753,21 @@ private MenuBar makeMenuBar() {
         //
         //TO DO: Place Menu with any Level 1 Category Nodes
         //
+
+        /*
         MenuItem SaveNode = new MenuItem("SaveBox");
         MenuItem LoadSavedNode = new MenuItem("LoadBox");
         MenuItem SaveColl = new MenuItem("Save");
         MenuItem LoadColl = new MenuItem("Load");
         MenuItem SaveWork = new MenuItem("Save");
         MenuItem LoadWork = new MenuItem("Load");
-        MenuItem OutputWork = new MenuItem("Output as Text");
+       
         MenuItem SaveDoc = new MenuItem("SaveDoc");
         MenuItem LoadDoc = new MenuItem("LoadDoc");
-        MenuItem OutputDoc = new MenuItem("Output as Text");
-        MenuItem SaveLibrary = new MenuItem("Save");
-        MenuItem LoadLibrary = new MenuItem("Load");
-        MenuItem PrintBoxes = new MenuItem("PrintBoxes");
-        MenuItem SaveOutput = new MenuItem("Save");
+        */
+        
+        // --- TEXT MENU ---
+        Menu menuText = new Menu("Text");
         MenuItem FileOpen = new MenuItem("FileOpen");
         MenuItem WordCount = new MenuItem("WordCount");
         MenuItem InputFile = new MenuItem("InputFile");
@@ -779,25 +776,33 @@ private MenuBar makeMenuBar() {
         MenuItem GetClauses = new MenuItem("GetClauses");
         MenuItem GetSections = new MenuItem("GetSections");
         MenuItem NodeFromSelection = new MenuItem("Selection->ChildNode");
-        MenuItem SaveTempl = new MenuItem("Save Template");
-        MenuItem LoadTempl = new MenuItem("Load Template");
+
         MenuItem DictTempl = new MenuItem("DictionaryTemplate");
         MenuItem DictTemplCounts =  new MenuItem("DictionaryTemplateCounts");
         MenuItem AustliiCounts =  new MenuItem("AustliiCounts");
-         menuFile.getItems().addAll(SaveWork,
-            LoadWork,LoadSavedNode,SaveNode,
-            OutputWork,
-            PrintBoxes);
-         /*menuWorkspace.getItems().addAll(
-            SaveWork,
-            LoadWork,
-            OutputWork,
-            PrintBoxes);
-            */
-        menuOutput.getItems().addAll(
-            SaveOutput);
+        
         menuText.getItems().addAll(
-            WordCount,GetDefText,GetDefs,GetClauses,GetSections,LoadTempl,SaveTempl,DictTempl,DictTemplCounts,AustliiCounts,NodeFromSelection);
+            WordCount,GetDefText,GetDefs,GetClauses,GetSections,DictTempl,DictTemplCounts,AustliiCounts,NodeFromSelection);
+        
+        //--- MENU NEW
+        Menu menuNew = new Menu("New");
+        MenuItem newNode = new MenuItem("Box");
+        newNode.setOnAction(newNodeMaker);
+        menuNew.getItems().addAll(newNode);
+        //--- OUTPUT MENU ---
+        Menu menuOutput = new Menu("Output");
+        MenuItem saveOutput = new MenuItem("Save");
+        menuOutput.getItems().addAll(saveOutput);
+        saveOutput.setOnAction(new EventHandler<ActionEvent>() {
+        public void handle(ActionEvent t) {
+                
+            System.out.println("Save Output selected!");
+            EDOfileApp myfileApp = new EDOfileApp("output(PDock).txt");
+            myfileApp.replaceText(Stage_Output.getOutputText());
+            }
+        });
+
+
         
         //DATA
         //MenuItem setFollower = new MenuItem("setFollower");
@@ -805,6 +810,7 @@ private MenuBar makeMenuBar() {
         //MenuLaw.getItems().addAll(setFollower,unsetFollower);
         //Method will save the current open node with focus.
 
+        /*
         SaveNode.setOnAction(new EventHandler<ActionEvent>() {
         public void handle(ActionEvent t) {
             OpenNodeStage = Stage_WS.getCurrentFocus();
@@ -814,15 +820,17 @@ private MenuBar makeMenuBar() {
 
         /* Load Collection into an open window TO DO: as icon.
         */
+        /*
         LoadSavedNode.setOnAction(new EventHandler<ActionEvent>() {
         public void handle(ActionEvent t) {
                 String filename = "loadnode.ser";
                 LoadNode(filename);
             }
         });
+        */
         
         //---WORKSPACE FUNCTIONS ---
-
+        /*
         //Method to save workspace (serial)
 
         SaveWork.setOnAction(new EventHandler<ActionEvent>() {
@@ -833,6 +841,7 @@ private MenuBar makeMenuBar() {
 
         /* Method to load up saved workspace */
 
+        /*
         LoadWork.setOnAction(new EventHandler<ActionEvent>() {
         public void handle(ActionEvent t) {
                 String filename = Stage_WS.getFilename();
@@ -850,28 +859,9 @@ private MenuBar makeMenuBar() {
             Stage_Output.showStage();
             }
         });
-
+        */
         
-        PrintBoxes.setOnAction(new EventHandler<ActionEvent>() {
-        public void handle(ActionEvent t) {
-                //call the 'print function' on the BoxContainer object (for now)
-                //WorkspaceBoxes.ContentsDump();
-                //TO DO: ADD SERIALISATION OR FUNCTION CALL
-            }
-        });    
-
-        //DOCUMENT EVENT HANDLERS
-
-        SaveOutput.setOnAction(new EventHandler<ActionEvent>() {
-        public void handle(ActionEvent t) {
-                
-            System.out.println("Save Output selected!");
-            EDOfileApp myfileApp = new EDOfileApp("output(PDock).txt");
-            myfileApp.replaceText(Stage_Output.getOutputText());
-            }
-        });
-        
-        /* --- IMPORT MENU ---   TO DO: File Open*/
+        /* --- TEXT MENU ---  */
         WordCount.setOnAction(updateWordCounts); //argument is an EventHandler with ActionEvent object
         GetDefText.setOnAction(extractDefinitions);
         GetDefs.setOnAction(makeDefBoxesFromText);
@@ -879,7 +869,8 @@ private MenuBar makeMenuBar() {
         GetSections.setOnAction(makeBoxesFromStatuteText);
         NodeFromSelection.setOnAction(makeSelectedChildNode);
         SaveTempl.setOnAction(saveTemplate);
-        LoadTempl.setOnAction(loadTemplate);
+        OpenTempl.setOnAction(openTemplate);
+        SaveAllTempl.setOnAction(saveAll);
         DictTempl.setOnAction(makeDictNode);
         DictTemplCounts.setOnAction(makeDictCountsNode);
         AustliiCounts.setOnAction(makeAustliiCountsNode);
@@ -890,7 +881,7 @@ private MenuBar makeMenuBar() {
         //unsetFollower.setOnAction(handleUnsetFollower);
 
         /* --- MENU BAR --- */
-        menuBar.getMenus().addAll(menuWorlds, menuFile, menuNewElement, menuEvents, menuNotes,MenuLaw, menuText, menuOutput,menuViews);     
+        menuBar.getMenus().addAll(menuFile, menuNew, menuText, menuOutput);     
         
         //create an event filter so we can process mouse clicks on menubar (and ignore them!)
         menuBar.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
@@ -1001,6 +992,7 @@ a RELATIVE inequality or division of social, economic or legal power that define
 
 TO DO: put into groups for managing different areas of law, but iterate through all.
 */
+/*
 
 public Boolean isLegalRoleWord (String myWord) {
     ArrayList<String> RoleWords = new ArrayList<String>(Arrays.asList("employer","employee","landlord","tenant","lessor","lessee","director","shareholder","trustee","beneficiary", "debtor","creditor", "payor", "payee","mortgagor","mortgagee","regulator","manager","partner","owner","guarantor","guarantee","seller","buyer","vendor","purchaser","grantor","grantee","distributor","bailor","bailee","master","servant","licensor","licensee","developer","carrier","lender","borrower"));
@@ -1013,6 +1005,7 @@ public Boolean isLegalRoleWord (String myWord) {
     }
     return false;
 }
+*/
 
 /*
 Method to end alert status for current sprite and reassign
@@ -1148,6 +1141,7 @@ public void deleteSpriteGUI(SpriteBox mySprite) {
         Stage_WS.setCurrentFocus(Stage_WS);
         OpenNodeStage = Stage_WS.getCurrentFocus();
         //nodes and menus
+        /*
         NodeConfig myNodeConfig = new NodeConfig();
         MenuItem defaultWM = new MenuItem("Default");
         populateMenus(myNodeConfig.getDefaultNodes());
@@ -1162,10 +1156,10 @@ public void deleteSpriteGUI(SpriteBox mySprite) {
         addMenuWorldsItem(menuitem4,myNodeConfig.getDictionaryNodes());
         //Menu menuNotes Items
         //setMenuNotes();
-        addMenuForNew(getMenuEvents(),myNodeConfig.getEvents());
+        addMenuForNew(getMenuEvents(),myNodeConfig.getEventsNodeConfigNodeConfigNodeConfig());
         addMenuForNew(getMenuNotes(),myNodeConfig.getNotesNodes());
         addMenuForNew(getMenuLaw(),myNodeConfig.getLawNodes());
-
+        */
         //setup main toolbar for buttons
         Stage_Toolbar = new StageManager(Stage_WS,"Tools");
         setupToolbarPanel(Stage_Toolbar);
@@ -1316,6 +1310,7 @@ public void deleteSpriteGUI(SpriteBox mySprite) {
     //Open a new stage in all cases (a kind of refresh)
 
     public void OpenRedNodeNow (SpriteBox currentSprite) { 
+        
         OpenNodeStage = new StageManager(Stage_WS, currentSprite, PressBoxEventHandler, DragBoxEventHandler); 
 
         /*if (currentSprite.getChildStage()==null) {
@@ -1342,6 +1337,29 @@ public void deleteSpriteGUI(SpriteBox mySprite) {
         }
     };
     */
+
+    // --- EVENT HANDLERS
+
+    // new spritebox on stage
+
+    EventHandler<ActionEvent> newNodeMaker = new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent t) {
+                //create a new node
+                NodeCategory NC_default = new NodeCategory("default",33,"darkblue");
+                //new node with category and masterNode as parent
+                ClauseContainer newDataNode = new ClauseContainer(NC_default,Main.this.masterNode);
+                
+                //place a COPY (REF) of node in the relevant open node.  Testing...
+                OpenNodeStage=Stage_WS.getCurrentFocus(); //update focus id.
+                OpenNodeStage.OpenNewNodeNow(newDataNode,Stage_WS); // check they both update
+                /* place a NEW object in the relevant open node... */
+                //OpenNodeStage.OpenNewNodeNow(new ClauseContainer(myCat),Stage_WS);
+                    System.out.println("Nodes ");
+                    System.out.println("Context Node: "+OpenNodeStage.getDisplayNode().getChildNodes().toString());
+            }
+    };
+        
      
     //printClauseList
         EventHandler<ActionEvent> printClauseList = 
@@ -1499,6 +1517,7 @@ public void deleteSpriteGUI(SpriteBox mySprite) {
         }
     };
     
+    /*
         //menu button handler to call method to set follower 
         EventHandler<ActionEvent> handleSetFollower = 
         new EventHandler<ActionEvent>() {
@@ -1517,7 +1536,7 @@ public void deleteSpriteGUI(SpriteBox mySprite) {
             OpenNodeStage.unsetFollow(); //call node or GUI?
             }
         };
-
+    */
         /* Process the text in the input area of the current Node viewer 
         (whether saved or not)
         */
@@ -1592,7 +1611,7 @@ public void deleteSpriteGUI(SpriteBox mySprite) {
         };
 
         //to load a new template to workspace
-        EventHandler<ActionEvent> loadTemplate = 
+        EventHandler<ActionEvent> openTemplate = 
         new EventHandler<ActionEvent>() {
         @Override 
         public void handle(ActionEvent event) {
@@ -1601,6 +1620,23 @@ public void deleteSpriteGUI(SpriteBox mySprite) {
             myLS.makeLoad(Stage_WS);
             }
         };
+
+        //save all (i.e. workspace etc)
+        EventHandler<ActionEvent> saveAll = 
+        new EventHandler<ActionEvent>() {
+        @Override 
+        public void handle(ActionEvent event) {
+            //use the persistent Stage_WS instance to get the current stage (class variable)
+            LoadSave myLS = new LoadSave();
+            ClauseContainer thisNode;
+                    if (Main.this.masterNode!=null) {
+                        myLS.makeSave(Stage_WS,Main.this.masterNode);
+                    }
+                    else {
+                       myLS.Close();
+                    }
+                }
+            };
 
         //save template
         EventHandler<ActionEvent> saveTemplate = 

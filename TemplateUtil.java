@@ -173,10 +173,7 @@ public void saveTemplate(ClauseContainer myNode, String filename) {
 	}
 }
 
-/*  Method to write graph structure to file (.pdg)
-	Obtain a hashmap with the sequenced nodes with an index
-	write the hashmap to the .pdg (structure file)
-	write the contents of each node in the hashmap to a .pdd file with each row being index, then data
+/*  Method to write out row with node and child nodes listed as node index numbers
 */
 
 
@@ -211,6 +208,8 @@ private String getChildrenList(ClauseContainer thisNode) {
 		}
 	return output;
 	}
+
+//Method to write out row: node index plus data
 
 private void writeDataOutput(ClauseContainer myNode, String filename) {
 	String reportfile="../templates/"+filename+".pdd";

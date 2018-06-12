@@ -140,8 +140,8 @@ public void makeLoad(StageManager targetSM) {
 private void makeDialogue(String title, int option) {
 	int winWidth=200;
 	int winHeight=100;
-	double x = 500;
-	double y = 500;
+	double x = 600;
+	double y = 50;
 	this.myStage = new Stage();
 	HBox myHBox = new HBox();
 	if (option==0) {

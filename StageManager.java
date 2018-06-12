@@ -916,14 +916,14 @@ private void makeSceneForNodeEdit() {
         outputTextArea.setPrefRowCount(10);
         //Button for saving clauses
         Button btnUpdate = new Button();
-        btnUpdate.setText("Update");
+        btnUpdate.setText("Save");
         btnUpdate.setTooltip(new Tooltip ("Press to Save current edits"));
         btnUpdate.setOnAction(UpdateNodeText);
         //Button for cancel
         Button btnEditCancel = new Button();
-        btnEditCancel.setText("Cancel Edits");
+        btnEditCancel.setText("Close");
         btnEditCancel.setTooltip(new Tooltip ("Press to Cancel current edits"));
-        //TO DO: set on action
+        btnEditCancel.setOnAction(closeWindow);
       
         HBox hboxButtons = new HBox(0,btnUpdate,btnEditCancel);
         //
@@ -981,6 +981,15 @@ private void makeSceneForNodeEdit() {
         });
         updateScene(tempScene);
 }
+
+//General close window action
+EventHandler<ActionEvent> closeWindow = 
+        new EventHandler<ActionEvent>() {
+        @Override 
+        public void handle(ActionEvent event) {
+           StageManager.this.getStage().close();
+        }
+    };
 
 //Create Eventhandler to use with stages that allow edit button
 
