@@ -116,7 +116,8 @@ String followerMode;
 //counters
 int count=0; //general purpose counter for node
 int branchcount=0; //general purpose counter for this branch of node
-
+//html text
+String htmlString="";
 //As of 26.4.18 - Make this node hold its own text, title (for now use docnotes as node text)
 //consequences: the concept of a 'clause' can be replaced by 
 //a) nodeCat to hold node category b) docnotes here to hold the text itself. 
@@ -464,6 +465,14 @@ public int getBranchCount() {
 //set the text that will be the main descriptive or clause text in this node
 public void setNotes (String myString) {
 	this.docnotes = myString;
+}
+
+public void setHTML (String myString) {
+	this.htmlString = myString;
+}
+
+public String getHTML() {
+	return this.htmlString;
 }
 
 public void setShortname (String myString) {

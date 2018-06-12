@@ -92,7 +92,8 @@ import javafx.scene.paint.Color;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
-
+//html editor
+import javafx.scene.web.HTMLEditor;
 
 
 /* Stages will always be on top of the parent window.  This is important for layout
@@ -150,6 +151,8 @@ EventHandler<MouseEvent> PressBox;
 EventHandler<MouseEvent> DragBox;
 //MenuBar
 MenuBar localmenubar;
+//html editor
+ final HTMLEditor htmlEditor = new HTMLEditor();
 
 /*
 Data collection will parallel GUI display of boxes. Provided stage manager can be serialised?
@@ -528,6 +531,7 @@ private void updateOpenNodeView() {
 
         shortnameTextArea.setText(getDisplayNode().getDocName());
         headingTextArea.setText(getDisplayNode().getHeading());
+        htmlEditor.setHtmlText(getDisplayNode().getHTML());
         
         //output node contents
         outputTextArea.setText(getDisplayNode().getOutputText());
@@ -863,7 +867,7 @@ private void refreshNodeViewScene() {
         inputTextArea.setWrapText(true);
         shortnameTextArea.setText(getDisplayNode().getDocName());
         headingTextArea.setText(getDisplayNode().getHeading());
-        
+        htmlEditor.setHtmlText(getDisplayNode().getHTML());
         //output node contents
         outputTextArea.setText(getDisplayNode().getOutputText());
         //redisplay boxes
@@ -884,6 +888,10 @@ private String getTitleText(String myString) {
         return getDisplayNode().getDocName()+myString;
     }
 }
+
+//html editor
+
+
 
 /* Method to build the viewer for the current open node.
 Capable of showing a text area, a pane to display sprite boxes and an Edit/Update button
@@ -909,6 +917,7 @@ private void makeSceneForNodeEdit() {
         int winWidth=650;
         int winHeight=700;
         boxPane.setPrefSize(winWidth, winHeight-300);
+        //HTML editor
         //TEXT AREAS
         inputTextArea.setPrefRowCount(7);
         inputTextArea.setWrapText(true);
@@ -946,7 +955,7 @@ private void makeSceneForNodeEdit() {
             setTitle(getTitleText(" - Container View"));
         }
             else {
-            vertFrame = new VBox(0,parentBoxText,shortnameTextArea,headingTextArea,inputTextArea,hboxButtons,boxPane,outputTextArea);
+            vertFrame = new VBox(0,parentBoxText,shortnameTextArea,headingTextArea,htmlEditor,inputTextArea,hboxButtons,boxPane,outputTextArea);
             setTitle(getTitleText(" - Full View"));
             vertFrame.setPrefSize(winWidth,winHeight);
         }
@@ -1003,6 +1012,7 @@ EventHandler<ActionEvent> UpdateNodeText =
             String editedHeading=headingTextArea.getText();
             String editedText=inputTextArea.getText();
             String editedOutput=outputTextArea.getText();
+            String editedHTML = htmlEditor.getHtmlText();
             //
             if (getDisplayNode().isFollower()==true) {
                 System.out.println("Won't update a node in follower mode");
@@ -1012,6 +1022,7 @@ EventHandler<ActionEvent> UpdateNodeText =
                 getDisplayNode().setHeading(editedHeading);
                 getDisplayNode().setNotes(editedText);
                 getDisplayNode().setOutputText(editedOutput);
+                getDisplayNode().setHTML(editedHTML);
 
                 //parentBox - should we insist on one?
                 SpriteBox pntBox = getParentBox();

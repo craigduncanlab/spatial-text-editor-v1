@@ -96,11 +96,13 @@ private ClauseContainer[] readNodeData(String filename) {
 			String name = scanner2.next();
 			String heading = scanner2.next();
 			String notes = scanner2.next();
+			String htmltext = scanner2.next();
 			NodeCategory NC_templ = new NodeCategory ("template",77,"gold");
 			newNodeBase[noderef] = new ClauseContainer(NC_templ);
 			newNodeBase[noderef].setDocName(name);
 			newNodeBase[noderef].setHeading(heading);
 			newNodeBase[noderef].setNotes(notes);
+			newNodeBase[noderef].setHTML(htmltext);
 			scanner2.close();
 		}
 		scanner1.close();
@@ -256,7 +258,7 @@ private void writeDataOutput(ClauseContainer myNode, String filename) {
 	PrintStream console = System.out;
 	PrintStream outstream = new PrintStream(new FileOutputStream(reportfile,true));
 	System.setOut(outstream);
-	String logString = Integer.toString(myNode.getNodeRef())+"@@P"+myNode.getDocName()+"@@P"+myNode.getHeading()+"@@P"+myNode.getNotes()+"@@P@EOR";
+	String logString = Integer.toString(myNode.getNodeRef())+"@@P"+myNode.getDocName()+"@@P"+myNode.getHeading()+"@@P"+myNode.getNotes()+"@@P"+myNode.getHTML()+"@@P@EOR";
 	System.out.print(logString); //don't use println.  No CR needed.
 	outstream.close();
 	System.setOut(console);
