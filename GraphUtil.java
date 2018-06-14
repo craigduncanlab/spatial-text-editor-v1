@@ -110,6 +110,7 @@ private void addChildrenDFS(ClauseContainer thisNode, int level, int count,Strin
 	if (thisNode.NodeIsLeaf()==true) {
 		return;
 	}
+	int hcount=1;
 	ArrayList<ClauseContainer> childrenArray = thisNode.getChildNodes();
 	Iterator<ClauseContainer> iterateChildren = childrenArray.iterator();
 	while (iterateChildren.hasNext()) {
@@ -118,13 +119,13 @@ private void addChildrenDFS(ClauseContainer thisNode, int level, int count,Strin
 			//this.myStack.add(nextNode); //add to list of unvisited
 			if (!isVisited(nextNode)) {
 				if (level>0) {
-					newOutline=thisNode.getOutline()+count+"."; //outline numbers
+					newOutline=thisNode.getOutline()+hcount+"."; //outline numbers
 				}
 				else {
-					newOutline=Integer.toString(count)+".";
+					newOutline=Integer.toString(hcount)+".";
 				}
-				addChildrenDFS(nextNode,level+1,count,newOutline); 
-				count++;//advance count at this level
+				addChildrenDFS(nextNode,level+1,hcount,newOutline); 
+				hcount++;//advance count at this level
 			}	//recursive
 			else {
 				System.out.println("Throwing cycle(?).  Inside updateDFS/addChildren: visited = true: Count:"+count);
