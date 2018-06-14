@@ -704,18 +704,12 @@ private MenuBar makeMenuBar() {
         MenuItem SaveTempl = new MenuItem("Save Template");
         MenuItem SaveAllTempl = new MenuItem("Save All");
         MenuItem OutputWork = new MenuItem("Output as Text");
-        MenuItem PrintBoxes = new MenuItem("PrintBoxes");
-        PrintBoxes.setOnAction(new EventHandler<ActionEvent>() {
-        public void handle(ActionEvent t) {
-                //call the 'print function' on the BoxContainer object (for now)
-                //WorkspaceBoxes.ContentsDump();
-                //TO DO: ADD SERIALISATION OR FUNCTION CALL
-            }
-        });    
+        MenuItem PrintTree = new MenuItem("Print as HTML");
+        PrintTree.setOnAction(writeHTML);
         
         menuFile.getItems().addAll(OpenTempl,SaveTempl,SaveAllTempl,
             OutputWork,
-            PrintBoxes);
+            PrintTree);
         //Items for horizontal menu, vertical MenuItems for each
         /*
         //Menu menuNewElement = new Menu("New");
@@ -780,9 +774,10 @@ private MenuBar makeMenuBar() {
         MenuItem DictTempl = new MenuItem("DictionaryTemplate");
         MenuItem DictTemplCounts =  new MenuItem("DictionaryTemplateCounts");
         MenuItem AustliiCounts =  new MenuItem("AustliiCounts");
+        MenuItem AustliiFirmCounts = new MenuItem("AustliiFirmCounts");
         
         menuText.getItems().addAll(
-            WordCount,GetDefText,GetDefs,GetClauses,GetSections,DictTempl,DictTemplCounts,AustliiCounts,NodeFromSelection);
+            WordCount,GetDefText,GetDefs,GetClauses,GetSections,DictTempl,DictTemplCounts,AustliiCounts,AustliiFirmCounts,NodeFromSelection);
         
         //--- MENU NEW
         Menu menuNew = new Menu("New");
@@ -873,7 +868,8 @@ private MenuBar makeMenuBar() {
         SaveAllTempl.setOnAction(saveAll);
         DictTempl.setOnAction(makeDictNode);
         DictTemplCounts.setOnAction(makeDictCountsNode);
-        AustliiCounts.setOnAction(makeAustliiCountsNode);
+        AustliiCounts.setOnAction(countAustliiDictionary);
+        AustliiFirmCounts.setOnAction(countAustliiFirms);
 
 
         //DATA MENU
@@ -1613,7 +1609,21 @@ public void deleteSpriteGUI(SpriteBox mySprite) {
             OpenNodeStage = Stage_WS.getCurrentFocus();
             FileSearch myFS = new FileSearch();
             String myfile = "1.html";
-            ClauseContainer dictNode = myFS.getDictionaryWithCounts(myfile);
+            ClauseContainer dictNode = myFS.getDictionaryWithCounts(myfile,"dictionary.txt");
+            OpenNodeStage.OpenNewNodeNow(dictNode,Stage_WS);
+            }
+        };
+
+        //to call function to make dictionary template with counts as needed
+        EventHandler<ActionEvent> getFirmCounts = 
+        new EventHandler<ActionEvent>() {
+        @Override 
+        public void handle(ActionEvent event) {
+            //use the persistent Stage_WS instance to get the current stage (class variable)
+            OpenNodeStage = Stage_WS.getCurrentFocus();
+            FileSearch myFS = new FileSearch();
+            String myfile = "1.html";
+            ClauseContainer dictNode = myFS.getDictionaryWithCounts(myfile,"firms.txt");
             OpenNodeStage.OpenNewNodeNow(dictNode,Stage_WS);
             }
         };
@@ -1664,15 +1674,46 @@ public void deleteSpriteGUI(SpriteBox mySprite) {
                 }
             }; 
 
+        //write out html content from this node tree
+        //save template
+        EventHandler<ActionEvent> writeHTML = 
+        new EventHandler<ActionEvent>() {
+        @Override 
+        public void handle(ActionEvent event) {
+            //use the persistent Stage_WS instance to get the current stage (class variable)
+            makeHTML mh = new makeHTML();
+            ClauseContainer thisNode;
+                    if (Main.this.getCurrentSprite()!=null) {
+                        thisNode = Main.this.getCurrentSprite().getBoxNode();
+                        mh.HTMLoutput(thisNode,thisNode.getDocName());
+                    }
+                    else {
+                       //mh.Close();
+                    }
+                }
+            };
+
         //to call function to make an austlii folder (.html) node with word counts inside
-        EventHandler<ActionEvent> makeAustliiCountsNode = 
+        EventHandler<ActionEvent> countAustliiDictionary = 
         new EventHandler<ActionEvent>() {
         @Override 
         public void handle(ActionEvent event) {
             //use the persistent Stage_WS instance to get the current stage (class variable)
             OpenNodeStage = Stage_WS.getCurrentFocus();
             FileSearch myFS = new FileSearch();
-            ClauseContainer austliiNode = myFS.getAustliiWithCounts();
+            ClauseContainer austliiNode = myFS.getAustliiWithCounts("dictionary.txt");
+            OpenNodeStage.OpenNewNodeNow(austliiNode,Stage_WS);
+            }
+        };
+
+        EventHandler<ActionEvent> countAustliiFirms = 
+        new EventHandler<ActionEvent>() {
+        @Override 
+        public void handle(ActionEvent event) {
+            //use the persistent Stage_WS instance to get the current stage (class variable)
+            OpenNodeStage = Stage_WS.getCurrentFocus();
+            FileSearch myFS = new FileSearch();
+            ClauseContainer austliiNode = myFS.getAustliiWithCounts("firms.txt");
             OpenNodeStage.OpenNewNodeNow(austliiNode,Stage_WS);
             }
         };

@@ -92,6 +92,7 @@ private ClauseContainer[] readNodeData(String filename) {
 			String thisRow=scanner1.next();
 			Scanner scanner2= new Scanner(thisRow).useDelimiter("@@P"); //change to benign delimiter
 			String hdword = scanner2.next();
+			System.out.println(hdword);
 			int noderef = Integer.valueOf(hdword);
 			String name = scanner2.next();
 			String heading = scanner2.next();
@@ -164,7 +165,7 @@ public void saveTemplate(ClauseContainer myNode, String filename) {
 	cleantemplate(filename);
 	//
 	GraphUtil myGraphUtil = new GraphUtil();
-	ClauseContainer[] myGraphSeq = myGraphUtil.getGraphNodeOrder(myNode);
+	ClauseContainer[] myGraphSeq = myGraphUtil.getBFS(myNode);
 	System.out.println("container length: "+myGraphSeq.length);
 	//structure
 	int u=0;

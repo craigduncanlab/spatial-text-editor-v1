@@ -58,28 +58,28 @@ private int filecheck(String fileref) {
 	return 1;
 }
 
-public ClauseContainer getAustliiWithCounts() {
+public ClauseContainer getAustliiWithCounts(String myDict) {
 	NodeCategory NC_dict = new NodeCategory ("dictionary",88,"white");
 	ClauseContainer AustliiNode = new ClauseContainer(NC_dict);
-	AustliiNode.setDocName("Austlii2018");
+	AustliiNode.setDocName(myDict+"2018");
 	int lastRecord=checkbound(this.maxbound);
 	for (int fc=1;fc<lastRecord;fc++) {
 		String myfile = Integer.toString(fc)+".html";
-		ClauseContainer myNode=getDictionaryWithCounts(myfile);
+		ClauseContainer myNode=getDictionaryWithCounts(myfile,myDict);
 		AustliiNode.addChildNode(myNode);
 	}
 	return AustliiNode;
 }
 
-public ClauseContainer getDictionaryWithCounts(String myfile) {
-	return readDictCounts(myfile);
+public ClauseContainer getDictionaryWithCounts(String myfile, String myDict) {
+	return readDictCounts(myfile, myDict);
 }
 
 
 //this creates a graph (i.e. nodes) for the dictionary - a graph template for storing word data for source documents
 
-private ClauseContainer readDictCounts(String filename) {
-	String fileref="dictionary.txt";
+private ClauseContainer readDictCounts(String filename,String dictname) {
+	String fileref=dictname;
 	//String boxlabel = "DictionaryTemplate";
 	NodeCategory NC_dict = new NodeCategory ("dictionary",88,"white");
 	ClauseContainer dictionaryNode = new ClauseContainer(NC_dict);

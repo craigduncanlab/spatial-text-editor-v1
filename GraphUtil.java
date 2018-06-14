@@ -9,7 +9,10 @@ public class GraphUtil {
 ArrayList<ClauseContainer> myQueue = new ArrayList<ClauseContainer>();
 //for node indexing
 int nodeSeq=0;
+int nodeIndex=0;
 ClauseContainer[] myGraphSeq = new ClauseContainer[300];
+//
+LinkedList<ClauseContainer> myStack = new LinkedList<ClauseContainer>();
 //
 String fileOutput=""; //use stringbuffer
 
@@ -20,14 +23,23 @@ public GraphUtil() {
 
 /*
 method to obtain list of graph nodes in sequence, starting with the selected node/box
+This is equivalent to a breadth first search (BFS)
+
 */
 
-public ClauseContainer[] getGraphNodeOrder(ClauseContainer myNode) {
-	updateNodeRefs(myNode);
+public ClauseContainer[] getBFS(ClauseContainer myNode) {
+	updateBFS(myNode);
 	return this.myGraphSeq;
 }
 
-private void updateNodeRefs(ClauseContainer myRootNode) {
+/* obtain list of nodes in DFS sequence */
+
+public ClauseContainer[] getDFS(ClauseContainer myNode) {
+	updateDFS(myNode);
+	return this.myGraphSeq;
+}
+
+private void updateBFS(ClauseContainer myRootNode) {
 	nodeSeq=0;
 	myRootNode.setNodeRef(0);
 	this.myQueue.add(myRootNode);
@@ -36,13 +48,13 @@ private void updateNodeRefs(ClauseContainer myRootNode) {
 	//
 	while(this.myQueue.isEmpty()==false) {
 		ClauseContainer firstNode = this.myQueue.get(0);
-		addChildrenQueue(firstNode); //add children to Queue
+		addChildrenBFS(firstNode); //add children to Queue
 		this.myQueue.remove(firstNode); //remove from Queue
 	}
 }
 
 //put child nodes on queue and give them a node index
-private void addChildrenQueue(ClauseContainer thisNode) {
+private void addChildrenBFS(ClauseContainer thisNode) {
 	if (thisNode.NodeIsLeaf()==true) {
 		return;
 	}
@@ -56,4 +68,69 @@ private void addChildrenQueue(ClauseContainer thisNode) {
 		this.nodeSeq++;
 		}
 	}
+
+/*method uses a DFS.  Uses a stack (the LinkedList is overkill but has nice methods)
+Only take a node off the stack (or mark as done) when all its children have been visited.
+When the stack is empty (or root node is done) the job is done.
+*/
+
+private void updateDFS(ClauseContainer myRootNode) {
+	this.nodeIndex=0;
+	int rootlevel = 0;
+	int count = 1;
+	String setOutline="";
+	System.out.println("Inside updateDFS.  Root node:"+myRootNode.toString());
+	addChildrenDFS(myRootNode,rootlevel,count,setOutline);
+}
+
+private Boolean isVisited(ClauseContainer myNode) {
+	if (myNode.getNodeRef()!=0) {
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+private void updateVisitedDFS(ClauseContainer currentNode, int level, int count,String outline) {
+	currentNode.setNodeRef(this.nodeIndex+1); //visited
+	currentNode.setDepth(level);
+	
+	if (level>0) {
+		currentNode.setOutline(outline);
+		currentNode.setLevelCount(count);
+	}
+	this.myGraphSeq[this.nodeIndex]=currentNode;
+	this.nodeIndex++;
+}
+
+//put child nodes on queue and give them a node index
+private void addChildrenDFS(ClauseContainer thisNode, int level, int count,String outline) {
+	updateVisitedDFS(thisNode,level,count,outline);
+	if (thisNode.NodeIsLeaf()==true) {
+		return;
+	}
+	ArrayList<ClauseContainer> childrenArray = thisNode.getChildNodes();
+	Iterator<ClauseContainer> iterateChildren = childrenArray.iterator();
+	while (iterateChildren.hasNext()) {
+		ClauseContainer nextNode = iterateChildren.next();
+		String newOutline="";
+			//this.myStack.add(nextNode); //add to list of unvisited
+			if (!isVisited(nextNode)) {
+				if (level>0) {
+					newOutline=thisNode.getOutline()+count+"."; //outline numbers
+				}
+				else {
+					newOutline=Integer.toString(count)+".";
+				}
+				addChildrenDFS(nextNode,level+1,count,newOutline); 
+				count++;//advance count at this level
+			}	//recursive
+			else {
+				System.out.println("Throwing cycle(?).  Inside updateDFS/addChildren: visited = true: Count:"+count);
+				System.out.println(" node:"+thisNode.toString()+"next childnode:"+ nextNode.toString());
+			}
+	}
+}
+
 }

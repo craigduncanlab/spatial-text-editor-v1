@@ -118,6 +118,11 @@ int count=0; //general purpose counter for node
 int branchcount=0; //general purpose counter for this branch of node
 //html text
 String htmlString="";
+//depth, level count for DFS
+int graphdepth=0;
+int graphcount=0;
+String outlinenum="";
+
 //As of 26.4.18 - Make this node hold its own text, title (for now use docnotes as node text)
 //consequences: the concept of a 'clause' can be replaced by 
 //a) nodeCat to hold node category b) docnotes here to hold the text itself. 
@@ -446,6 +451,8 @@ public int getCount() {
 	return this.count;
 }
 
+
+//GRAPH TRAVERSALS
 public void setNodeRef(int myindex) {
 	this.noderef = myindex;
 }
@@ -453,6 +460,30 @@ public void setNodeRef(int myindex) {
 public int getNodeRef() {
 	return this.noderef;
 }
+
+public void setDepth(int level) {
+	this.graphdepth = level;
+}
+
+public int getDepth() {
+	return this.graphdepth;
+}
+public void setLevelCount(int count) {
+	this.graphcount = count;
+}
+
+public int getLevelCount() {
+	return this.graphcount;
+}
+
+public void setOutline(String num) {
+	this.outlinenum = num;
+}
+
+public String getOutline() {
+	return this.outlinenum;
+}
+
 
 public void setBranchCount(int mycount) {
 	this.branchcount = mycount;
