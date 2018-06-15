@@ -63,9 +63,10 @@ private void writeHTMLFilesOut(int index, ClauseContainer myNode, String filenam
 	 }
 	 else {
 	 	logString = "<p><b>";
-	 	logString=myNode.getOutline();
+	 	logString=logString+myNode.getOutline();
 	 	logString=logString+" "+myNode.getHeading()+"</b></p>"+replaceString;
 	 }
+	myNode.setVisited(false); //reset state before next HTML write/graph traversal
 	System.out.print(logString); //don't use println.  No CR needed.
 	outstream.close();
 	System.setOut(console);

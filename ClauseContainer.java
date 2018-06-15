@@ -122,6 +122,7 @@ String htmlString="";
 int graphdepth=0;
 int graphcount=0;
 String outlinenum="";
+Boolean visited=false;
 
 //As of 26.4.18 - Make this node hold its own text, title (for now use docnotes as node text)
 //consequences: the concept of a 'clause' can be replaced by 
@@ -483,6 +484,15 @@ public void setOutline(String num) {
 public String getOutline() {
 	return this.outlinenum;
 }
+
+public void setVisited(Boolean bool) {
+	this.visited = bool;
+}
+
+public Boolean getVisited() {
+	return this.visited;
+}
+
 
 
 public void setBranchCount(int mycount) {

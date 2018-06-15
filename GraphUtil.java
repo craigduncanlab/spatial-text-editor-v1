@@ -84,7 +84,7 @@ private void updateDFS(ClauseContainer myRootNode) {
 }
 
 private Boolean isVisited(ClauseContainer myNode) {
-	if (myNode.getNodeRef()!=0) {
+	if (myNode.getVisited()) {
 		return true;
 	}
 	else {
@@ -93,7 +93,8 @@ private Boolean isVisited(ClauseContainer myNode) {
 }
 
 private void updateVisitedDFS(ClauseContainer currentNode, int level, int count,String outline) {
-	currentNode.setNodeRef(this.nodeIndex+1); //visited
+	currentNode.setNodeRef(this.nodeIndex+1); 
+	currentNode.setVisited(true);//visited
 	currentNode.setDepth(level);
 	
 	if (level>0) {
