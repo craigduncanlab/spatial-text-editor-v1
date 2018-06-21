@@ -120,6 +120,7 @@ private ClauseContainer[] readNodeData(String filename) {
 }
 
 //rebuild hierarchical graph structure for use with data file
+//This has no position data
 private void readStructure(ClauseContainer[] nodebase, String filename) {
 	//ClauseContainer[] nodebase = new ClauseContainer[300];
 	int nodeindex=0;
@@ -159,6 +160,54 @@ private void readStructure(ClauseContainer[] nodebase, String filename) {
 	//return nodebase;
 }
 
+//rebuild hierarchical graph structure for use with data file
+//This has X,Y position data for child nodes
+private void readStructureXY(ClauseContainer[] nodebase, String filename) {
+	//ClauseContainer[] nodebase = new ClauseContainer[300];
+	int nodeindex=0;
+	String fileref=this.searchfolder+filename+".pdg";
+	//
+	try {
+		Scanner scanner1 = new Scanner(new File(fileref));
+		if (scanner1==null) {
+			System.out.println("No text/html content");
+			//return nodebase;
+		}
+		while (scanner1.hasNextLine()) {
+			String thisRow=scanner1.nextLine();
+			Scanner scanner2= new Scanner(thisRow).useDelimiter(",");
+			//create node for first node in row
+			String hdword = scanner2.next();
+			int nodeID = Integer.valueOf(hdword);
+			while (scanner2.hasNext()) {
+				//3 entries per child node
+				String rowword = scanner2.next();
+				String xpos = scanner2.next();
+				String ypos = scanner2.next();
+				//
+				double x = (double)Integer.valueOf(xpos);
+				double y = (double)Integer.valueOf(ypos);
+				int childref = Integer.valueOf(rowword);
+				if (childref==0) {
+					System.out.println("Error in graph structure at nodeID:"+nodeID+" in row :"+hdword);
+				}
+				nodebase[nodeID].addChildNode(nodebase[childref]);
+				nodebase[childref].setParentNode(nodebase[nodeID]);
+				nodebase[childref]. setChildNodeXY(x,y); //position
+			}
+		scanner2.close();
+		}
+		scanner1.close();
+	}
+	catch (Throwable t)
+	{
+		t.printStackTrace();
+		//System.exit(0);
+		//return nodebase;
+	}
+	//return nodebase;
+}
+
 
 public void saveTemplate(ClauseContainer myNode, String filename) {
 	//
@@ -173,6 +222,7 @@ public void saveTemplate(ClauseContainer myNode, String filename) {
 	{
 		ClauseContainer thisNode = myGraphSeq[u];
 		System.out.println(u+":"+thisNode.toString());
+		writeNewStructOutput(thisNode,filename);
 		writeStructOutput(thisNode,filename);
 		writeDataOutput(thisNode,filename);
 		u++;
@@ -187,6 +237,8 @@ private void cleantemplate(String filename) {
 	String reportfile="../templates/"+filename+".pdd";
 	cleanfile(reportfile);
 	reportfile="../templates/"+filename+".pdg";
+	cleanfile(reportfile);
+	reportfile="../templates/"+filename+".pds";
 	cleanfile(reportfile);
 }
 
@@ -219,6 +271,9 @@ private void cleanfile(String reportfile) {
 		*/
 }
 
+//method to write out structure of graph to text file
+//TO DO: integrate the .pdg and .pds 
+
 private void writeStructOutput(ClauseContainer myNode, String filename) {
 	String reportfile="../templates/"+filename+".pdg";
 	try {
@@ -237,6 +292,49 @@ private void writeStructOutput(ClauseContainer myNode, String filename) {
 		}
 }
 
+//method to write out structure of graph to text file
+//TO DO: integrate the .pdg and .pds 
+
+private void writeNewStructOutput(ClauseContainer myNode, String filename) {
+	String reportfile="../templates/"+filename+".pds";
+	try {
+	PrintStream console = System.out;
+	PrintStream outstream = new PrintStream(new FileOutputStream(reportfile,true));
+	System.setOut(outstream);
+	String logString = Integer.toString(myNode.getNodeRef())+","+getChildrenData(myNode);
+	System.out.println(logString); //this needs a CR/LF so use println
+	outstream.close();
+	System.setOut(console);
+	}
+		catch (Throwable t)
+		{
+			t.printStackTrace();
+			return;
+		}
+}
+
+//write out structure and child node positions
+//TO DO: In future, these could be binary data files
+private String getChildrenData(ClauseContainer thisNode) {
+	if (thisNode.NodeIsLeaf()==true) {
+		return "";
+	}
+	String output="";
+	ArrayList<ClauseContainer> childrenArray = thisNode.getChildNodes();
+	Iterator<ClauseContainer> iterateChildren = childrenArray.iterator();
+	while (iterateChildren.hasNext()) {
+		ClauseContainer nextNode = iterateChildren.next();
+		output=output+Integer.toString(nextNode.getNodeRef())+",";
+		//output = output+ "{"+Double.toString(nextNode.getChildNodeX())+","+Double.toString(nextNode.getChildNodeY())+"},";
+		output = output+ ","+Double.toString(nextNode.getChildNodeX())+","+Double.toString(nextNode.getChildNodeY())+",";
+		
+		}
+	return output;
+	}
+
+
+
+//write out structure only
 private String getChildrenList(ClauseContainer thisNode) {
 	if (thisNode.NodeIsLeaf()==true) {
 		return "";

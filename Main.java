@@ -1229,6 +1229,9 @@ public void deleteSpriteGUI(SpriteBox mySprite) {
             //change the active sprite to the current touched sprite.
             setCurrentSprite(currentSprite); //clicked sprite
             System.out.println("The handler for drag box is acting");
+            //update position
+            currentSprite.setXY(newTranslateX,newTranslateY);
+            System.out.println("Main: Translate Position (X,Y): "+newTranslateX+","+newTranslateY);
             //updates to sprite that triggered event
             currentSprite.setTranslateX(newTranslateX);
             currentSprite.setTranslateY(newTranslateY);

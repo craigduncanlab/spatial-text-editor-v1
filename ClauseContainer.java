@@ -102,7 +102,6 @@ ArrayList<ClauseContainer> myChildNodes = new ArrayList<ClauseContainer>();
 
 //NODE CATEGORIES (FOR WORLD NODES) TO DO: Turn into a ClauseContainer array
 ArrayList<NodeCategory> nodeCatList = new ArrayList<NodeCategory>();
-
 //This node's data and level in tree:
 Clause dataClause = new Clause(); 
 
@@ -111,6 +110,7 @@ int nodelevel = 0; //start at root 0 (project) allows future tree expansion
 int nodeGUIloc = 0; //to store Stage or GUI element where the node is located
 //(nodelocation can match Stage?)
 // store the node's preference for what GUI view & data view to start in.
+//(for current session only.  TO DO: store when saving.)
 String userNodeView;
 String followerMode;
 //counters
@@ -123,6 +123,8 @@ int graphdepth=0;
 int graphcount=0;
 String outlinenum="";
 Boolean visited=false;
+double childNodeX = 0.0;
+double childNodeY = 0.0;
 
 //As of 26.4.18 - Make this node hold its own text, title (for now use docnotes as node text)
 //consequences: the concept of a 'clause' can be replaced by 
@@ -265,6 +267,19 @@ public void setUserView(String myView) {
 	this.userNodeView=myView;
 }
 
+public void setChildNodeXY(double cnx, double cny) {
+	this.childNodeX=cnx;
+	this.childNodeY=cny;
+}
+
+public double getChildNodeX() {
+	return this.childNodeX;
+}
+
+public double getChildNodeY() {
+	return this.childNodeY;
+}
+
 // ---- FOLLOWER MODE AND DATA
 
 public void setFollow(ClauseContainer myParentLink) {
@@ -395,7 +410,8 @@ public ArrayList<ClauseContainer> getClauseArray() {
 
 //METHODS FOR INTERNAL AND EXTERNAL UPDATES TO NODE
 
-/*Method to set child nodes that are in this node's (navigation) data array by copying each entry
+/*Helper ethod for cloning node (ClauseContainer)
+Sets all set child nodes in this node using passed array of Nodes (ClauseContainer objects)
 Rename this e.g. 'populateChildNodes'
 */
 

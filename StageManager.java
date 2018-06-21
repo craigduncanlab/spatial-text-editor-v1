@@ -1394,8 +1394,16 @@ public void positionSpriteOnStage(SpriteBox mySprite) {
             mySprite.endAlert();
     }
     //advanceSpritePosition();
-    mySprite.setTranslateX(spriteX);
-    mySprite.setTranslateY(spriteY); 
+    //if sprite does not have its own location, use GUI location
+    //use Translate relative to origin of node (i.e. not scene as a whole)
+    if (mySprite.getX()!=0 || mySprite.getY()!=0) {
+        mySprite.setTranslateX(mySprite.getX());
+        mySprite.setTranslateY(mySprite.getY());
+    }
+    else {
+        mySprite.setTranslateX(spriteX);
+        mySprite.setTranslateY(spriteY); 
+    } 
     mySprite.setStageLocation(StageManager.this); //needed if stage is not o/w tracked
     if (mySprite.getStageLocation()!=StageManager.this) {
         System.out.println("Problem with adding sprite:"+mySprite.toString());

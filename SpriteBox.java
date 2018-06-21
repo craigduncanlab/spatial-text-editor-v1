@@ -203,6 +203,7 @@ Called from StageManager objects
         }
     };
 
+    //Not invoked?  Uses the handler passed in from main method.
     EventHandler<MouseEvent> DragBoxEventHandler = 
         new EventHandler<MouseEvent>() {
  
@@ -214,6 +215,9 @@ Called from StageManager objects
             double newTranslateX = orgTranslateX + offsetX;
             double newTranslateY = orgTranslateY + offsetY;
             System.out.println("The local (#) Box handler for drag box is acting");
+            //update stored box location
+            SpriteBox.this.setXY(offsetX,offsetY);
+            System.out.println("Offsets (X,Y): "+offsetX+","+offsetY);
             //updates to sprite that triggered event
             SpriteBox.this.setTranslateX(newTranslateX);
             SpriteBox.this.setTranslateY(newTranslateY);
@@ -237,6 +241,7 @@ Called from StageManager objects
 
     public void setBoxNode (ClauseContainer myNode) {
         this.BoxNode = myNode;
+        this.getXY();
         this.updateAppearance();
     }
 
@@ -286,6 +291,8 @@ Called from StageManager objects
      /* SUPERFICIAL SPRITE APPEARANCE AND STORE LOCATION */
 
     public double[] getXY() {
+        this.Xpos=this.getBoxNode().getChildNodeX();
+        this.Ypos=this.getBoxNode().getChildNodeY();
         return new double[]{this.Xpos,this.Ypos};
     }
 
@@ -297,9 +304,22 @@ Called from StageManager objects
         return this.Ypos;
     }
 
+    //set child node offset for this box.  Must be positive.
     public void setXY(double x, double y) {
-        this.Xpos=x;
-        this.Ypos=y;
+        if (x>0) {
+            this.Xpos=x;
+        }
+        else {
+            this.Xpos=0;
+        }
+        if (y>0) {
+            this.Ypos=y;
+        }
+        else {
+            this.Ypos=0;
+        }
+        this.getBoxNode().setChildNodeXY(x,y); //set data node to store this position for save
+        System.out.println ("Updated child node offset:"+x+","+y);
     }
      
     public Text getLabel() {
