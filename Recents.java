@@ -11,6 +11,7 @@ import javafx.scene.control.MenuItem;
 
 
 //Class to load in recents list to populate Open menu subitems
+//nb Java supplies a Preferences class which stores data in registry etc and is an alternative to local text file: https://docs.oracle.com/javase/6/docs/api/java/util/prefs/Preferences.html
 
 public class Recents {
 
@@ -97,43 +98,6 @@ public MenuItem makeMenuItem(String filename) {
     });
     return menuItemA;
 }
-
-/*
-/* Event handler for recent items menu 
-    EventHandler<ActionEvent> RecentFilesHandler = new EventHandler<ActionEvent>() {
-         @Override public void handle(ActionEvent e) {
-             Recents myR = Main.this.theRecent;
-             String filename = myR.getFilename();
-             System.out.println(e.getEventType());
-             System.out.println("Recent:"+filename+" Clicked");
-             TemplateUtil myUtil = new TemplateUtil();
-             ClauseContainer newNode = myUtil.getStructuredData(filename); 
-             System.out.println("Created:"+newNode.toString());
-             //access the Stage_WS reference recently passed to this object
-             //StageManager mySM = myR.getTarget();
-             //StageManager mySM = Main.this.getTarget();
-             StageManager mySM = Stage_WS;
-             if (mySM==null) {
-                System.out.println("Problem with Stage Manager object in makeMenu");
-             }
-             if (newNode!=null) {
-                mySM.OpenNewNodeNow(newNode,mySM);
-             }
-         }
-     };
-
-    */
-/*
-EventHandler<ActionEvent> FilesHandler = new EventHandler<ActionEvent>() {
-	@Override 
-        public void handle(ActionEvent event) {
-        	System.out.println("Event handled for Recents");
-        	//Recents.this.getTarget();
-        	//Recents.this.setfilename(this.menufilename);
-        	System.out.println("StageWS:"+Recents.this.targetSM.toString() + "filename:"+this.menufilename);
-        }
-};
-*/
 
 //return ArrayList with Menu Items
 public ArrayList<String> getList() {
