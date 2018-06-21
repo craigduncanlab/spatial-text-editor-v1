@@ -127,7 +127,7 @@ ScrollPane spriteScrollPane;
 Pane spritePane;
 Scene localScene;
 SpriteBox focusbox; //for holding active sprite in this scene.  Pass to app.
-//SpriteTracker globalTracker;
+SpriteTracker myTrk;
 SpriteBox parentBox;//to hold the calling box for this viewer.  
 //Do not create new object here or circular constructors! Do in constructor
 
@@ -144,7 +144,7 @@ int doccount=0; //document counter for this stage
 //As of 26.4.2018: make this the default area to hold the node's own text (for stages that display a frame that is also an open node).  Always editable.
 
 //This TextArea is the GUI display object for the nodes' docnotes String.  Edit button will update the node's (ClauseContainer) actual data
-TextArea shortnameTextArea = new TextArea();
+TextArea docNameTextArea = new TextArea();
 TextArea headingTextArea = new TextArea();
 TextArea inputTextArea = new TextArea();
 TextArea outputTextArea = new TextArea();
@@ -170,7 +170,7 @@ Consider if subclasses of StageManager could deal with flavours of StageManager 
 ArrayList<Object> BoxContentsArray = new ArrayList<Object>(); //generic store of contents of boxes
 
 
-//Track current stage that is open.
+//Track current stage that is open.  Class variables
 static StageManager currentFocus; //any StageManager can set this to itself
 static ClauseContainer currentTarget; //any Box(no?) or StageManager can set this to its display node
 
@@ -193,7 +193,7 @@ public StageManager(StageManager parent, String myTitle) {
 }
 
 //standard open node viewer constructor.  Used by 'OpenRedNodeNow' method in Main
-public StageManager(StageManager parent, ClauseContainer myNode, EventHandler PressBox, EventHandler DragBox) {
+public StageManager(SpriteTracker spTrk, StageManager parent, ClauseContainer myNode, EventHandler PressBox, EventHandler DragBox) {
     //view
     setJavaFXStageParent(parent);
     setPressBox(PressBox);
@@ -203,8 +203,13 @@ public StageManager(StageManager parent, ClauseContainer myNode, EventHandler Pr
     //data: new 'parent' node based on category alone
     setDisplayNode(myNode);
     //
-    currentFocus=StageManager.this; //set focus on creation
-    parent.setCurrentFocus(StageManager.this);//this duplicated previous line since class variable?
+    this.myTrk = spTrk;
+    if (this.myTrk==null) {
+        System.out.println("myTrk null in constructor openrednodenow");
+        System.exit(0);
+    }
+    this.myTrk.setCurrentFocus(StageManager.this); //set focus on creation
+    //parent.setCurrentFocus(StageManager.this);//this duplicated previous line since class variable?
     //
     updateOpenNodeView(); //updates contents but doesn't show stage unless requested
     //showStage(); //to do: put default view in constructor
@@ -212,7 +217,7 @@ public StageManager(StageManager parent, ClauseContainer myNode, EventHandler Pr
 
 //standard open node viewer constructor using an existing Spritebox with node 
 //TO DO: extract node from spritebox first, then use other constructor?
-public StageManager(StageManager parent, SpriteBox myBox, EventHandler PressBox, EventHandler DragBox) {
+public StageManager(SpriteTracker spTrk, StageManager parent, SpriteBox myBox, EventHandler PressBox, EventHandler DragBox) {
     setJavaFXStageParent(parent);
     setParentBox(myBox); //data 
     //
@@ -221,7 +226,12 @@ public StageManager(StageManager parent, SpriteBox myBox, EventHandler PressBox,
     setDragBox(DragBox);
     setKeyPress(NodeKeyHandler); //this can be different for workspace
     //
-    currentFocus=StageManager.this; //set focus on creation
+    this.myTrk = spTrk;
+    if (this.myTrk==null) {
+        System.out.println("myTrk null in constructor existing spritebox");
+        System.exit(0);
+    }
+    this.myTrk.setCurrentFocus(StageManager.this);  //set focus on creation
     parent.setCurrentFocus(StageManager.this);//this duplicated previous line since class variable?
     updateOpenNodeView();
     showStage();
@@ -230,14 +240,20 @@ public StageManager(StageManager parent, SpriteBox myBox, EventHandler PressBox,
 //workspace constructor.  Filename details will be inherited from loaded node.
 //Passes MenuBar from main application for now
 //Passes general eventhandlers from Main (at present, also uses these for the boxes)
-public StageManager(String title, NodeCategory myCategory, ClauseContainer baseNode, MenuBar myMenu, EventHandler PressBox, EventHandler DragBox) {
+public StageManager(SpriteTracker spTrk, String title, NodeCategory myCategory, ClauseContainer baseNode, MenuBar myMenu, EventHandler PressBox, EventHandler DragBox) {
     //view
     setTitle(title);
     setMenuBar(myMenu);
     setPressBox(PressBox);
     setDragBox(DragBox);
     newWorkstageFromGroup();
-    currentFocus=StageManager.this; //set focus on creation 
+     //
+    this.myTrk = spTrk;
+    if (this.myTrk==null) {
+        System.out.println("myTrk null in constructor workspace");
+        System.exit(0);
+    }
+    this.myTrk.setCurrentFocus(StageManager.this);
     setWSNode(baseNode); 
     //data
     //ClauseContainer WorkspaceNode = ;
@@ -278,12 +294,12 @@ private void cycleUserView() {
 
 //any instance can return the global variable with focus stage
 public StageManager getCurrentFocus() {
-    return currentFocus; //notice not a 'this' as not an instance
+    return this.myTrk.getCurrentFocus();//notice not a 'this' as not an instance
 }
 
 //setter: should generally only set it to current instance
 public void setCurrentFocus(StageManager mySM) {
-    currentFocus = mySM; //notice not a 'this' as not an instance
+    this.myTrk.setCurrentFocus(mySM); ; //notice not a 'this' as not an instance
 }
 
 public void setTargetByViewer(StageManager mySM) {
@@ -539,12 +555,10 @@ private void updateOpenNodeView() {
     inputBoxText.setText("Input Text Area:");
     outputBoxText.setText("Output Text Area:");
     //REFRESHES ALL GUI DATA - EVEN IF NOT CURRENTLY VISIBLE
-    
-        inputTextArea.setText(getDisplayNode().getNotes());
-
-        shortnameTextArea.setText(getDisplayNode().getDocName());
+        docNameTextArea.setText(getDisplayNode().getDocName());
         headingTextArea.setText(getDisplayNode().getHeading());
         htmlEditor.setHtmlText(getDisplayNode().getHTML());
+        inputTextArea.setText(getDisplayNode().getNotes());
         
         //output node contents
         outputTextArea.setText(getDisplayNode().getOutputText());
@@ -882,7 +896,7 @@ private Scene makeSceneForBoxes(ScrollPane myPane) {
 private void refreshNodeViewScene() {
         inputTextArea.setText(getDisplayNode().getNotes());
         inputTextArea.setWrapText(true);
-        shortnameTextArea.setText(getDisplayNode().getDocName());
+        docNameTextArea.setText(getDisplayNode().getDocName());
         headingTextArea.setText(getDisplayNode().getHeading());
         htmlEditor.setHtmlText(getDisplayNode().getHTML());
         //output node contents
@@ -939,7 +953,7 @@ private void makeSceneForNodeEdit() {
         inputTextArea.setPrefRowCount(7);
         inputTextArea.setWrapText(true);
         headingTextArea.setPrefRowCount(1);
-        shortnameTextArea.setPrefRowCount(1);
+        docNameTextArea.setPrefRowCount(1);
         outputTextArea.setPrefRowCount(10);
         //Button for saving clauses
         Button btnUpdate = new Button();
@@ -975,12 +989,12 @@ private void makeSceneForNodeEdit() {
             setTitle(getTitleText(" - Input Output View"));
         }
         else if(getDisplayNode().getUserView().equals("nodeboxesonly")) {
-            vertFrame = new VBox(0,shortnameTextArea,hboxButtons,boxPane);
+            vertFrame = new VBox(0,docNameTextArea,hboxButtons,boxPane);
             vertFrame.setPrefSize(winWidth,winHeight);
             setTitle(getTitleText(" - Sublinks View"));
         }
             else {
-            vertFrame = new VBox(0,parentBoxText,shortnameTextArea,headingBoxText,headingTextArea,htmlEditor,hboxButtons,boxPane,inputBoxText,inputTextArea,outputBoxText,outputTextArea);
+            vertFrame = new VBox(0,parentBoxText,docNameTextArea,headingBoxText,headingTextArea,htmlEditor,hboxButtons,boxPane,inputBoxText,inputTextArea,outputBoxText,outputTextArea);
             setTitle(getTitleText(" - Full View"));
             vertFrame.setPrefSize(winWidth,winHeight);
         }
@@ -1071,7 +1085,7 @@ EventHandler<ActionEvent> UpdateNodeText =
         @Override 
         public void handle(ActionEvent event) {
             //main node contents (text)
-            String editedName=shortnameTextArea.getText();
+            String editedName=docNameTextArea.getText();
             String editedHeading=headingTextArea.getText();
             String editedText=inputTextArea.getText();
             String editedOutput=outputTextArea.getText();
@@ -1309,6 +1323,15 @@ private void addNodeToView (ClauseContainer myNode) {
     //SpriteBox b = makeBoxWithNode(myNode); //relies on Main, event handlers x
     SpriteBox b = new SpriteBox(PressBox,DragBox,myNode);
     addSpriteToStage(b); //differs from Main 
+    if (b==null) {
+        System.out.println("SpriteBox null in addnodetoview");
+        System.exit(0);
+    }
+     if (this.myTrk==null) {
+        System.out.println("myTrk null in addnodetoview");
+        System.exit(0);
+    }
+    this.myTrk.setActiveSprite(b);
     setFocusBox(b); 
 }
 

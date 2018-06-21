@@ -139,10 +139,13 @@ public class Main extends Application {
     int libdocnum=0;
     //move active sprite tracking to here from spritemanager class (redundant)
     SpriteBox activeSprite;
-    SpriteTracker myTracker = new SpriteTracker();
+    SpriteTracker myTracker; // = new SpriteTracker();
     //STAGE IDS
     int location = 0;
-    //Menu to hold view toggle functions, but configure as needed.
+    //Menus that need to be individually referenced/updated
+    Menu theFileMenu;
+    Menu theRecentMenu;
+    Recents theRecent;
     Menu theViewMenu;
     Menu theNewNodeMenu;
     Menu theWorldsMenu;
@@ -476,13 +479,21 @@ private void addMenuViewsItems(ArrayList<NodeCategory> myCatList) {
             System.out.println("Views Menu cleaning unsuccessful");
         }
         
-         Iterator<NodeCategory> myIterator = myCatList.iterator(); //alternatively use Java method to see if in Array?
+        if (this.myTracker==null) {
+            System.out.println("MyTRK is null addMenuViewsItems");
+            System.exit(0);
+        }
+        Iterator<NodeCategory> myIterator = myCatList.iterator(); //alternatively use Java method to see if in Array?
             while (myIterator.hasNext()) {
             NodeCategory myCat = myIterator.next();
             //System.out.println(myCat.getCategory());
             MenuItem myNewViewItem = new MenuItem(myCat.getCategory());
             ClauseContainer myCatNode = new ClauseContainer(myCat, masterNode, "The holding area for all nodes of this category",myCat.getCategory());
-            StageManager myNewStage = new StageManager(Stage_WS, myCatNode, PressBoxEventHandler,DragBoxEventHandler); //to do: title.  Global?
+            if (this.myTracker==null) {
+            System.out.println("MyTRK is null addMenuViewsItems - iterator");
+            System.exit(0);
+             }
+            StageManager myNewStage = new StageManager(this.myTracker, Stage_WS, myCatNode, PressBoxEventHandler,DragBoxEventHandler); //to do: title.  Global?
             myMenu.getItems().add(myNewViewItem);
             //handlers
             myNewViewItem.setOnAction(new EventHandler<ActionEvent>() {
@@ -644,6 +655,27 @@ private Menu getMenuViews() {
     return this.theViewMenu;
 }
 
+private Menu getFileMenu() {
+    return this.theFileMenu;
+}
+
+private void setFileMenu(Menu newFM) {
+    this.theFileMenu = newFM;
+}
+
+/*
+private Menu getRecentMenu() {
+    //this.theRecentMenu = theRecent.getRecentMenu();
+    return this.theRecentMenu;
+}
+
+private void setRecentMenu(Menu newFM) {
+    //this.theRecentMenu = newFM;
+    //this.theRecent = new Recents(Stage_WS,RecentFilesHandler);
+    //this.theRecentMenu = theRecent.getRecentMenu();
+    this.theRecentMenu = new Menu ("Open Recents");
+}
+*/
 
 private void setMenuViews() {
     this.theViewMenu = new Menu("Views");
@@ -700,6 +732,7 @@ private MenuBar makeMenuBar() {
         MenuBar menuBar = new MenuBar();
         // --- FILE MENU ---
         Menu menuFile = new Menu("File");
+        setFileMenu(menuFile);
         MenuItem OpenTempl = new MenuItem("Open Template");
         MenuItem SaveName = new MenuItem("Save (selected)");
         MenuItem SaveTempl = new MenuItem("Save As (selected)");
@@ -708,9 +741,20 @@ private MenuBar makeMenuBar() {
         MenuItem PrintTree = new MenuItem("Print as HTML");
         PrintTree.setOnAction(writeHTML);
         
-        menuFile.getItems().addAll(OpenTempl,SaveName,SaveTempl,SaveAllTempl,
+        //there is no Stage_WS defined at this point
+        this.theRecentMenu = new Menu("Open Recent $");
+        //refreshRecentMenu();
+        MenuItem exit = new MenuItem("Exit");
+        exit.setOnAction(new EventHandler<ActionEvent>() {
+            public void handle(ActionEvent t) {
+            System.exit(0);
+            }
+        });
+         menuFile.getItems().addAll(OpenTempl,this.theRecentMenu,SaveName,SaveTempl,SaveAllTempl,
             OutputWork,
-            PrintTree);
+            PrintTree,exit);
+
+        
         //Items for horizontal menu, vertical MenuItems for each
         /*
         //Menu menuNewElement = new Menu("New");
@@ -880,7 +924,7 @@ private MenuBar makeMenuBar() {
 
         /* --- MENU BAR --- */
         menuBar.getMenus().addAll(menuFile, menuNew, menuText, menuOutput);     
-        
+
         //create an event filter so we can process mouse clicks on menubar (and ignore them!)
         menuBar.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
          @Override
@@ -891,10 +935,30 @@ private MenuBar makeMenuBar() {
             System.out.println("MB Viewer :"+Stage_WS.getCurrentFocus());
             //mouseEvent.consume(); //consume this event - so menu works or not?
             //TO DO: proceed but ignore it for change of focus purposes?
+            refreshRecentMenu();
              }
         });
 
         return menuBar;
+}
+
+private void refreshRecentMenu() {
+    if (this.Stage_WS==null) {
+        System.out.println("Stage WS is null refresh recent");
+        System.exit(0);
+    }
+    Recents myRec = new Recents(this.Stage_WS, new LoadSave(this.Stage_WS));
+    ArrayList<String> latest = myRec.getList();
+    if (latest!=null) {
+        this.theRecentMenu.getItems().clear();
+    }
+    Iterator<String> myIterator = latest.iterator(); //alternatively use Java method to see if in Array?
+    while (myIterator.hasNext()) {
+        String filename = myIterator.next();
+        MenuItem myMI = myRec.makeMenuItem(filename);
+        System.out.println("menu item added:"+filename);
+        this.theRecentMenu.getItems().add(myMI);
+    }
 }
 
 private VBox makeToolBarButtons() {
@@ -1010,25 +1074,39 @@ Method to end alert status for current sprite and reassign
 Currently this looks at all Sprite Boxes globally (regardless of viewer/location)
 */
 private void moveAlertFromBoxtoBox(SpriteBox hadFocus, SpriteBox mySprite) {
-    hadFocus = getCurrentSprite();
+    /*hadFocus = getCurrentSprite();
     if (hadFocus!=null) {
         hadFocus.endAlert();
     }
     setCurrentSprite(mySprite);
     Stage_WS.setCurrentFocus(mySprite.getStageLocation());
     mySprite.doAlert();
+    */
+    if (this.myTracker==null) {
+            System.out.println("MyTRK is null move alert");
+            System.exit(0);
+        }
+    this.myTracker.setActiveSprite(mySprite);
     }
  
 
 //general method to store currentSprite
 
 private void setCurrentSprite(SpriteBox mySprite) {
+    if (this.myTracker==null) {
+            System.out.println("MyTRK is null set current sprite");
+            System.exit(0);
+        }
+    this.myTracker.setActiveSprite(mySprite);
+       /*
     SpriteBox activeSprite = myTracker.getCurrentSprite();
+ 
     if (activeSprite!=null) {  //might be no current sprite if not dbl clicked
             activeSprite.endAlert();
         }
         myTracker.setCurrentSprite(mySprite);
-        mySprite.doAlert();  
+        mySprite.doAlert();
+        */  
 }
 
 private SpriteBox getCurrentSprite() {
@@ -1134,15 +1212,30 @@ public void deleteSpriteGUI(SpriteBox mySprite) {
          masterNode.setDocName("Workspace");
          masterNode.setHeading("Workspace(saved)");
          masterNode.setShortname("default");
-
+        System.out.println("masterNode created.");
         //general application nodes
         NodeCategory NC_WS = new NodeCategory ("workspace",99,"white");
         //nodeCatList = makeLawWorldCategories(); <---optional, to restore NodeCats
         //
         MenuBar myMenu = makeMenuBar();
-        Stage_WS = new StageManager("Workspace", NC_WS, masterNode, myMenu, PressBoxEventHandler, DragBoxEventHandler);  //sets up GUI for view
-        Stage_WS.setCurrentFocus(Stage_WS);
-        OpenNodeStage = Stage_WS.getCurrentFocus();
+        this.myTracker = new SpriteTracker();
+        if (this.myTracker==null) {
+            System.out.println("MyTRK is null start application");
+            System.exit(0);
+        }
+        Stage_WS = new StageManager(this.myTracker,"Workspace", NC_WS, masterNode, myMenu, PressBoxEventHandler, DragBoxEventHandler);  //sets up GUI for view
+        //update recent items loader
+        Stage_WS.setCurrentFocus(Stage_WS); //deprecated
+        OpenNodeStage = Stage_WS.getCurrentFocus(); //deprecated
+        if (this.Stage_WS==null) {
+            System.out.println("Stage_WS is null start application");
+            System.exit(0);
+        }
+        else {
+            System.out.println("Stage_WS created.");
+        }
+        
+        
         //nodes and menus
         /*
         NodeConfig myNodeConfig = new NodeConfig();
@@ -1193,8 +1286,6 @@ public void deleteSpriteGUI(SpriteBox mySprite) {
     This will require a 'worldlist' to populate the menus.
 
     */
-
-    
 
     /* Event handler added to box with clause content */
 
@@ -1316,8 +1407,12 @@ public void deleteSpriteGUI(SpriteBox mySprite) {
     //Open a new stage in all cases (a kind of refresh)
 
     public void OpenRedNodeNow (SpriteBox currentSprite) { 
-        
-        OpenNodeStage = new StageManager(Stage_WS, currentSprite, PressBoxEventHandler, DragBoxEventHandler); 
+        if (this.myTracker==null) {
+            System.out.println("MyTRK is null openrednodenow");
+            System.exit(0);
+        }
+
+        OpenNodeStage = new StageManager(this.myTracker, Stage_WS, currentSprite, PressBoxEventHandler, DragBoxEventHandler); 
 
         /*if (currentSprite.getChildStage()==null) {
             OpenNodeStage = new StageManager(Stage_WS, currentSprite, PressBoxEventHandler, DragBoxEventHandler); 
@@ -1640,9 +1735,46 @@ public void deleteSpriteGUI(SpriteBox mySprite) {
         public void handle(ActionEvent event) {
             //use the persistent Stage_WS instance to get the current stage (class variable)
             LoadSave myLS = new LoadSave();
-            myLS.makeLoad(Stage_WS);
+            myLS.makeLoad(Main.this.Stage_WS);
+
+            if (Main.this.Stage_WS==null) {
+                System.out.println("Problem with passing Stage_WS to openTemplate");
+            }
+
+            /*Recents myRecent = new Recents(Main.this.Stage_WS);
+            Menu newMenu = myRecent.makeRecentMenu(); //update with current recents file
+            Main.this.setRecentMenu(newMenu);
+            */
             }
         };
+
+        /* //to load a recent template to workspace
+        EventHandler<ActionEvent> openRecentTemplate = 
+        new EventHandler<ActionEvent>() {
+        @Override 
+        public void handle(ActionEvent event) {
+            //use the persistent Stage_WS instance to get the current stage (class variable)
+            LoadSave myLS = new LoadSave();
+            myLS.doRecent(Main.this.Stage_WS);
+
+            if (Main.this.Stage_WS==null) {
+                System.out.println("Problem with passing Stage_WS to openTemplate");
+            }
+
+            Recents myRecent = new Recents(Main.this.Stage_WS);
+            Menu newMenu = myRecent.makeRecentMenu(); //update with current recents file
+            Main.this.setRecentMenu(newMenu);
+            }
+        };
+        */
+        /*
+         if (mySM==null) {
+        System.out.println("Problem with Stage Manager object in makeMenu");
+     }
+     if (newNode!=null) {
+        mySM.OpenNewNodeNow(newNode,mySM);
+     }
+     */
 
         //save all (i.e. workspace etc)
         EventHandler<ActionEvent> saveAll = 
@@ -1653,7 +1785,7 @@ public void deleteSpriteGUI(SpriteBox mySprite) {
             LoadSave myLS = new LoadSave();
             ClauseContainer thisNode;
                     if (Main.this.masterNode!=null) {
-                        myLS.makeSave(Stage_WS,Main.this.masterNode);
+                        myLS.makeSave(Main.this.Stage_WS,Main.this.masterNode);
                     }
                     else {
                        myLS.Close();
@@ -1672,6 +1804,10 @@ public void deleteSpriteGUI(SpriteBox mySprite) {
                     if (Main.this.getCurrentSprite()!=null) {
                         thisNode = Main.this.getCurrentSprite().getBoxNode();
                         myLS.saveName(thisNode);
+                        //update recent docs list
+                        String filename=thisNode.getDocName();
+                        Recents myR = new Recents();
+                        myR.updateRecents(filename);
                     }
                     else {
                        myLS.Close();
@@ -1689,7 +1825,11 @@ public void deleteSpriteGUI(SpriteBox mySprite) {
             ClauseContainer thisNode;
                     if (Main.this.getCurrentSprite()!=null) {
                         thisNode = Main.this.getCurrentSprite().getBoxNode();
-                        myLS.makeSave(Stage_WS,thisNode);
+                        myLS.makeSave(Main.this.Stage_WS,thisNode);
+                        //update recent docs list
+                        String filename=thisNode.getDocName();
+                        Recents myR = new Recents();
+                        myR.updateRecents(filename);
                     }
                     else {
                        myLS.Close();

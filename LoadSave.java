@@ -81,6 +81,11 @@ public LoadSave () {
 
 }
 
+//constructor with Stage
+public LoadSave (StageManager mySM) {
+  this.targetSM=mySM;
+}
+
 private HBox SaveButtonSetup() {
 	Button btnSave = new Button();
 	Button btnCancel = new Button();
@@ -125,7 +130,7 @@ public void makeSave(StageManager targetSM, ClauseContainer myNode) {
 	this.targetSM = targetSM; //store for later
 	this.targetNode = myNode; //store for later
 	//make this dialogue
-	makeDialogue("Save Template",0);
+	makeDialogue("Save Template As",0);
 }
 
 public void saveName(ClauseContainer myNode) {
@@ -140,6 +145,12 @@ public void makeLoad(StageManager targetSM) {
 	//this.targetNode = null; //store for later
 	//make this dialogue
 	makeDialogue("Load Template",1);
+}
+
+public void simpleOpen(ClauseContainer myNode) {
+  System.out.println(myNode.toString());
+  System.out.println(this.targetSM.toString());
+  this.targetSM.OpenNewNodeNow(myNode, this.targetSM);
 }
 
 //create dialogue box and display
@@ -185,6 +196,9 @@ EventHandler<ActionEvent> clickOpen =
             ClauseContainer newNode = myUtil.getStructuredData(filename); 
             if (newNode!=null) {
                 LoadSave.this.targetSM.OpenNewNodeNow(newNode,LoadSave.this.targetSM);
+                //update recents list
+                Recents myR = new Recents();
+                myR.updateRecents(filename);
                 LoadSave.this.Close();
             }
           }

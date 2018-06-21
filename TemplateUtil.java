@@ -68,12 +68,14 @@ private ClauseContainer readSimpleTemplate(String filename) {
 }
 
 
-//return a graph node holding the current dictionary as a graph of subnodes, but with content included
+//return a graph node holding the current file as a graph of subnodes, but with content included
 //Node 0 will be the root node, to be returned.
 
 public ClauseContainer getStructuredData(String filename) {
 	ClauseContainer[] myNodeBase =readNodeData(filename);
+	System.out.println(".pdd done");
 	readStructure(myNodeBase,filename);
+	System.out.println(".pdg done");
 	return myNodeBase[0];
 }
 
@@ -193,7 +195,7 @@ private void readStructureXY(ClauseContainer[] nodebase, String filename) {
 				}
 				nodebase[nodeID].addChildNode(nodebase[childref]);
 				nodebase[childref].setParentNode(nodebase[nodeID]);
-				nodebase[childref]. setChildNodeXY(x,y); //position
+				nodebase[childref].setChildNodeXY(x,y); //position
 			}
 		scanner2.close();
 		}
@@ -326,7 +328,7 @@ private String getChildrenData(ClauseContainer thisNode) {
 		ClauseContainer nextNode = iterateChildren.next();
 		output=output+Integer.toString(nextNode.getNodeRef())+",";
 		//output = output+ "{"+Double.toString(nextNode.getChildNodeX())+","+Double.toString(nextNode.getChildNodeY())+"},";
-		output = output+ ","+Double.toString(nextNode.getChildNodeX())+","+Double.toString(nextNode.getChildNodeY())+",";
+		output = output+ Double.toString(nextNode.getChildNodeX())+","+Double.toString(nextNode.getChildNodeY())+",";
 		
 		}
 	return output;
