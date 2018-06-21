@@ -232,7 +232,7 @@ public StageManager(SpriteTracker spTrk, StageManager parent, SpriteBox myBox, E
         System.exit(0);
     }
     this.myTrk.setCurrentFocus(StageManager.this);  //set focus on creation
-    parent.setCurrentFocus(StageManager.this);//this duplicated previous line since class variable?
+    //parent.setCurrentFocus(StageManager.this);//this duplicated previous line since class variable?
     updateOpenNodeView();
     showStage();
 }
@@ -1012,25 +1012,25 @@ private void makeSceneForNodeEdit() {
         tempScene.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
          @Override
          public void handle(MouseEvent mouseEvent) {
-         System.out.println("Mouse click on a node (StageManager scene) detected! " + mouseEvent.getSource());
-         //setStageFocus("document");
-         if (!currentFocus.equals(StageManager.this)) {
-            refreshNodeViewScene();//update the GUI with focus.  TO DO: do once.
-            currentFocus=StageManager.this;
-         }
-         //error checking i.e. like jUnit assert
-         if (getCurrentFocus()==StageManager.this) {
-            System.out.println("Change of Viewer Focus OK in Viewer!");
-             System.out.println("makescene Viewer :"+StageManager.this);
-             System.out.println("scene display node :"+getDisplayNode().toString());
-             System.out.println("notes String :"+getDisplayNode().getNotes());
-             System.out.println("Input text area: "+inputTextArea.getText());
-         }
-         else {
-            System.out.println("Problem with change Viewer Focus");
-            System.out.println("makescene Present Viewer :"+StageManager.this);
-            System.out.println("Current Focus :"+getCurrentFocus());
-         }
+                 System.out.println("Mouse click on a node (StageManager scene) detected! " + mouseEvent.getSource());
+                 //setStageFocus("document");
+                 if (!getCurrentFocus().equals(StageManager.this)) {
+                    refreshNodeViewScene(); //update the GUI with focus.  TO DO: do once.
+                    StageManager.this.myTrk.setCurrentFocus(StageManager.this);
+                 }
+                 //error checking i.e. like jUnit assert
+                 if (getCurrentFocus()==StageManager.this) {
+                    System.out.println("Change of Viewer Focus OK in Viewer!");
+                     System.out.println("makescene Viewer :"+StageManager.this);
+                     System.out.println("scene display node :"+getDisplayNode().toString());
+                     System.out.println("notes String :"+getDisplayNode().getNotes());
+                     System.out.println("Input text area: "+inputTextArea.getText());
+                 }
+                 else {
+                    System.out.println("Problem with change Viewer Focus");
+                    System.out.println("makescene Present Viewer :"+StageManager.this);
+                    System.out.println("Current Focus :"+getCurrentFocus());
+                 }
          }
         });
         updateScene(tempScene);
@@ -1204,37 +1204,37 @@ private Scene makeWorkspaceScene(Group myGroup) {
             if (mouseEvent.getTarget() instanceof Scene) {
                 System.out.println("Clicked on scene; updated focus");
                 System.out.println("ws Viewer :"+StageManager.this);
-                currentFocus=StageManager.this;
+                StageManager.this.myTrk.setCurrentFocus(StageManager.this);
                 mouseEvent.consume(); //to stop the bubbling?
             }
             else if (mouseEvent.getTarget() instanceof BorderPane) {
                  System.out.println("Clicked on Border Pane ; updated focus");
                  System.out.println("ws Viewer :"+StageManager.this);
-                 currentFocus=StageManager.this;
+                 StageManager.this.myTrk.setCurrentFocus(StageManager.this);
                  mouseEvent.consume(); //to stop the bubbling?
             }
             else if (mouseEvent.getTarget() instanceof Pane) {
                  System.out.println("ws Clicked on Pane ; updated focus");
-                 currentFocus=StageManager.this;
+                 StageManager.this.myTrk.setCurrentFocus(StageManager.this);
                  mouseEvent.consume(); //to stop the bubbling?
             }
             //to distinguish Text on Menu from Text on boxes you can interrogate what the Text is to see if it's a menu
             else if (mouseEvent.getTarget() instanceof Text) {
                  System.out.println("ws Clicked on Text ; no change to focus");
-                 //currentFocus=StageManager.this;
+                 //this.myTrk.setCurrentFocus(StageManager.this);
             }
             else if (mouseEvent.getTarget() instanceof ColBox) {
                  System.out.println("ws Clicked on box ; updated focus");
                  System.out.println("ws Viewer :"+StageManager.this);
-                 currentFocus=StageManager.this;
+                  StageManager.this.myTrk.setCurrentFocus(StageManager.this);
             }
             else if (mouseEvent.getTarget() instanceof Rectangle) {
                  System.out.println("ws Clicked on box ; updated focus");
-                 currentFocus=StageManager.this;
+                  StageManager.this.myTrk.setCurrentFocus(StageManager.this);
             }
             else if (mouseEvent.getTarget() instanceof Labeled) {
                  System.out.println("ws Clicked on Labeled ; no change to focus");
-                 //currentFocus=StageManager.this;
+                 //this.myTrk.setCurrentFocus(StageManager.this);
             }
             else {
                 System.out.println("ws Click not identified : no change to focus");
