@@ -701,13 +701,14 @@ private MenuBar makeMenuBar() {
         // --- FILE MENU ---
         Menu menuFile = new Menu("File");
         MenuItem OpenTempl = new MenuItem("Open Template");
-        MenuItem SaveTempl = new MenuItem("Save Template");
+        MenuItem SaveName = new MenuItem("Save (selected)");
+        MenuItem SaveTempl = new MenuItem("Save As (selected)");
         MenuItem SaveAllTempl = new MenuItem("Save All");
         MenuItem OutputWork = new MenuItem("Output as Text");
         MenuItem PrintTree = new MenuItem("Print as HTML");
         PrintTree.setOnAction(writeHTML);
         
-        menuFile.getItems().addAll(OpenTempl,SaveTempl,SaveAllTempl,
+        menuFile.getItems().addAll(OpenTempl,SaveName,SaveTempl,SaveAllTempl,
             OutputWork,
             PrintTree);
         //Items for horizontal menu, vertical MenuItems for each
@@ -863,6 +864,7 @@ private MenuBar makeMenuBar() {
         GetClauses.setOnAction(makeClauseBoxesFromText);
         GetSections.setOnAction(makeBoxesFromStatuteText);
         NodeFromSelection.setOnAction(makeSelectedChildNode);
+        SaveName.setOnAction(saveDocName);
         SaveTempl.setOnAction(saveTemplate);
         OpenTempl.setOnAction(openTemplate);
         SaveAllTempl.setOnAction(saveAll);
@@ -1208,8 +1210,8 @@ public void deleteSpriteGUI(SpriteBox mySprite) {
     
      /* This is an eventhandler interface to create a new eventhandler class for the SpriteBox objects 
      This uses a lambda expression to create an override of the handle method
-     */
-     /* These currently have no limits on how far you can drag */
+     These currently have no limits on how far you can drag 
+     Handle release events in Stage Managers ?*/
 
     EventHandler<MouseEvent> DragBoxEventHandler = 
         new EventHandler<MouseEvent>() {
@@ -1656,7 +1658,25 @@ public void deleteSpriteGUI(SpriteBox mySprite) {
                 }
             };
 
-        //save template
+        //save  template
+        EventHandler<ActionEvent> saveDocName = 
+        new EventHandler<ActionEvent>() {
+        @Override 
+        public void handle(ActionEvent event) {
+            //use the persistent Stage_WS instance to get the current stage (class variable)
+            LoadSave myLS = new LoadSave();
+            ClauseContainer thisNode;
+                    if (Main.this.getCurrentSprite()!=null) {
+                        thisNode = Main.this.getCurrentSprite().getBoxNode();
+                        myLS.saveName(thisNode);
+                    }
+                    else {
+                       myLS.Close();
+                    }
+                }
+            }; 
+
+         //save As template
         EventHandler<ActionEvent> saveTemplate = 
         new EventHandler<ActionEvent>() {
         @Override 

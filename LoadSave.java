@@ -128,6 +128,13 @@ public void makeSave(StageManager targetSM, ClauseContainer myNode) {
 	makeDialogue("Save Template",0);
 }
 
+public void saveName(ClauseContainer myNode) {
+  TemplateUtil myUtil = new TemplateUtil();
+  String filename = myNode.getDocName();
+  myUtil.saveTemplate(myNode,filename);
+  System.out.println("Save template completed");
+}
+
 public void makeLoad(StageManager targetSM) {
 	this.targetSM = targetSM; //store for later
 	//this.targetNode = null; //store for later

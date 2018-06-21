@@ -94,7 +94,10 @@ import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 //html editor
 import javafx.scene.web.HTMLEditor;
-
+//Drag n Drop events
+import javafx.scene.input.DragEvent;
+import javafx.scene.input.Dragboard;
+import javafx.scene.input.TransferMode;
 
 /* Stages will always be on top of the parent window.  This is important for layout
 Make sure the smaller windows are owned by the larger window that is always visible
@@ -146,6 +149,9 @@ TextArea headingTextArea = new TextArea();
 TextArea inputTextArea = new TextArea();
 TextArea outputTextArea = new TextArea();
 Text parentBoxText;
+Text headingBoxText;
+Text inputBoxText;
+Text outputBoxText;
 //Store the common event handlers here for use
 EventHandler<MouseEvent> PressBox;
 EventHandler<MouseEvent> DragBox;
@@ -252,6 +258,10 @@ private void cycleUserView() {
             updateOpenNodeView();
             break;
         case "textonly" :
+            getDisplayNode().setUserView("inputoutput");
+            updateOpenNodeView();
+            break;
+        case "inputoutput" :
             getDisplayNode().setUserView("nodeboxesonly");
             updateOpenNodeView();
             break;
@@ -523,8 +533,11 @@ private void updateOpenNodeView() {
         }
         */
     }
-    String pathText = parentSTR+"-->"+getDisplayNode().getDocName()+"(viewing)"; 
+    String pathText = "Path/file:"+parentSTR+"-->"+getDisplayNode().getDocName()+"(viewing)"; 
     parentBoxText.setText(pathText);
+    headingBoxText.setText("Heading:");
+    inputBoxText.setText("Input Text Area:");
+    outputBoxText.setText("Output Text Area:");
     //REFRESHES ALL GUI DATA - EVEN IF NOT CURRENTLY VISIBLE
     
         inputTextArea.setText(getDisplayNode().getNotes());
@@ -827,9 +840,13 @@ public void setInitStage(StageManager myParentSM, Stage myStage, Group myGroup, 
 
 /* Method to make new Scene with known Group for Sprite display */
 public ScrollPane makeScrollGroup () {
-    Group myGroup = new Group();
-    setSpriteGroup(myGroup); 
+    Group myGroup = new Group(); //the group that holds the box nodes.
+    setSpriteGroup(myGroup);
+    //attach event handler to this group 
+    //myGroup.setOnMouseEntered(mouseEnterEventHandler);
+    //other parts of JavaFX tree
     Pane myPane = new Pane();
+    myPane.setOnMouseReleased(mouseEnterEventHandler);
     setSpritePane(myPane);
     myPane.getChildren().add(myGroup);
     ScrollPane outerScroll = new ScrollPane();
@@ -938,6 +955,9 @@ private void makeSceneForNodeEdit() {
         HBox hboxButtons = new HBox(0,btnUpdate,btnEditCancel);
         //
         parentBoxText = new Text();
+        headingBoxText = new Text();
+        inputBoxText = new Text();
+        outputBoxText = new Text();
         //set view option
         VBox vertFrame;
         //handle null case
@@ -945,17 +965,22 @@ private void makeSceneForNodeEdit() {
             getDisplayNode().setUserView("all");
         }
         if (getDisplayNode().getUserView().equals("textonly")) {
-            vertFrame = new VBox(0,headingTextArea,inputTextArea,hboxButtons);
+            vertFrame = new VBox(0,headingBoxText,headingTextArea,htmlEditor,hboxButtons);
              vertFrame.setPrefSize(winWidth,winHeight);
-            setTitle(getTitleText(" - Text View"));
+            setTitle(getTitleText(" - HTML Text View"));
+        }
+        else if (getDisplayNode().getUserView().equals("inputoutput")) {
+            vertFrame = new VBox(0,headingBoxText,headingTextArea,inputBoxText,inputTextArea,outputBoxText,outputTextArea,hboxButtons);
+             vertFrame.setPrefSize(winWidth,winHeight);
+            setTitle(getTitleText(" - Input Output View"));
         }
         else if(getDisplayNode().getUserView().equals("nodeboxesonly")) {
             vertFrame = new VBox(0,shortnameTextArea,hboxButtons,boxPane);
             vertFrame.setPrefSize(winWidth,winHeight);
-            setTitle(getTitleText(" - Container View"));
+            setTitle(getTitleText(" - Sublinks View"));
         }
             else {
-            vertFrame = new VBox(0,parentBoxText,shortnameTextArea,headingTextArea,htmlEditor,inputTextArea,hboxButtons,boxPane,outputTextArea);
+            vertFrame = new VBox(0,parentBoxText,shortnameTextArea,headingBoxText,headingTextArea,htmlEditor,hboxButtons,boxPane,inputBoxText,inputTextArea,outputBoxText,outputTextArea);
             setTitle(getTitleText(" - Full View"));
             vertFrame.setPrefSize(winWidth,winHeight);
         }
@@ -964,7 +989,12 @@ private void makeSceneForNodeEdit() {
         largePane.setPrefSize(winWidth, winHeight);
         largePane.getChildren().add(vertFrame); 
         Scene tempScene = new Scene (largePane,winWidth,winHeight); //default width x height (px)
-        //add event handler for mouse event
+        //add event handler for mouse released event
+        tempScene.addEventFilter(MouseEvent.MOUSE_RELEASED, mouseEnterEventHandler);
+         //add event handler for mouse dragged  event
+        tempScene.addEventFilter(MouseEvent.MOUSE_DRAGGED, mouseDragEventHandler);
+
+        //add event handler for mouse pressed event
         tempScene.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
          @Override
          public void handle(MouseEvent mouseEvent) {
@@ -991,6 +1021,39 @@ private void makeSceneForNodeEdit() {
         });
         updateScene(tempScene);
 }
+
+/*Mouse event handler - to deal with boxes being dragged over this stage manager and release
+If this is attached to the panel in the GUI where the child nodes sit, it is easy to handle a 'drop'
+Currently utilises the 'makeScrollGroup' and addNewSpriteToStage methods.
+The setSpriteGroup group must also add this event handler to that group.
+*/
+
+EventHandler<MouseEvent> mouseEnterEventHandler = 
+        new EventHandler<MouseEvent>() {
+ 
+        @Override
+        public void handle(MouseEvent t) {
+            //SpriteBox currentSprite = ((SpriteBox)(t.getSource()));
+            //TO DO: check if mouse is dragging/pressed
+            System.out.println("Detected mouse released - Stage Manager Group"+StageManager.this.getSpriteGroup().toString());
+            //t.consume();//check
+        }
+    };
+
+//mouse drag
+
+    EventHandler<MouseEvent> mouseDragEventHandler = 
+        new EventHandler<MouseEvent>() {
+ 
+        @Override
+        public void handle(MouseEvent t) {
+            //SpriteBox currentSprite = ((SpriteBox)(t.getSource()));
+            //TO DO: check if mouse is dragging/pressed
+            System.out.println("Detected mouse drag - Stage Manager Group"+StageManager.this.getSpriteGroup().toString());
+            //t.consume();//check
+        }
+    };
+
 
 //General close window action
 EventHandler<ActionEvent> closeWindow = 

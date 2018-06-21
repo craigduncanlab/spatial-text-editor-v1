@@ -54,6 +54,9 @@ i.e. holds a GUI representation of a 'Node' as data object, then some of its fun
 i.e. operate on the data node directly through main app, and let this just create a GUI representation.
 (separation of concerns)
 
+20.6.18
+The SpriteBox is always transitory so it doesn't store position data.
+Do that in node (ClauseContainer)?
 
 */
 
@@ -189,7 +192,7 @@ Called from StageManager objects
         @Override
         public void handle(MouseEvent t) {
          //current position of mouse
-        orgSceneX = t.getSceneX();
+        orgSceneX = t.getSceneX(); //Mouse event X, Y coords relative to scene that triggered
         orgSceneY = t.getSceneY();
 
         //update the origin point to this click/press
