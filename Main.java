@@ -825,10 +825,23 @@ private MenuBar makeMenuBar() {
             WordCount,GetDefText,GetDefs,GetClauses,GetSections,DictTempl,DictTemplCounts,AustliiCounts,AustliiFirmCounts,NodeFromSelection);
         
         //--- MENU NEW
+        /*
         Menu menuNew = new Menu("New");
         MenuItem newNode = new MenuItem("Box");
         newNode.setOnAction(newNodeMaker);
         menuNew.getItems().addAll(newNode);
+        */
+
+        //--- MENU CONCEPTS
+        Menu menuConcept = new Menu("Concepts");
+        MenuItem newNode = new MenuItem("New Concept");
+        newNode.setOnAction(newNodeMaker);
+        MenuItem conceptMove = new MenuItem("Move To Target");
+        conceptMove.setOnAction(MoveBoxtoTarget);
+        MenuItem conceptDelete = new MenuItem("Delete Selected");
+        conceptDelete.setOnAction(deleteCurrentSprite);
+        menuConcept.getItems().addAll(newNode,conceptMove,conceptDelete);
+
         //--- OUTPUT MENU ---
         Menu menuOutput = new Menu("Output");
         MenuItem saveOutput = new MenuItem("Save");
@@ -923,7 +936,7 @@ private MenuBar makeMenuBar() {
         //unsetFollower.setOnAction(handleUnsetFollower);
 
         /* --- MENU BAR --- */
-        menuBar.getMenus().addAll(menuFile, menuNew, menuText, menuOutput);     
+        menuBar.getMenus().addAll(menuFile, menuConcept, menuText, menuOutput);     
 
         //create an event filter so we can process mouse clicks on menubar (and ignore them!)
         menuBar.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {

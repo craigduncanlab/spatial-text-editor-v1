@@ -74,8 +74,11 @@ private ClauseContainer readSimpleTemplate(String filename) {
 public ClauseContainer getStructuredData(String filename) {
 	ClauseContainer[] myNodeBase =readNodeData(filename);
 	System.out.println(".pdd done");
-	readStructure(myNodeBase,filename);
+	/*readStructure(myNodeBase,filename);
 	System.out.println(".pdg done");
+	*/
+	readStructureXY(myNodeBase,filename);
+	System.out.println(".pds done");
 	return myNodeBase[0];
 }
 
@@ -167,7 +170,7 @@ private void readStructure(ClauseContainer[] nodebase, String filename) {
 private void readStructureXY(ClauseContainer[] nodebase, String filename) {
 	//ClauseContainer[] nodebase = new ClauseContainer[300];
 	int nodeindex=0;
-	String fileref=this.searchfolder+filename+".pdg";
+	String fileref=this.searchfolder+filename+".pds";
 	//
 	try {
 		Scanner scanner1 = new Scanner(new File(fileref));
@@ -187,8 +190,8 @@ private void readStructureXY(ClauseContainer[] nodebase, String filename) {
 				String xpos = scanner2.next();
 				String ypos = scanner2.next();
 				//
-				double x = (double)Integer.valueOf(xpos);
-				double y = (double)Integer.valueOf(ypos);
+				double x = Double.valueOf(xpos);
+				double y = Double.valueOf(ypos);
 				int childref = Integer.valueOf(rowword);
 				if (childref==0) {
 					System.out.println("Error in graph structure at nodeID:"+nodeID+" in row :"+hdword);
@@ -324,13 +327,15 @@ private String getChildrenData(ClauseContainer thisNode) {
 	String output="";
 	ArrayList<ClauseContainer> childrenArray = thisNode.getChildNodes();
 	Iterator<ClauseContainer> iterateChildren = childrenArray.iterator();
+	String childstring = "";
 	while (iterateChildren.hasNext()) {
 		ClauseContainer nextNode = iterateChildren.next();
-		output=output+Integer.toString(nextNode.getNodeRef())+",";
+		childstring=Integer.toString(nextNode.getNodeRef())+",";
 		//output = output+ "{"+Double.toString(nextNode.getChildNodeX())+","+Double.toString(nextNode.getChildNodeY())+"},";
-		output = output+ Double.toString(nextNode.getChildNodeX())+","+Double.toString(nextNode.getChildNodeY())+",";
-		
+		childstring = childstring+ Double.toString(nextNode.getChildNodeX())+","+Double.toString(nextNode.getChildNodeY())+",";
+		output=output+childstring;
 		}
+	
 	return output;
 	}
 

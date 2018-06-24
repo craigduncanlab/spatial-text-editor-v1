@@ -1061,7 +1061,10 @@ private void makeSceneForNodeEdit() {
                  System.out.println("Mouse click on a node (StageManager scene) detected! " + mouseEvent.getSource());
                  //setStageFocus("document");
                  if (!getCurrentFocus().equals(StageManager.this)) {
-                    refreshNodeViewScene(); //update the GUI with focus.  TO DO: do once.
+                    /* Rfresh NodeViewScene
+                    If this needs to be done, save first.
+                    Otherwise current unsaved text is lost when click on scene occurs.  */
+                    //refreshNodeViewScene();
                     StageManager.this.myTrk.setCurrentFocus(StageManager.this);
                  }
                  //error checking i.e. like jUnit assert
