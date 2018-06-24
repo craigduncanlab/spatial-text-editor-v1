@@ -152,6 +152,7 @@ Text parentBoxText;
 Text headingBoxText;
 Text inputBoxText;
 Text outputBoxText;
+Text conceptsBoxText;
 //Store the common event handlers here for use
 EventHandler<MouseEvent> PressBox;
 EventHandler<MouseEvent> DragBox;
@@ -189,6 +190,7 @@ public StageManager(StageManager parent, String myTitle) {
     setJavaFXStageParent(parent);
     this.outputTextArea.setWrapText(true);
     this.inputTextArea.setWrapText(true);  //default
+    setToolBarWindowPosition();
     //cycleUserView();
 }
 
@@ -200,6 +202,8 @@ public StageManager(SpriteTracker spTrk, StageManager parent, ClauseContainer my
     setDragBox(DragBox);
     setKeyPress(NodeKeyHandler); //this can be different for workspace
     
+    //position
+    setEditWindowPosition();
     //data: new 'parent' node based on category alone
     setDisplayNode(myNode);
     //
@@ -233,6 +237,7 @@ public StageManager(SpriteTracker spTrk, StageManager parent, SpriteBox myBox, E
     }
     this.myTrk.setCurrentFocus(StageManager.this);  //set focus on creation
     //parent.setCurrentFocus(StageManager.this);//this duplicated previous line since class variable?
+    setEditWindowPosition();
     updateOpenNodeView();
     showStage();
 }
@@ -554,6 +559,7 @@ private void updateOpenNodeView() {
     headingBoxText.setText("Heading:");
     inputBoxText.setText("Input Text Area:");
     outputBoxText.setText("Output Text Area:");
+    conceptsBoxText.setText("Concepts Area:");
     //REFRESHES ALL GUI DATA - EVEN IF NOT CURRENTLY VISIBLE
         docNameTextArea.setText(getDisplayNode().getDocName());
         headingTextArea.setText(getDisplayNode().getHeading());
@@ -747,15 +753,39 @@ private void setJavaFXStageParent(StageManager ParentSM) {
 The order in which the Stages are created and set will determine initial z order for display
 Earliest z is toward back
 The workspace (WS) is, in effect, a large window placed at back.
+TO DO: check x y and within tolerable limits
+
+*/
+private void setEditWindowPosition() {
+    setStagePosition(100,300);
+    stageFront();
+    }
+
+//set workspace Window Position
+private void setWorkspaceWindowPosition() {
+   setStagePosition(0,0);
+   stageBack();
+}
+
+//toolbars and other misc output
+private void setToolBarWindowPosition() {
+    setStagePosition(800,300);
+    stageFront();
+}
+/* 
+
+The order in which the Stages are created and set will determine initial z order for display
+Earliest z is toward back
+The workspace (WS) is, in effect, a large window placed at back.
 TO DO: Make the MenuBar etc attach to a group that is at back,
 then add WIP spritexboxes to a 'Document Group' that replaces Workspace with 'Document' menu
 
 */
 
 //TO DO: set position based on NodeCat.
-public void setPosition() {
+public void setPositionArchived() {
 
-    switch(this.stageName){
+    /* switch(this.stageName){
 
             case "workspace":
                 setStagePosition(0,0);
@@ -813,6 +843,7 @@ public void setPosition() {
                 stageFront();
                 break;
     }
+    */
 }
 
 //STAGE MANAGEMENT FUNCTIONS
@@ -847,7 +878,7 @@ public void setInitStage(StageManager myParentSM, Stage myStage, Group myGroup, 
    setStageName(myTitle);
    setStage(myStage);
    setJavaFXStageParent(myParentSM);
-   setPosition(); 
+   setEditWindowPosition();
    setSpriteGroup(myGroup);
    setTitle(myTitle);
 }
@@ -946,9 +977,12 @@ private void makeSceneForNodeEdit() {
         boxPane.setVmax(500);
         //NODE VIEWER DIMENSIONS
         int winWidth=650;
+        int dblwidth=2*winWidth;
         int winHeight=700;
+        int scenewidth=winWidth;
         boxPane.setPrefSize(winWidth, winHeight-300);
         //HTML editor
+        htmlEditor.setPrefSize(winWidth,winHeight);
         //TEXT AREAS
         inputTextArea.setPrefRowCount(7);
         inputTextArea.setWrapText(true);
@@ -972,37 +1006,49 @@ private void makeSceneForNodeEdit() {
         headingBoxText = new Text();
         inputBoxText = new Text();
         outputBoxText = new Text();
+        conceptsBoxText = new Text();
         //set view option
-        VBox vertFrame;
+         HBox widebox;
+         VBox vertFrame;
         //handle null case
         if (getDisplayNode().getUserView()==null) {
             getDisplayNode().setUserView("all");
         }
         if (getDisplayNode().getUserView().equals("textonly")) {
-            vertFrame = new VBox(0,headingBoxText,headingTextArea,htmlEditor,hboxButtons);
+            vertFrame = new VBox(0,headingBoxText,headingTextArea,hboxButtons);
              vertFrame.setPrefSize(winWidth,winHeight);
             setTitle(getTitleText(" - HTML Text View"));
+            widebox = new HBox(0,htmlEditor,vertFrame);
+            widebox.setPrefSize(dblwidth,winHeight);
         }
         else if (getDisplayNode().getUserView().equals("inputoutput")) {
             vertFrame = new VBox(0,headingBoxText,headingTextArea,inputBoxText,inputTextArea,outputBoxText,outputTextArea,hboxButtons);
              vertFrame.setPrefSize(winWidth,winHeight);
             setTitle(getTitleText(" - Input Output View"));
+            widebox = new HBox(0,vertFrame);
+            widebox.setPrefSize(dblwidth,winHeight);
         }
         else if(getDisplayNode().getUserView().equals("nodeboxesonly")) {
-            vertFrame = new VBox(0,docNameTextArea,hboxButtons,boxPane);
+            vertFrame = new VBox(0,docNameTextArea,conceptsBoxText,boxPane,hboxButtons);
             vertFrame.setPrefSize(winWidth,winHeight);
-            setTitle(getTitleText(" - Sublinks View"));
+            setTitle(getTitleText(" - Concepts View"));
+            widebox = new HBox(0,vertFrame);
+            widebox.setPrefSize(dblwidth,winHeight);
         }
             else {
-            vertFrame = new VBox(0,parentBoxText,docNameTextArea,headingBoxText,headingTextArea,htmlEditor,hboxButtons,boxPane,inputBoxText,inputTextArea,outputBoxText,outputTextArea);
+            vertFrame = new VBox(0,parentBoxText,docNameTextArea,headingBoxText,headingTextArea,conceptsBoxText,boxPane,inputBoxText,inputTextArea,outputBoxText,outputTextArea,hboxButtons);
             setTitle(getTitleText(" - Full View"));
             vertFrame.setPrefSize(winWidth,winHeight);
+            widebox = new HBox(0,htmlEditor,vertFrame);
+            widebox.setPrefSize(dblwidth,winHeight);
+            scenewidth=dblwidth;
+            //widebox.getChildren().add()
         }
         //
         Pane largePane = new Pane();
-        largePane.setPrefSize(winWidth, winHeight);
-        largePane.getChildren().add(vertFrame); 
-        Scene tempScene = new Scene (largePane,winWidth,winHeight); //default width x height (px)
+        largePane.setPrefSize(scenewidth, winHeight);
+        largePane.getChildren().add(widebox); //toggle option? 
+        Scene tempScene = new Scene (largePane,scenewidth,winHeight); //default width x height (px)
         //add event handler for mouse released event
         tempScene.addEventFilter(MouseEvent.MOUSE_RELEASED, mouseEnterEventHandler);
          //add event handler for mouse dragged  event
@@ -1124,7 +1170,7 @@ private void newWorkstageFromGroup() {
     Stage myStage = new Stage();
     setStage(myStage);
     updateScene(myScene);
-    setPosition();
+    setWorkspaceWindowPosition();
     showStage();
 }
 
@@ -1480,7 +1526,7 @@ public void setupTextOutputWindow() {
     putTextScrollerOnStage();
     setOutputText("Some future contents");
     hideStage();
-    setPosition();
+    setToolBarWindowPosition();
 }
 
 

@@ -1022,7 +1022,10 @@ public void setupToolbarPanel(StageManager mySM) {
         Stage myStage = mySM.getStage();
         //Instance variable
         Group myGroup = new Group(); //for root
-        toolbarScene = new Scene (myGroup,150,350, Color.GREY); //default width x height (px)
+        //dimensions
+        int width = 150;
+        int height = 200;
+        toolbarScene = new Scene (myGroup,width,height, Color.GREY); //default width x height (px)
         myStage.setScene(toolbarScene); //set current scene for the Stage
         //optional event handler
         
@@ -1040,7 +1043,7 @@ public void setupToolbarPanel(StageManager mySM) {
         myGroup.getChildren().add(vbox1); //add the vbox to the root node to hold everything
        
         //setup Stage config
-        mySM.setPosition();
+        
         mySM.setSceneRoot(myGroup);
         myStage.show();
 
