@@ -249,11 +249,6 @@ private void LoadNodeWS(String filename, StageManager mySM) {
                      ex.printStackTrace();
                 }
                 loaddocnum++;
-                /* deal with in constructor 
-                if (targetNode.getDocName().equals("")) {
-                    targetNode.setDocName("LoadedNode"+Integer.toString(loaddocnum));
-                }
-                */
                 
                 //--> IF adding to workspace... mySM.newNodeForWorkspace(targetNode);
                 masterNode.addChildNode(targetNode);
@@ -288,11 +283,7 @@ private void LoadNode(String filename) {
                      ex.printStackTrace();
                 }
                 loaddocnum++;
-                /* deal with in constructor
-                if (targetNode.getDocName().equals("")) {
-                    targetNode.setDocName("LoadedNode"+Integer.toString(loaddocnum));
-                }
-                */
+                
                 OpenNodeStage.OpenNewNodeNow(targetNode,Stage_WS);
             }
 
@@ -370,21 +361,6 @@ private void toggleView(StageManager mySM) {
     OpenNodeStage=mySM;
 }
 
-/*
-Method to end alert status for current sprite and reassign
-Currently this looks at all Sprite Boxes globally (regardless of viewer/location)
-*/
-/*
-private void moveAlertFromBoxtoBox(SpriteBox hadFocus, SpriteBox mySprite) {
-    hadFocus = getCurrentSprite();
-    if (hadFocus!=null) {
-        hadFocus.endAlert();
-    }
-    setCurrentSprite(mySprite);
-    mySprite.doAlert();
-    }
-    */
-       
 //General function for box clicks
 private void processBoxClick(MouseEvent t) {
 
@@ -505,60 +481,6 @@ private void addMenuViewsItems(ArrayList<NodeCategory> myCatList) {
         }
 }
 
-/* Method to add the 'new' function to the menu.  
-This will utilises the stages already set up to put a new item in the Open stage
-(although what we really want to do is put new item in the Category Stage: so use this for place)
-The "NEW" aspect uses Stage_WS therefore be called by or after the addMenuViewsItems method.
-*/
-/*
-private void addMenuCreateNew (ArrayList<NodeCategory> myCatList) {
-        if (myCatList==null) {
-            System.out.println("Error: 'New' menu not populated");
-            return;
-        }
-        else {
-            System.out.println("Categories to add to new:"+myCatList.toString());
-        }
-
-        Menu myMenu = getmenuNewElement();
-        System.out.println("New items menu");
-        if (myMenu.getItems().isEmpty()) {
-            System.out.println("Menu is currently empty");
-        }
-        else {
-            System.out.println("Menu is not empty but cleaning...");
-            myMenu.getItems().clear();
-        }
-        if (myMenu.getItems().isEmpty()) {
-             System.out.println("Menu cleaning successful");
-        }
-
-        Iterator<NodeCategory> myIterator = myCatList.iterator(); //alternatively use Java method to see if in Array?
-            while (myIterator.hasNext()) {
-            NodeCategory myCat = myIterator.next();
-            System.out.println(myCat.getCategory());
-            MenuItem myNewViewItem = new MenuItem(myCat.getCategory());
-            myMenu.getItems().add(myNewViewItem);
-            //handlers
-            myNewViewItem.setOnAction(new EventHandler<ActionEvent>() {
-            public void handle(ActionEvent t) {
-                //New node..
-                ClauseContainer newNode = new ClauseContainer(myCat);
-                //Add new object to the category node
-                myCat.getCategoryNode().addChildNode(newNode);
-                //place a COPY (REF) of node in the relevant open node.  Testing...
-                OpenNodeStage=Stage_WS.getCurrentFocus(); //update focus id.
-                OpenNodeStage.OpenNewNodeNow(newNode,Stage_WS); // check they both update
-                // place a NEW object in the relevant open node... 
-                //OpenNodeStage.OpenNewNodeNow(new ClauseContainer(myCat),Stage_WS);
-                    System.out.println("Nodes ");
-                    System.out.println("Category Node: "+ myCat.getCategoryNode().getChildNodes().toString());
-                    System.out.println("Context Node: "+OpenNodeStage.getDisplayNode().getChildNodes().toString());
-            }
-        });
-        }
-}
-*/
 
 /* Method to add the 'new' function to the menu.  
 This will utilises the stages already set up to put a new item in the Open stage
@@ -663,20 +585,6 @@ private void setFileMenu(Menu newFM) {
     this.theFileMenu = newFM;
 }
 
-/*
-private Menu getRecentMenu() {
-    //this.theRecentMenu = theRecent.getRecentMenu();
-    return this.theRecentMenu;
-}
-
-private void setRecentMenu(Menu newFM) {
-    //this.theRecentMenu = newFM;
-    //this.theRecent = new Recents(Stage_WS,RecentFilesHandler);
-    //this.theRecentMenu = theRecent.getRecentMenu();
-    this.theRecentMenu = new Menu ("Open Recents");
-}
-*/
-
 private void setMenuViews() {
     this.theViewMenu = new Menu("Views");
 }
@@ -753,57 +661,6 @@ private MenuBar makeMenuBar() {
          menuFile.getItems().addAll(OpenTempl,this.theRecentMenu,SaveName,SaveTempl,SaveAllTempl,
             OutputWork,
             PrintTree,exit);
-
-        
-        //Items for horizontal menu, vertical MenuItems for each
-        /*
-        //Menu menuNewElement = new Menu("New");
-        //Menu menuWorkspace = new Menu("Workspace");
-        //
-        //setMenuWorlds();
-        //Menu menuWorlds = getMenuWorlds();
-
-        setMenuNotes();
-        Menu menuNotes = getMenuNotes();
-        //
-        //Menu menuDocument = new Menu("Document");
-        //Menu menuCollection = new Menu("Collection");
-        
-        //Menu MenuLaw = new Menu("Protocol(Law)");
-        //
-        setMenuEvents();
-        Menu menuEvents = getMenuEvents();
-        //
-        setMenuLaw();
-        Menu MenuLaw = getMenuLaw();
-        //Menu menuProjectLib = new Menu ("ProjectLib");
-        //Menu menuLibrary = new Menu("Library");
-        
-        
-        
-        //instance variables (content of these 2 is empty until ready to insert list and event handlers)
-        setMenuViews();
-        Menu menuViews = getMenuViews();
-        setmenuNewElement();
-        Menu menuNewElement = getmenuNewElement();
-        
-       
-        //Menu menuWorlds = getMenuWorlds();
-        //
-        //TO DO: Place Menu with any Level 1 Category Nodes
-        //
-
-        /*
-        MenuItem SaveNode = new MenuItem("SaveBox");
-        MenuItem LoadSavedNode = new MenuItem("LoadBox");
-        MenuItem SaveColl = new MenuItem("Save");
-        MenuItem LoadColl = new MenuItem("Load");
-        MenuItem SaveWork = new MenuItem("Save");
-        MenuItem LoadWork = new MenuItem("Load");
-       
-        MenuItem SaveDoc = new MenuItem("SaveDoc");
-        MenuItem LoadDoc = new MenuItem("LoadDoc");
-        */
         
         // --- TEXT MENU ---
         Menu menuText = new Menu("Text");
@@ -857,63 +714,6 @@ private MenuBar makeMenuBar() {
 
 
         
-        //DATA
-        //MenuItem setFollower = new MenuItem("setFollower");
-        //MenuItem unsetFollower = new MenuItem("unsetFollower");
-        //MenuLaw.getItems().addAll(setFollower,unsetFollower);
-        //Method will save the current open node with focus.
-
-        /*
-        SaveNode.setOnAction(new EventHandler<ActionEvent>() {
-        public void handle(ActionEvent t) {
-            OpenNodeStage = Stage_WS.getCurrentFocus();
-            SaveNode(OpenNodeStage); //save everything on the stagefload
-            }
-        });
-
-        /* Load Collection into an open window TO DO: as icon.
-        */
-        /*
-        LoadSavedNode.setOnAction(new EventHandler<ActionEvent>() {
-        public void handle(ActionEvent t) {
-                String filename = "loadnode.ser";
-                LoadNode(filename);
-            }
-        });
-        */
-        
-        //---WORKSPACE FUNCTIONS ---
-        /*
-        //Method to save workspace (serial)
-
-        SaveWork.setOnAction(new EventHandler<ActionEvent>() {
-        public void handle(ActionEvent t) {
-                SaveNode(Stage_WS);
-            }
-        });
-
-        /* Method to load up saved workspace */
-
-        /*
-        LoadWork.setOnAction(new EventHandler<ActionEvent>() {
-        public void handle(ActionEvent t) {
-                String filename = Stage_WS.getFilename();
-                LoadNodeWS(filename, Stage_WS);
-            }
-        });
-
-        //EXPORT WORKSPACE TO OUTPUT
-        OutputWork.setOnAction(new EventHandler<ActionEvent>() {
-        public void handle(ActionEvent t) {
-                
-            Stage_WS.getDisplayNode().doPrintIteration();
-            String output=Stage_WS.getDisplayNode().getClauseAndText();
-            Stage_Output.setOutputText(output);
-            Stage_Output.showStage();
-            }
-        });
-        */
-        
         /* --- TEXT MENU ---  */
         WordCount.setOnAction(updateWordCounts); //argument is an EventHandler with ActionEvent object
         GetDefText.setOnAction(extractDefinitions);
@@ -930,10 +730,6 @@ private MenuBar makeMenuBar() {
         AustliiCounts.setOnAction(countAustliiDictionary);
         AustliiFirmCounts.setOnAction(countAustliiFirms);
 
-
-        //DATA MENU
-        //setFollower.setOnAction(handleSetFollower);
-        //unsetFollower.setOnAction(handleUnsetFollower);
 
         /* --- MENU BAR --- */
         menuBar.getMenus().addAll(menuFile, menuConcept, menuText, menuOutput);     
@@ -981,23 +777,6 @@ private VBox makeToolBarButtons() {
         btnDeleteClause.setTooltip(new Tooltip ("Press to delete selected node"));
         btnDeleteClause.setText("Delete");
         btnDeleteClause.setOnAction(deleteCurrentSprite);
-
-        /*
-        //Button for moving clauses to Workspace
-        Button btnMoveClauseWS = myControlsManager.newStdButton();
-        btnMoveClauseWS.setText("Move to Workspace");
-        btnMoveClauseWS.setTooltip(new Tooltip ("Press to move box to Workspace Window"));
-        btnMoveClauseWS.setOnAction(MoveBoxtoWorkspace);
-        */
-
-        /*
-        Button for moving clauses to Library
-        //To DO: only visible if Library has been loaded
-        Button btnMoveClauseLib = myControlsManager.newStdButton();
-        btnMoveClauseLib.setText("Move to Library");
-        btnMoveClauseLib.setTooltip(new Tooltip ("Press to move box to Library Window"));
-        btnMoveClauseLib.setOnAction(MoveBoxtoLibrary);
-        */
 
         //Button for moving clauses to Document
         Button btnMoveTarget = myControlsManager.newStdButton();
@@ -1063,41 +842,12 @@ public void setupToolbarPanel(StageManager mySM) {
         //return toolbar_root;
 }
 
-/* Method to see if any label or text contains legal 'role' words, for display purposes 
-
-Many of these are pair words: relationship dichotomies; 
-a RELATIVE inequality or division of social, economic or legal power that defines a transaction or structure, and the role of the participants.
-
-TO DO: put into groups for managing different areas of law, but iterate through all.
-*/
-/*
-
-public Boolean isLegalRoleWord (String myWord) {
-    ArrayList<String> RoleWords = new ArrayList<String>(Arrays.asList("employer","employee","landlord","tenant","lessor","lessee","director","shareholder","trustee","beneficiary", "debtor","creditor", "payor", "payee","mortgagor","mortgagee","regulator","manager","partner","owner","guarantor","guarantee","seller","buyer","vendor","purchaser","grantor","grantee","distributor","bailor","bailee","master","servant","licensor","licensee","developer","carrier","lender","borrower"));
-    Iterator<String> myIterator = RoleWords.iterator(); //alternatively use Java method to see if in Array?
-    while (myIterator.hasNext()) {
-        String checkWord = myIterator.next();
-        if (myWord.equalsIgnoreCase(checkWord)) { //use equals fo case checking
-            return true;
-        }
-    }
-    return false;
-}
-*/
-
 /*
 Method to end alert status for current sprite and reassign
 Currently this looks at all Sprite Boxes globally (regardless of viewer/location)
 */
 private void moveAlertFromBoxtoBox(SpriteBox hadFocus, SpriteBox mySprite) {
-    /*hadFocus = getCurrentSprite();
-    if (hadFocus!=null) {
-        hadFocus.endAlert();
-    }
-    setCurrentSprite(mySprite);
-    Stage_WS.setCurrentFocus(mySprite.getStageLocation());
-    mySprite.doAlert();
-    */
+
     if (this.myTracker==null) {
             System.out.println("MyTRK is null move alert");
             System.exit(0);
@@ -1114,15 +864,6 @@ private void setCurrentSprite(SpriteBox mySprite) {
             System.exit(0);
         }
     this.myTracker.setActiveSprite(mySprite);
-       /*
-    SpriteBox activeSprite = myTracker.getCurrentSprite();
- 
-    if (activeSprite!=null) {  //might be no current sprite if not dbl clicked
-            activeSprite.endAlert();
-        }
-        myTracker.setCurrentSprite(mySprite);
-        mySprite.doAlert();
-        */  
 }
 
 private SpriteBox getCurrentSprite() {
@@ -1251,27 +992,6 @@ public void deleteSpriteGUI(SpriteBox mySprite) {
             System.out.println("Stage_WS created.");
         }
         
-        
-        //nodes and menus
-        /*
-        NodeConfig myNodeConfig = new NodeConfig();
-        MenuItem defaultWM = new MenuItem("Default");
-        populateMenus(myNodeConfig.getDefaultNodes());
-        addMenuWorldsItem(defaultWM,myNodeConfig.getDefaultNodes());
-        MenuItem menuitem1 = new MenuItem("Litigation");
-        addMenuWorldsItem(menuitem1,myNodeConfig.getLitNodes());
-        MenuItem menuitem2 = new MenuItem("Commercial");
-        addMenuWorldsItem(menuitem2,myNodeConfig.getCommercialNodes());
-        MenuItem menuitem3 = new MenuItem("MerchantWorld");
-        addMenuWorldsItem(menuitem3,myNodeConfig.getMerchantNodes());
-        MenuItem menuitem4 = new MenuItem("DictionaryTemplate");
-        addMenuWorldsItem(menuitem4,myNodeConfig.getDictionaryNodes());
-        //Menu menuNotes Items
-        //setMenuNotes();
-        addMenuForNew(getMenuEvents(),myNodeConfig.getEventsNodeConfigNodeConfigNodeConfig());
-        addMenuForNew(getMenuNotes(),myNodeConfig.getNotesNodes());
-        addMenuForNew(getMenuLaw(),myNodeConfig.getLawNodes());
-        */
         //setup main toolbar for buttons
         Stage_Toolbar = new StageManager(Stage_WS,"Tools");
         setupToolbarPanel(Stage_Toolbar);
@@ -1283,25 +1003,7 @@ public void deleteSpriteGUI(SpriteBox mySprite) {
         //Temporary: demonstration nodes at start
         Stage_WS.setCurrentFocus(Stage_WS);
         OpenNodeStage = Stage_WS.getCurrentFocus();
-
-        
-        
-        //otherwise load them in with project to obtain current docnum etc.
-
-        //TO DO: Setup another 'Stage' for file input, creation of toolbars etc.
     }
-
-    /* private method to initialise Node categories if needed 
-    nb  the view/new object menus need to be conditional on there being node categories loaded in.
-    4.5.18
-    If the 'Workspace loads in the categories'  e.g. as part of a worldview, then
-    specific worlds and projects can own the categories, instead of the application.
-    Alternatively, have main project instatiate Worlds that can be chosen as a node from main menu
-    Then when this is 'selected', it comes with its own categories of 'objects' to populate that world.
-    (this will then dynamically change the Views/New menus)
-    This will require a 'worldlist' to populate the menus.
-
-    */
 
     /* Event handler added to box with clause content */
 
@@ -1359,27 +1061,6 @@ public void deleteSpriteGUI(SpriteBox mySprite) {
             }
         };
 
-    // Method to move selected sprite to Clause WIP (will not duplicate)
-    /*
-            The following 'add' actually copies to the second stage.
-            By moving the object or referring to it on the new Stage, it forces JavaFX to refresh.
-
-            Java FX does its own cleanup.
-
-            To achieve a 'copy' rather than a move, additional code needed.
-
-     */
-
-    /*EventHandler<ActionEvent> MoveBoxtoWorkspace = 
-        new EventHandler<ActionEvent>() {
- 
-        @Override
-        public void handle(ActionEvent t) {
-            placeCurrentSpriteOnStage(Stage_WS);
-            }
-        };
-        */
-
     /* 
     Method enables you to copy or move in these easy steps:
     (1) Click on a box to make it active (red).
@@ -1430,15 +1111,6 @@ public void deleteSpriteGUI(SpriteBox mySprite) {
 
         OpenNodeStage = new StageManager(this.myTracker, Stage_WS, currentSprite, PressBoxEventHandler, DragBoxEventHandler); 
 
-        /*if (currentSprite.getChildStage()==null) {
-            OpenNodeStage = new StageManager(Stage_WS, currentSprite, PressBoxEventHandler, DragBoxEventHandler); 
-        }
-        //make node viewer visible if still open but not showing
-        else {
-            OpenNodeStage = currentSprite.getChildStage();
-            OpenNodeStage.showStage();
-        }
-        */
      }
 
     /* This is a copy not a move 
@@ -1528,12 +1200,6 @@ public void deleteSpriteGUI(SpriteBox mySprite) {
              String sample = OpenNodeStage.getInputText();
              ClauseContainer nodeSample = NodeFromClausesSampleText(sample);
              OpenNodeStage.addOpenNodeChildren(nodeSample);
-             /*
-             ClauseContainer focusNode=OpenNodeStage.getDisplayNode();
-             focusNode.addNodeChildren(nodeSample); //data
-             System.out.println("Updated child nodes for this node:"+focusNode.toString());
-             OpenNodeStage.updateOpenNodeView(); //view
-             */
         }
     };
     
@@ -1577,86 +1243,9 @@ public void deleteSpriteGUI(SpriteBox mySprite) {
             //Update the import stage common words count text area
             String gotcha = Main.this.textArea1.getText();
             String newTA = Main.this.getCommonWordsNow(gotcha);
-            /* TO DO: rewrite so that it is output of current OpenNode
-            Stage_Import.setOutputText(newTA);
-            Main.this.textArea2.setText(newTA);
-
-            
-           
-            //new stage with scroll window to hold boxes created for common wods
-            StageManager myStageManager = new StageManager(Stage_WS, "Workspace");
-            Stage myStage = new Stage();
-            ScrollPane outerScroll = new ScrollPane();
-            Group CountGroup_root = new Group();
-            outerScroll.setContent(CountGroup_root); 
-            //now give the root node its Scene, then add event listeners
-            Scene myScene = new Scene (outerScroll,650,600); //default width x height (px)
-            myScene.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
-                 @Override
-                 public void handle(MouseEvent mouseEvent) {
-                 System.out.println("Mouse click on scene detected! " + mouseEvent.getSource());
-                 mySpriteManager.setStageFocus("blocks");
-                     }
-                });
-            
-            //Stage settings, including title
-            myStage.setScene(myScene); //this selects this stage as current scene
-            myStage.setTitle("Common Words Window");
-            myStage.setY(600);
-            myStageManager.setPosition();
-            myStage.show();
-
-            //Spriteboxes holding common words
-            WordTool myHelper = new WordTool();
-            ArrayList<String> boxList = new ArrayList<String>();
-            try {
-            boxList = myHelper.commonBoxSet(gotcha);
-            }
-            catch (Exception e) {
-                       e.printStackTrace();
-                      } 
-            Iterator<String> i = boxList.iterator();
-            int offX = 0;
-            while (i.hasNext()) {
-                //create 'clause' from the word, not just an empty spritebox
-                String newlabel = i.next();
-                Clause cword = new Clause (newlabel,newlabel,"","default");
-                if (isLegalRoleWord(newlabel)==true) {
-                    cword.setCategory("legalrole");
-                }
-                //new Spritebox to hold new clause
-                SpriteBox b = new SpriteBox(cword);
-                offX=offX+50;  //increments offset each time
-                b.setTranslateX(offX); 
-                b.setTranslateY(offX);
-                b.setOnMousePressed(PressBoxEventHandler); 
-                b.setOnMouseDragged(DragBoxEventHandler);      
-                CountGroup_root.getChildren().add(b);
-            }
-            */
         }
     };
     
-    /*
-        //menu button handler to call method to set follower 
-        EventHandler<ActionEvent> handleSetFollower = 
-        new EventHandler<ActionEvent>() {
-        @Override 
-        public void handle(ActionEvent event) {
-            System.out.println("About to set follower...");
-            setCurrentSpriteDataParent();
-            }
-        };
-
-        EventHandler<ActionEvent> handleUnsetFollower = 
-        new EventHandler<ActionEvent>() {
-        @Override 
-        public void handle(ActionEvent event) {
-            OpenNodeStage=Stage_WS.getCurrentFocus();
-            OpenNodeStage.unsetFollow(); //call node or GUI?
-            }
-        };
-    */
         /* Process the text in the input area of the current Node viewer 
         (whether saved or not)
         */
@@ -1756,41 +1345,8 @@ public void deleteSpriteGUI(SpriteBox mySprite) {
             if (Main.this.Stage_WS==null) {
                 System.out.println("Problem with passing Stage_WS to openTemplate");
             }
-
-            /*Recents myRecent = new Recents(Main.this.Stage_WS);
-            Menu newMenu = myRecent.makeRecentMenu(); //update with current recents file
-            Main.this.setRecentMenu(newMenu);
-            */
             }
         };
-
-        /* //to load a recent template to workspace
-        EventHandler<ActionEvent> openRecentTemplate = 
-        new EventHandler<ActionEvent>() {
-        @Override 
-        public void handle(ActionEvent event) {
-            //use the persistent Stage_WS instance to get the current stage (class variable)
-            LoadSave myLS = new LoadSave();
-            myLS.doRecent(Main.this.Stage_WS);
-
-            if (Main.this.Stage_WS==null) {
-                System.out.println("Problem with passing Stage_WS to openTemplate");
-            }
-
-            Recents myRecent = new Recents(Main.this.Stage_WS);
-            Menu newMenu = myRecent.makeRecentMenu(); //update with current recents file
-            Main.this.setRecentMenu(newMenu);
-            }
-        };
-        */
-        /*
-         if (mySM==null) {
-        System.out.println("Problem with Stage Manager object in makeMenu");
-     }
-     if (newNode!=null) {
-        mySM.OpenNewNodeNow(newNode,mySM);
-     }
-     */
 
         //save all (i.e. workspace etc)
         EventHandler<ActionEvent> saveAll = 
