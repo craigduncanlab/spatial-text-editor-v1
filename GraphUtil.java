@@ -10,6 +10,7 @@ ArrayList<ClauseContainer> myQueue = new ArrayList<ClauseContainer>();
 //for node indexing
 int nodeSeq=0;
 int nodeIndex=0;
+int nodeAdded=0;
 ClauseContainer[] myGraphSeq = new ClauseContainer[300];
 //
 LinkedList<ClauseContainer> myStack = new LinkedList<ClauseContainer>();
@@ -29,7 +30,12 @@ This is equivalent to a breadth first search (BFS)
 
 public ClauseContainer[] getBFS(ClauseContainer myNode) {
 	updateBFS(myNode);
+	System.out.println("BFS count:"+this.nodeAdded);
 	return this.myGraphSeq;
+}
+
+public int getBFSnum() {
+	return this.nodeAdded;
 }
 
 /* obtain list of nodes in DFS sequence */
@@ -39,18 +45,20 @@ public ClauseContainer[] getDFS(ClauseContainer myNode) {
 	return this.myGraphSeq;
 }
 
-private void updateBFS(ClauseContainer myRootNode) {
+private int updateBFS(ClauseContainer myRootNode) {
 	nodeSeq=0;
 	myRootNode.setNodeRef(0);
 	this.myQueue.add(myRootNode);
 	this.myGraphSeq[0]=myRootNode;
-	nodeSeq++;
+	this.nodeSeq++;
 	//
 	while(this.myQueue.isEmpty()==false) {
 		ClauseContainer firstNode = this.myQueue.get(0);
 		addChildrenBFS(firstNode); //add children to Queue
+		this.nodeAdded++;
 		this.myQueue.remove(firstNode); //remove from Queue
 	}
+	return this.nodeSeq++;
 }
 
 //put child nodes on queue and give them a node index
@@ -67,6 +75,7 @@ private void addChildrenBFS(ClauseContainer thisNode) {
 		this.myGraphSeq[this.nodeSeq]=nextNode; //could use .add but this ensures index is aligned?
 		this.nodeSeq++;
 		}
+		//return this.nodeSeq++;
 	}
 
 /*method uses a DFS.  Uses a stack (the LinkedList is overkill but has nice methods)

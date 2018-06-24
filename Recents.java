@@ -115,7 +115,7 @@ public void updateRecents(String newEntry) {
 	if (this.recentfiles.contains(newEntry)) {
 		this.recentfiles.remove(newEntry); //removes it, wherever it is
 	}
-	if (this.recentfiles.size()<10) {
+	if (this.recentfiles.size()<20) {
 		this.recentfiles.add(0,newEntry); //add to start
 		writeRecents(this.recentfiles,this.outputfile);
 	}

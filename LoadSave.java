@@ -136,7 +136,8 @@ public void makeSave(StageManager targetSM, ClauseContainer myNode) {
 public void saveName(ClauseContainer myNode) {
   TemplateUtil myUtil = new TemplateUtil();
   String filename = myNode.getDocName();
-  myUtil.saveTemplate(myNode,filename);
+  //***** myUtil.saveTemplate(myNode,filename);
+  myUtil.saveTemplateSingle(myNode,filename);
   System.out.println("Save template completed");
 }
 
@@ -213,7 +214,7 @@ EventHandler<ActionEvent> clickSave =
 	        ClauseContainer thisNode = LoadSave.this.targetNode;
 	        String filename=inputTextArea.getText();
 	        TemplateUtil myUtil = new TemplateUtil();
-	        myUtil.saveTemplate(thisNode,filename);
+	        myUtil.saveTemplateSingle(thisNode,filename);
 	        System.out.println("Save template completed");
 	        LoadSave.this.Close();
           }

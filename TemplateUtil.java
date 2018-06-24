@@ -72,13 +72,17 @@ private ClauseContainer readSimpleTemplate(String filename) {
 //Node 0 will be the root node, to be returned.
 
 public ClauseContainer getStructuredData(String filename) {
-	ClauseContainer[] myNodeBase =readNodeData(filename);
+	/*
+	String wholefile = readNodeDataSetup(filename);
+	ClauseContainer[] myNodeBase =readNodeDataSingle(filename);
 	System.out.println(".pdd done");
 	/*readStructure(myNodeBase,filename);
 	System.out.println(".pdg done");
-	*/
+	
 	readStructureXY(myNodeBase,filename);
 	System.out.println(".pds done");
+	*/
+	ClauseContainer[] myNodeBase =readNodeDataSetup(filename);
 	return myNodeBase[0];
 }
 
@@ -124,6 +128,148 @@ private ClauseContainer[] readNodeData(String filename) {
 	return newNodeBase; //return root node, with its references to other nodes
 }
 
+/*This splits the powerdock file into the first part (structure) and second part (node data)
+processes nodes and data first, then adds child nodes
+*/
+public ClauseContainer[] readNodeDataSetup(String filename) {
+	ClauseContainer[] myNodeBase = new ClauseContainer[300];
+	String fileref=this.searchfolder+filename+".pdn";
+	//whole file
+	try {
+		String entireFileText = new Scanner(new File(fileref)).useDelimiter("\\A").next();
+		String[] pdocfile = entireFileText.split("\n0@@P"); //regex to keep delimeter in second part(look behind), not first. (@00P)|(?<=0@@P)
+		String pds = pdocfile[0]+"\n"; // 004
+		String pdd = "0@@P"+pdocfile[1];
+	//process
+	myNodeBase=readNodeDataString(pdd);
+	System.out.println(".pdd done");
+	/*System.out.println(pdd);
+	System.exit(0);*/
+	readStructureXYString(myNodeBase,pds);
+	System.out.println(".pds done");
+	}
+	catch (Throwable t)
+	{
+		t.printStackTrace();
+		//System.exit(0);
+		return myNodeBase;
+	}
+	return myNodeBase;
+	//readStructureXY(myNodeBase,filename);
+	//System.out.println(".pds done");
+
+}
+
+//read node data pdd
+
+private ClauseContainer[] readNodeDataString(String datastring) {
+	//String fileref=this.searchfolder+filename+".pdd";
+	ClauseContainer[] newNodeBase=new ClauseContainer[300];
+	try {
+		Scanner scanner1 = new Scanner(datastring).useDelimiter("@EOR"); //instead of \n
+		if (scanner1==null) {
+			System.out.println("No text/html content");
+			return newNodeBase;
+		}
+		while (scanner1.hasNext()) {
+			String thisRow=scanner1.next();
+			Scanner scanner2= new Scanner(thisRow).useDelimiter("@@P"); //change to benign delimiter
+			String hdword = scanner2.next();
+			System.out.println(hdword);
+			int noderef = Integer.valueOf(hdword);
+			String name = scanner2.next();
+			String heading = scanner2.next();
+			String notes = scanner2.next();
+			String htmltext = scanner2.next();
+			NodeCategory NC_templ = new NodeCategory ("template",77,"gold");
+			newNodeBase[noderef] = new ClauseContainer(NC_templ);
+			newNodeBase[noderef].setDocName(name);
+			newNodeBase[noderef].setHeading(heading);
+			newNodeBase[noderef].setNotes(notes);
+			newNodeBase[noderef].setHTML(htmltext);
+			scanner2.close();
+		}
+		scanner1.close();
+	}
+	catch (Throwable t)
+	{
+		t.printStackTrace();
+		//System.exit(0);
+		return newNodeBase;
+	}
+
+	//
+	return newNodeBase; //return root node, with its references to other nodes
+}
+
+/*
+//fill the graph structure with the stored data, then return first entry (root data node)
+private ClauseContainer[] readNodeDataStart(String filename) {
+	
+	try {
+		Scanner scanner11 = new Scanner(new File(fileref)) //use default EOL delimiter
+		while (scanner1.hasNextLine() && readCount<(nodeCount+1) { //read header row plus nodes
+		if (scanner11==null) {
+			System.out.println("No text/html content");
+			return newNodeBase;
+		}
+		scanner11.nextLine();
+		}
+		while (scanner1.hasNextLine()
+		while (scanner11.hasNext()) {
+			String thisRow=scanner1.next();
+			Scanner scanner2= new Scanner(thisRow).useDelimiter("@@P"); //change to benign delimiter
+			String hdword = scanner2.next();
+			System.out.println(hdword);
+			int noderef = Integer.valueOf(hdword);
+			String name = scanner2.next();
+			String heading = scanner2.next();
+			String notes = scanner2.next();
+			String htmltext = scanner2.next();
+			NodeCategory NC_templ = new NodeCategory ("template",77,"gold");
+			newNodeBase[noderef] = new ClauseContainer(NC_templ);
+			newNodeBase[noderef].setDocName(name);
+			newNodeBase[noderef].setHeading(heading);
+			newNodeBase[noderef].setNotes(notes);
+			newNodeBase[noderef].setHTML(htmltext);
+			scanner2.close();
+		}
+		scanner1.close();
+	}
+	catch (Throwable t)
+	{
+		t.printStackTrace();
+		//System.exit(0);
+		return newNodeBase;
+	}
+
+	//
+	return newNodeBase; //return root node, with its references to other nodes
+}
+
+//header row count
+private int readHeaderRow(String filename) {
+	String fileref=this.searchfolder+filename+".pdn";
+	try {
+		Scanner scanner1 = new Scanner(new File(fileref)).useDelimiter("@EOR"); //instead of \n
+		if (scanner1==null) {
+			System.out.println("No text/html content");
+			return newNodeBase;
+		}
+		String thisRow=scanner1.next();
+		int noderef = Integer.valueOf(hdword);
+		scanner1.close();
+		}
+		catch (Throwable t)
+		{
+			t.printStackTrace();
+			//System.exit(0);
+			return 0;
+		}
+		return noderef;
+}
+*/
+
 //rebuild hierarchical graph structure for use with data file
 //This has no position data
 private void readStructure(ClauseContainer[] nodebase, String filename) {
@@ -165,6 +311,8 @@ private void readStructure(ClauseContainer[] nodebase, String filename) {
 	//return nodebase;
 }
 
+
+
 //rebuild hierarchical graph structure for use with data file
 //This has X,Y position data for child nodes
 private void readStructureXY(ClauseContainer[] nodebase, String filename) {
@@ -172,18 +320,24 @@ private void readStructureXY(ClauseContainer[] nodebase, String filename) {
 	int nodeindex=0;
 	String fileref=this.searchfolder+filename+".pds";
 	//
-	try {
+		try {
 		Scanner scanner1 = new Scanner(new File(fileref));
 		if (scanner1==null) {
 			System.out.println("No text/html content");
 			//return nodebase;
 		}
+		
 		while (scanner1.hasNextLine()) {
 			String thisRow=scanner1.nextLine();
+			System.out.println("this row:"+thisRow);
 			Scanner scanner2= new Scanner(thisRow).useDelimiter(",");
 			//create node for first node in row
 			String hdword = scanner2.next();
+			System.out.println("hdword:"+hdword);
 			int nodeID = Integer.valueOf(hdword);
+			if (hdword==null) {
+					System.out.println("hdword is null for "+filename);
+				}
 			while (scanner2.hasNext()) {
 				//3 entries per child node
 				String rowword = scanner2.next();
@@ -195,6 +349,10 @@ private void readStructureXY(ClauseContainer[] nodebase, String filename) {
 				int childref = Integer.valueOf(rowword);
 				if (childref==0) {
 					System.out.println("Error in graph structure at nodeID:"+nodeID+" in row :"+hdword);
+				}
+				if (nodebase[childref]==null) {
+					System.out.println("Nodebase at this childref ("+childref+") is null for "+filename);
+					System.exit(0);
 				}
 				nodebase[nodeID].addChildNode(nodebase[childref]);
 				nodebase[childref].setParentNode(nodebase[nodeID]);
@@ -213,6 +371,121 @@ private void readStructureXY(ClauseContainer[] nodebase, String filename) {
 	//return nodebase;
 }
 
+//rebuild hierarchical graph structure for use with data file
+//This has X,Y position data for child nodes
+//It also writes both structure and data to a single file in 2 sections
+private void readStructureXYnew(ClauseContainer[] nodebase, String filename) {
+	//ClauseContainer[] nodebase = new ClauseContainer[300];
+	int nodeindex=0;
+	String fileref=this.searchfolder+filename+".pdn";
+	//
+	try {
+		Scanner scanner1 = new Scanner(new File(fileref));
+		if (scanner1==null) {
+			System.out.println("No text/html content");
+			//return nodebase;
+		}
+		//obtain max number of nodes from first line
+		String firstRow=scanner1.nextLine();
+		int nodeCount = Integer.valueOf(firstRow);
+		int readCount=0;
+		//
+		while (scanner1.hasNextLine() && readCount<nodeCount) {
+			String thisRow=scanner1.nextLine();
+			Scanner scanner2= new Scanner(thisRow).useDelimiter(",");
+			//create node for first node in row
+			String hdword = scanner2.next();
+			int nodeID = Integer.valueOf(hdword);
+			while (scanner2.hasNext()) {
+				//3 entries per child node
+				String rowword = scanner2.next();
+				String xpos = scanner2.next();
+				String ypos = scanner2.next();
+				//
+				double x = Double.valueOf(xpos);
+				double y = Double.valueOf(ypos);
+				int childref = Integer.valueOf(rowword);
+				if (nodebase==null) {
+					System.out.println("Nodebase is null for "+filename);
+				}
+				if (childref==0) {
+					System.out.println("Error in graph structure at nodeID:"+nodeID+" in row :"+hdword);
+				}
+				nodebase[nodeID].addChildNode(nodebase[childref]);
+				nodebase[childref].setParentNode(nodebase[nodeID]);
+				nodebase[childref].setChildNodeXY(x,y); //position
+			}
+		scanner2.close();
+		readCount++;
+		}
+		scanner1.close();
+	}
+	catch (Throwable t)
+	{
+		t.printStackTrace();
+		//System.exit(0);
+		//return nodebase;
+	}
+	//return nodebase;
+}
+
+//read structure with XY coordinates from a string.  Modifies existing objects passed in.
+
+//rebuild hierarchical graph structure for use with data file
+//This has X,Y position data for child nodes
+private void readStructureXYString(ClauseContainer[] nodebase, String struct) {
+	//ClauseContainer[] nodebase = new ClauseContainer[300];
+	int nodeindex=0;
+	//String fileref=this.searchfolder+filename+".pdn";
+	//
+	try {
+		Scanner scanner1 = new Scanner(struct);
+		if (scanner1==null) {
+			System.out.println("No text/html content");
+			//return nodebase;
+		}
+		//obtain max number of nodes from first line
+		String firstRow=scanner1.nextLine();
+		int nodeCount = Integer.valueOf(firstRow);
+		int readCount=0;
+		//
+		while (scanner1.hasNextLine() && readCount<nodeCount) {
+			String thisRow=scanner1.nextLine();
+			Scanner scanner2= new Scanner(thisRow).useDelimiter(",");
+			//create node for first node in row
+			String hdword = scanner2.next();
+			int nodeID = Integer.valueOf(hdword);
+			while (scanner2.hasNext()) {
+				//3 entries per child node
+				String rowword = scanner2.next();
+				String xpos = scanner2.next();
+				String ypos = scanner2.next();
+				//
+				double x = Double.valueOf(xpos);
+				double y = Double.valueOf(ypos);
+				int childref = Integer.valueOf(rowword);
+				if (nodebase==null) {
+					System.out.println("Nodebase is null");
+				}
+				if (childref==0) {
+					System.out.println("Error in graph structure at nodeID:"+nodeID+" in row :"+hdword);
+				}
+				nodebase[nodeID].addChildNode(nodebase[childref]);
+				nodebase[childref].setParentNode(nodebase[nodeID]);
+				nodebase[childref].setChildNodeXY(x,y); //position
+			}
+		scanner2.close();
+		readCount++;
+		}
+		scanner1.close();
+	}
+	catch (Throwable t)
+	{
+		t.printStackTrace();
+		//System.exit(0);
+		//return nodebase;
+	}
+}
 
 public void saveTemplate(ClauseContainer myNode, String filename) {
 	//
@@ -220,9 +493,12 @@ public void saveTemplate(ClauseContainer myNode, String filename) {
 	//
 	GraphUtil myGraphUtil = new GraphUtil();
 	ClauseContainer[] myGraphSeq = myGraphUtil.getBFS(myNode);
+	int nodeCount = myGraphUtil.getBFSnum();
 	System.out.println("container length: "+myGraphSeq.length);
+	System.out.println("unique nodes: "+nodeCount);
 	//structure
 	int u=0;
+	//writeFirstLineHeader(nodeCount, filename);
 	while (myGraphSeq[u]!=null)
 	{
 		ClauseContainer thisNode = myGraphSeq[u];
@@ -234,16 +510,51 @@ public void saveTemplate(ClauseContainer myNode, String filename) {
 	}
 }
 
+public void saveTemplateSingle(ClauseContainer myNode, String filename) {
+	//
+	cleantemplate(filename);
+	//
+	GraphUtil myGraphUtil = new GraphUtil();
+	ClauseContainer[] myGraphSeq = myGraphUtil.getBFS(myNode);
+	int nodeCount = myGraphUtil.getBFSnum();
+	System.out.println("container length: "+myGraphSeq.length);
+	System.out.println("unique nodes: "+nodeCount);
+	//structure
+	int u=0;
+	writeFirstLineHeader(nodeCount, filename);
+	while (myGraphSeq[u]!=null)
+	{
+		ClauseContainer thisNode = myGraphSeq[u];
+		//System.out.println(u+":"+thisNode.toString());
+		//writeNewStructOutput(thisNode,filename);
+		//writeStructOutput(thisNode,filename);
+		writeNewStructSingle(thisNode,filename);
+		u++;
+	}
+	int p=0;
+	while (myGraphSeq[p]!=null)
+	{
+		ClauseContainer thisNode = myGraphSeq[p];
+		//writeDataOutput(thisNode,filename);//<--old.
+		writeDataOutputNew(thisNode,filename);
+		p++;
+	}
+}
+
+
 /*  Method to write out row with node and child nodes listed as node index numbers
 */
 
 
 private void cleantemplate(String filename) {
-	String reportfile="../templates/"+filename+".pdd";
+	/*String reportfile="../templates/"+filename+".pdd";
 	cleanfile(reportfile);
 	reportfile="../templates/"+filename+".pdg";
 	cleanfile(reportfile);
 	reportfile="../templates/"+filename+".pds";
+	cleanfile(reportfile);
+	*/
+	String reportfile="../templates/"+filename+".pdn";
 	cleanfile(reportfile);
 }
 
@@ -318,6 +629,46 @@ private void writeNewStructOutput(ClauseContainer myNode, String filename) {
 		}
 }
 
+//
+private void writeNewStructSingle(ClauseContainer myNode, String filename) {
+	String reportfile="../templates/"+filename+".pdn";
+	try {
+	PrintStream console = System.out;
+	PrintStream outstream = new PrintStream(new FileOutputStream(reportfile,true));
+	System.setOut(outstream);
+	String logString = Integer.toString(myNode.getNodeRef())+","+getChildrenData(myNode);
+	System.out.println(logString); //this needs a CR/LF so use println
+	outstream.close();
+	System.setOut(console);
+	}
+		catch (Throwable t)
+		{
+			t.printStackTrace();
+			return;
+		}
+}
+
+
+//write first line header with number of objects
+
+private void writeFirstLineHeader(int entryCount, String filename) {
+	String reportfile="../templates/"+filename+".pdn";
+	try {
+	PrintStream console = System.out;
+	PrintStream outstream = new PrintStream(new FileOutputStream(reportfile,true));
+	System.setOut(outstream);
+	String logString = Integer.toString(entryCount);
+	System.out.println(logString); //this needs a CR/LF so use println
+	outstream.close();
+	System.setOut(console);
+	}
+		catch (Throwable t)
+		{
+			t.printStackTrace();
+			return;
+		}
+}
+
 //write out structure and child node positions
 //TO DO: In future, these could be binary data files
 private String getChildrenData(ClauseContainer thisNode) {
@@ -360,6 +711,26 @@ private String getChildrenList(ClauseContainer thisNode) {
 
 private void writeDataOutput(ClauseContainer myNode, String filename) {
 	String reportfile="../templates/"+filename+".pdd";
+	try {
+	PrintStream console = System.out;
+	PrintStream outstream = new PrintStream(new FileOutputStream(reportfile,true));
+	System.setOut(outstream);
+	String logString = Integer.toString(myNode.getNodeRef())+"@@P"+myNode.getDocName()+"@@P"+myNode.getHeading()+"@@P"+myNode.getNotes()+"@@P"+myNode.getHTML()+"@@P@EOR";
+	System.out.print(logString); //don't use println.  No CR needed.
+	outstream.close();
+	System.setOut(console);
+	}
+		catch (Throwable t)
+		{
+			t.printStackTrace();
+			return;
+		}
+}
+
+//
+
+private void writeDataOutputNew(ClauseContainer myNode, String filename) {
+	String reportfile="../templates/"+filename+".pdn";
 	try {
 	PrintStream console = System.out;
 	PrintStream outstream = new PrintStream(new FileOutputStream(reportfile,true));
