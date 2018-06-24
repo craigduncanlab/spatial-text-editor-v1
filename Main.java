@@ -992,9 +992,11 @@ public void deleteSpriteGUI(SpriteBox mySprite) {
             System.out.println("Stage_WS created.");
         }
         
-        //setup main toolbar for buttons
+        /*--- TOOLBAR --- DO NOT USE TOOLBAR FOR NOW.  25 JUNE 2018 ----
+        
         Stage_Toolbar = new StageManager(Stage_WS,"Tools");
         setupToolbarPanel(Stage_Toolbar);
+        */
 
         /* Setup a general text Output Stage (for workspace?) */
         Stage_Output = new StageManager(Stage_WS,"Output");
