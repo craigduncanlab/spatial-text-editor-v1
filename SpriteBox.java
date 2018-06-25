@@ -280,7 +280,7 @@ Called from StageManager objects
     public void setup() {
         myBox = new ColBox();   //Uses defaults.
         myClause = new Clause(); //TO DO: remove this data item.  ClauseContainer set in constructor
-        Font boxfont=Font.font ("Verdana", 10);
+        Font boxfont=Font.font ("Verdana", 12); //check this size on monitor/screen
         boxlabel.setFont(boxfont);
         boxlabel.setFill(myBox.colourPicker("black"));
         boxlabel.setWrappingWidth(130);
