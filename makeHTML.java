@@ -94,19 +94,6 @@ private void writeHTMLFilesOut(int index, ClauseContainer myNode, String filenam
 	String logString = myNode.getHTML();
 	//remove section tags in default HTML editor text
 	String replaceString = logString.replaceAll("(<html[ =\\w\\\"]*>{1})|(<body[ =\\w\\\"]*>{1})|<html>|</html>|<body>|</body>|<head>|</head>",""); //regEx
-	/*outstream.close();
-	System.setOut(console);
-	System.out.println("Replace string: "+replaceString);
-	System.exit(0);
-	*/
-	
-	/*if (myNode.getDepth()<3) {
-		logString = "<p><b>"+myNode.getDepth()+"."+myNode.getLevelCount()+" "+myNode.getHeading()+"</b></p>"+replaceString;
-	}
-	else {
-		logString = "<p><b>        "+myNode.getHeading()+"</b></p>"+replaceString;
-	}
-	*/
 	if(index==0) {
 	 	logString = "<html><head><title>"+filename+"</title></head>"+"<body>";//+replaceString;
 	 	logString=logString+"<p><b>"+myNode.getOutline()+" "+myNode.getHeading()+"</b></p>"+replaceString;
@@ -252,7 +239,9 @@ private void writeSnapshot(String filename, Group myGroup) {
 }
 
 private void writeHTMLimage(ClauseContainer myNode, String filename) {
-	String localimage = myNode.getDocName();
+	int winWidth=650;
+    int winHeight=400;
+    String localimage = myNode.getDocName();
 	String reportfile="../html/"+filename+".html";
 	String pathname = "../html/images/"+localimage+".png";
 
@@ -260,7 +249,8 @@ private void writeHTMLimage(ClauseContainer myNode, String filename) {
 	PrintStream console = System.out;
 	PrintStream outstream = new PrintStream(new FileOutputStream(reportfile,true));
 	System.setOut(outstream);
-	String logString = "<p><img src=\""+pathname+"\"></p>";
+	String quot="\"";
+	String logString = "<p><img src="+quot+pathname+quot+" alt="+quot+filename+quot+" height="+quot+winHeight+quot+" width="+quot+winWidth+quot+"></p>";
 	System.out.print(logString); //don't use println.  No CR needed.
 	outstream.close();
 	System.setOut(console);
