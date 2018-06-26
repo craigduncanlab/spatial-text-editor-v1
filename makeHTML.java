@@ -82,15 +82,28 @@ private void saveConceptImage(ClauseContainer myNode,String mainfile) {
 	writeHTMLimage(myNode,mainfile);	
 }
 
+//general method to write out to
+private void writer(String logstring, String reportfile) {
+	try {
+	PrintStream console = System.out;
+	PrintStream outstream = new PrintStream(new FileOutputStream(reportfile,true));
+	System.setOut(outstream);
+	System.out.print(logstring); //don't use println.  No CR needed.
+	outstream.close();
+	System.setOut(console);
+	}
+		catch (Throwable t)
+		{
+			t.printStackTrace();
+			return;
+		}
+}
+
 //method to write all html output in this branch to same file
 //needs to remove the HTMLeditor tags from each record and insert new ones around composite file
 
 private void writeHTMLFilesOut(int index, ClauseContainer myNode, String filename) {
 	String reportfile="../html/"+filename+".html";
-	try {
-	PrintStream console = System.out;
-	PrintStream outstream = new PrintStream(new FileOutputStream(reportfile,true));
-	System.setOut(outstream);
 	String logString = myNode.getHTML();
 	//remove section tags in default HTML editor text
 	String replaceString = logString.replaceAll("(<html[ =\\w\\\"]*>{1})|(<body[ =\\w\\\"]*>{1})|<html>|</html>|<body>|</body>|<head>|</head>",""); //regEx
@@ -103,53 +116,20 @@ private void writeHTMLFilesOut(int index, ClauseContainer myNode, String filenam
 	 	logString=logString+myNode.getOutline();
 	 	logString=logString+" "+myNode.getHeading()+"</b></p>"+replaceString;
 	 }
+	writer(logString,reportfile); 
 	myNode.setVisited(false); //reset state before next HTML write/graph traversal
-	System.out.print(logString); //don't use println.  No CR needed.
-	outstream.close();
-	System.setOut(console);
-	System.out.println("Inside writeHTMLFilesOut.  The current index is:"+index);
-	}
-		catch (Throwable t)
-		{
-			t.printStackTrace();
-			return;
-		}
 }
 
 private void writeHTMLFilesStart (String filename) {
 	String reportfile="../html/"+filename+".html";
-	try {
-	PrintStream console = System.out;
-	PrintStream outstream = new PrintStream(new FileOutputStream(reportfile,true));
-	System.setOut(outstream);
 	String logString = "<html><body>";
-	System.out.print(logString); //don't use println.  No CR needed.
-	outstream.close();
-	System.setOut(console);
-	}
-		catch (Throwable t)
-		{
-			t.printStackTrace();
-			return;
-		}
+	writer (logString,reportfile);
 }
 
 private void writeHTMLFilesEnd (String filename) {
 	String reportfile="../html/"+filename+".html";
-	try {
-	PrintStream console = System.out;
-	PrintStream outstream = new PrintStream(new FileOutputStream(reportfile,true));
-	System.setOut(outstream);
 	String logString = "</body></html>";
-	System.out.print(logString); //don't use println.  No CR needed.
-	outstream.close();
-	System.setOut(console);
-	}
-		catch (Throwable t)
-		{
-			t.printStackTrace();
-			return;
-		}
+	writer (logString,reportfile);
 }
 
 private void cleantemplate(String filename) {
@@ -222,13 +202,9 @@ private void writeSnapshot(String filename, Group myGroup) {
 	SnapshotParameters spa = new SnapshotParameters();
 	ImageView view = new ImageView(myGroup.snapshot(spa, image));
 
-	//[The snapshot is the equivalent of something like SwingFXUtils.fromFXImage???]
-
 	//name the output file
 	String pathname = "../html/images/"+filename+".png"; //still need extension?
 	File file = new File(pathname);
-	//save it - may need Buffered Image???
-	//RenderedImage renderedImage = SwingFXUtils.fromFXImage(image, null);
 	BufferedImage renderedImage = SwingFXUtils.fromFXImage(image, null);
 	ImageIO.write(renderedImage,"png",file);
 	} catch (Throwable t)
@@ -238,30 +214,16 @@ private void writeSnapshot(String filename, Group myGroup) {
 		}
 }
 
+//Method to write out link to HTML image for current concept image
 private void writeHTMLimage(ClauseContainer myNode, String filename) {
 	int winWidth=650;
     int winHeight=400;
     String localimage = myNode.getDocName();
 	String reportfile="../html/"+filename+".html";
 	String pathname = "../html/images/"+localimage+".png";
-
-	try {
-	PrintStream console = System.out;
-	PrintStream outstream = new PrintStream(new FileOutputStream(reportfile,true));
-	System.setOut(outstream);
 	String quot="\"";
-	String logString = "<p><img src="+quot+pathname+quot+" alt="+quot+filename+quot+" height="+quot+winHeight+quot+" width="+quot+winWidth+quot+"></p>";
-	System.out.print(logString); //don't use println.  No CR needed.
-	outstream.close();
-	System.setOut(console);
-	}
-		catch (Throwable t)
-		{
-			t.printStackTrace();
-			return;
-		}
+	String logstring = "<p><img src="+quot+pathname+quot+" alt="+quot+filename+quot+" height="+quot+winHeight+quot+" width="+quot+winWidth+quot+"></p>";
+	writer(logstring,reportfile);
 }
-
 }
-
 
