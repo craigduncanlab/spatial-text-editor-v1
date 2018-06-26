@@ -723,6 +723,7 @@ public int getNumClauses() {
 public ClauseContainer cloneContainer() {
 	ClauseContainer clone = new ClauseContainer();
 	clone.setAllChildNodes(this.myChildNodes);  
+	clone.setHTML(this.htmlString); 
 	clone.setNumClauses(this.numClauses); //this will hold number of clauses
 	clone.setDocName(this.docname); //to hold the container name or filename
 	clone.setAuthorName(this.docauthor); //to hold author name
