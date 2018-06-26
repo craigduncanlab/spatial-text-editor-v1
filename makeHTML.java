@@ -91,11 +91,14 @@ private void writeHTMLFilesOut(int index, ClauseContainer myNode, String filenam
 	PrintStream console = System.out;
 	PrintStream outstream = new PrintStream(new FileOutputStream(reportfile,true));
 	System.setOut(outstream);
-	String replaceString;
 	String logString = myNode.getHTML();
-	String tempString = logString.replaceAll("<.*html.*>",""); //regEx
-	String temp4String = logString.replaceAll("<.*head>",""); //regex
-	replaceString = temp4String.replace("<.*body>",""); //String
+	//remove section tags in default HTML editor text
+	String replaceString = logString.replaceAll("(<html[ =\\w\\\"]*>{1})|(<body[ =\\w\\\"]*>{1})|<html>|</html>|<body>|</body>|<head>|</head>",""); //regEx
+	/*outstream.close();
+	System.setOut(console);
+	System.out.println("Replace string: "+replaceString);
+	System.exit(0);
+	*/
 	
 	/*if (myNode.getDepth()<3) {
 		logString = "<p><b>"+myNode.getDepth()+"."+myNode.getLevelCount()+" "+myNode.getHeading()+"</b></p>"+replaceString;
@@ -105,7 +108,7 @@ private void writeHTMLFilesOut(int index, ClauseContainer myNode, String filenam
 	}
 	*/
 	if(index==0) {
-	 	logString = "<html><head><title>"+filename+"</title><head>"+"<body>";//+replaceString;
+	 	logString = "<html><head><title>"+filename+"</title></head>"+"<body>";//+replaceString;
 	 	logString=logString+"<p><b>"+myNode.getOutline()+" "+myNode.getHeading()+"</b></p>"+replaceString;
 	 }
 	 else {
@@ -118,6 +121,24 @@ private void writeHTMLFilesOut(int index, ClauseContainer myNode, String filenam
 	outstream.close();
 	System.setOut(console);
 	System.out.println("Inside writeHTMLFilesOut.  The current index is:"+index);
+	}
+		catch (Throwable t)
+		{
+			t.printStackTrace();
+			return;
+		}
+}
+
+private void writeHTMLFilesStart (String filename) {
+	String reportfile="../html/"+filename+".html";
+	try {
+	PrintStream console = System.out;
+	PrintStream outstream = new PrintStream(new FileOutputStream(reportfile,true));
+	System.setOut(outstream);
+	String logString = "<html><body>";
+	System.out.print(logString); //don't use println.  No CR needed.
+	outstream.close();
+	System.setOut(console);
 	}
 		catch (Throwable t)
 		{
@@ -163,10 +184,13 @@ private void cleanfile(String reportfile) {
 
 }
 
-//make ConceptsImage in its own stage for image purposes (snapshot) only
-//currently uses a pane with no group.  No scroller.
+/*
+Method to make ConceptsImage in its own stage for image purposes (snapshot) only
+TO DO:
+(int) Math.round(bounds.getWidth() * scale),
+(int) Math.round(bounds.getHeight() * scale));
+*/
 private Group makeConceptsImage() {
-    //Stage imageStage = new Stage();
     int winWidth=650;
     int winHeight=400;
     Group myConceptGroup = new Group();
@@ -175,7 +199,6 @@ private Group makeConceptsImage() {
     largePane.getChildren().add(myConceptGroup); //toggle option? 
     //nodes must be in scene to use with WriteableImage snapshot
     Scene myScene = new Scene (largePane,winWidth, winHeight); //default width x height (px)
-    //Stage.setScene(myScene); 
     return myConceptGroup;
 }
 
@@ -199,8 +222,6 @@ private Group addNodeToConceptsImage (ClauseContainer myNode, Group myGroup) {
         b.setTranslateX(0);
         b.setTranslateY(0); 
     } 
-    //setFocusBox(b); //local information
-    //b.setStageLocation(StageManager.this); //give Sprite the object for use later.
     return myGroup; //return updated
     }
 
@@ -239,7 +260,7 @@ private void writeHTMLimage(ClauseContainer myNode, String filename) {
 	PrintStream console = System.out;
 	PrintStream outstream = new PrintStream(new FileOutputStream(reportfile,true));
 	System.setOut(outstream);
-	String logString = "<p><img src=\""+pathname+"\"><p>";
+	String logString = "<p><img src=\""+pathname+"\"></p>";
 	System.out.print(logString); //don't use println.  No CR needed.
 	outstream.close();
 	System.setOut(console);
