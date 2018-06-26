@@ -25,6 +25,7 @@ Menu myRecent = new Menu("Open Recent");
 String menufilename="";
 ClauseContainer loadedNode=new ClauseContainer();
 LoadSave myLS;
+WhiteBoard defaultWhiteBoard = new WhiteBoard();
 
 public Recents() {
 	
@@ -37,6 +38,17 @@ public Recents(StageManager target, LoadSave loader) {
 	this.targetSM = target;
 	if (this.targetSM==null) {
 		System.out.println("Problem with Stage Manager used for constructor in Recents");
+	}
+}
+
+//constructor with WhiteBoard
+public Recents(WhiteBoard myWB, LoadSave loader) {
+	//this.RecentFilesHandler = myEventHandler;
+	this.myLS=loader;
+	//this.targetSM = target;
+	this.defaultWhiteBoard=myWB;
+	if (this.defaultWhiteBoard==null) {
+		System.out.println("Problem with WhiteBoard used for constructor in Recents");
 	}
 }
 
@@ -75,7 +87,8 @@ private void openFile(String filename) {
 		updateRecents(filename);
 		System.out.println("Created:"+newNode.toString());
 		System.out.println(newNode.toString());
-		this.myLS.simpleOpen(newNode);
+		//this.myLS.simpleOpen(newNode);
+		this.targetSM.OpenNewNodeNow(newNode, this.targetSM); //TO DO: WhiteBoard
 	}
 }
 

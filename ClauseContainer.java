@@ -95,6 +95,7 @@ String output="";
 NodeCategory nodeCat = new NodeCategory();
 
 //NODE ASSOCIATIONS: i.e. Graph nodes along edges:
+ClauseContainer ultimateParent;
 ClauseContainer myParentNode; //for structural associations
 ClauseContainer dataLinkParent; //the node to 'follow' for follow mode.
 ClauseContainer dataDisplayNode; //the data this Node will display 
@@ -175,21 +176,18 @@ public ClauseContainer(String category) {
 The label is used to set document name and heading 
 In turn, document name will be used for the viewer title when Node is opened. */
 
-public ClauseContainer(NodeCategory nodecat, ClauseContainer parentNode, String nodetext, String label) {
+public ClauseContainer(NodeCategory nodecat, ClauseContainer parentNode, String inputtext, String label) {
 	setNC(nodecat);
-	setNotes(nodetext);
-	//setDocName(nodecat.getCategory()); //default
-    //setHeading("heading");
-    //setShortname(nodecat.getCategory());
-    setOutputText("output");
+    setShortname(label); // word tool only ???
+    String htmltext=defaultHTML();
+    updateText(htmltext,label,label,inputtext,"output");
     setType(nodecat.getCategory());
     setAuthorName("Craig");
     //heading/label for this node
-    setDocName(label);
-    setHeading(label);
-    setShortname(label);
+    
     dataLinkParent= new ClauseContainer(); //detached from main tree?
     setParentNode(parentNode);
+    setUltimateParent(parentNode.getUltimateParent());
 }
 
 //constructor 2 - a default container based on category 
@@ -199,15 +197,17 @@ public ClauseContainer(NodeCategory nodecat, ClauseContainer parentNode, String 
 //TO DO: advance docnumber based on category.
 public ClauseContainer (NodeCategory nodecat, ClauseContainer parentNode) {
 	int docNum = nodecat.advanceDocCount();
-    setDocName(nodecat.getCategory()+docNum);
+   
     setNC(nodecat);
-    setHeading("heading");
-    setShortname(nodecat.getCategory()+docNum);
-    setOutputText("output");
+    //
+    String docname=nodecat.getCategory()+docNum;
+    String htmltext=defaultHTML();
+    updateText(htmltext,docname,"heading","","output");
     setType(nodecat.getCategory());
     setAuthorName("Craig");
     dataLinkParent = new ClauseContainer();
     setParentNode(parentNode);
+    setUltimateParent(parentNode.getUltimateParent());
 }
 
 //constructor 3 - constructor for word tool node creation
@@ -215,12 +215,13 @@ public ClauseContainer (NodeCategory nodecat, ClauseContainer parentNode) {
 
 public ClauseContainer (NodeCategory nodecat) {
 	int docNum = nodecat.advanceDocCount();
-    setDocName(nodecat.getCategory()+docNum);
     setNC(nodecat);
-    setHeading("default");
-    setShortname(nodecat.getCategory()+docNum);
-    setOutputText("output");
     setType(nodecat.getCategory());
+    String docname=nodecat.getCategory()+docNum;
+    //
+    setShortname(docname);
+    String htmltext=defaultHTML();
+    updateText(htmltext,docname,"default","","output");
     setAuthorName("Craig");
     dataLinkParent = new ClauseContainer();
     //setParentNode(parentNode);
@@ -316,7 +317,14 @@ public Boolean isFollower() {
 	}
 }
 
+//---ULTIMATE PARENT
+public void setUltimateParent(ClauseContainer myFileNode) {
+	this.ultimateParent = myFileNode;
+}
 
+public ClauseContainer getUltimateParent() {
+	return this.ultimateParent;
+}
 
 //---PARENT (NAVIGATION) NODE DATA ---
 
@@ -442,7 +450,7 @@ public String getHeading() {
 	return publicText(getdataDisplayNode().getthisHeading());
 }
 
-public String getShortname () {
+private String getShortname () {
 	return publicText(getdataDisplayNode().getthisShortname());
 }
 
@@ -519,6 +527,21 @@ public int getBranchCount() {
 	return this.branchcount;
 }
 
+//default HTML
+private String defaultHTML() {
+	//return "<html dir="ltr"><head></head><body contenteditable="true"></body></html>"
+	return "<html><head></head><body></body></html>";
+}
+
+//general update text function
+public void updateText(String htmltext, String name, String heading, String inputtext, String outputtext) {
+	setDocName(name);
+    setHeading(heading);
+    setNotes(inputtext);
+    setOutputText(outputtext);
+    setHTML(htmltext);
+}
+
 //set the text that will be the main descriptive or clause text in this node
 public void setNotes (String myString) {
 	this.docnotes = myString;
@@ -532,7 +555,7 @@ public String getHTML() {
 	return this.htmlString;
 }
 
-public void setShortname (String myString) {
+private void setShortname (String myString) {
 	this.shortname = myString;
 }
 

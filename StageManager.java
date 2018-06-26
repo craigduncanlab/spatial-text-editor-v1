@@ -554,7 +554,10 @@ private void updateOpenNodeView() {
         }
         */
     }
-    String pathText = "Path/file:"+parentSTR+"-->"+getDisplayNode().getDocName()+"(viewing)"; 
+    /** Use this if you want to display path info:
+        String pathText = "Path/file:"+parentSTR+"-->"+getDisplayNode().getDocName()+"(viewing)"; 
+    */
+    String pathText = "Open concept:"+getDisplayNode().getDocName();
     parentBoxText.setText(pathText);
     headingBoxText.setText("Heading:");
     inputBoxText.setText("Input Text Area:");
@@ -569,7 +572,7 @@ private void updateOpenNodeView() {
         //output node contents
         outputTextArea.setText(getDisplayNode().getOutputText());
     
-        displayChildNodeBoxes();
+        displayConceptSection();
 
     }
 /* ----- DATA (DISPLAY) NODE FUNCTIONS ----- */
@@ -584,7 +587,7 @@ they are added as child nodes to the data node; they are display in the section 
 private void setDisplayNode(ClauseContainer myNode) {
     this.displayNode = myNode;
     String myFileLabel = myNode.getDocName();
-    setFilename(myFileLabel+".ser"); //default
+    setFilename(myFileLabel+".ser"); //default for serialisation only
 }
 
 public ClauseContainer getDisplayNode() {
@@ -602,8 +605,8 @@ public void setWSNode(ClauseContainer myNode) {
     setFilename(myFileLabel+".ser"); //default
     Group newGroup = new Group(); //new GUI node to show only new content.
     swapSpriteGroup(newGroup); //store the new GUI node for later use
-    //resetSpriteorigin(); //not needed as in displaychildnodeboxes
-    displayChildNodeBoxes(); //update WS view with new child boxes only
+    //resetSpriteorigin(); //not needed as in displayConceptSection
+    displayConceptSection(); //update WS view with new child boxes only
 }
 
 public void openNodeInViewer(ClauseContainer myNode) {
@@ -639,7 +642,7 @@ public SpriteBox getParentBox () {
 /* Box up a container of Sprites and place on Stage 
 Refreshes stage from display node, but doesn't show if invisible*/
 
- private void displayChildNodeBoxes() {
+ private void displayConceptSection() {
     
         ClauseContainer parentNode = getDisplayNode();
         resetSpriteOrigin();//to ensure they are at top
@@ -780,12 +783,12 @@ The workspace (WS) is, in effect, a large window placed at back.
 TO DO: Make the MenuBar etc attach to a group that is at back,
 then add WIP spritexboxes to a 'Document Group' that replaces Workspace with 'Document' menu
 
-*/
+
 
 //TO DO: set position based on NodeCat.
 public void setPositionArchived() {
 
-    /* switch(this.stageName){
+     switch(this.stageName){
 
             case "workspace":
                 setStagePosition(0,0);
@@ -843,9 +846,9 @@ public void setPositionArchived() {
                 stageFront();
                 break;
     }
-    */
+    
 }
-
+ */
 //STAGE MANAGEMENT FUNCTIONS
 
 
@@ -874,6 +877,7 @@ public void toggleStage() {
 
 //public interface setter helper - currently not used
 
+/*
 public void setInitStage(StageManager myParentSM, Stage myStage, Group myGroup, String myTitle) {
    setStageName(myTitle);
    setStage(myStage);
@@ -883,7 +887,9 @@ public void setInitStage(StageManager myParentSM, Stage myStage, Group myGroup, 
    setTitle(myTitle);
 }
 
-/* Method to make new Scene with known Group for Sprite display */
+*/
+
+/* Method to make new Scene with known Group for Sprite (Concept Boxes) display */
 public ScrollPane makeScrollGroup () {
     Group myGroup = new Group(); //the group that holds the box nodes.
     setSpriteGroup(myGroup);
@@ -936,7 +942,7 @@ private void refreshNodeViewScene() {
         Group newGroup = new Group(); //new GUI node to show only new content.
         swapSpriteGroup(newGroup); //store the new GUI node for later use
         resetSpriteOrigin();
-        displayChildNodeBoxes();
+        displayConceptSection();
 }
 
 //Method to change title depending on data mode the node is in.
@@ -1118,14 +1124,57 @@ EventHandler<MouseEvent> mouseEnterEventHandler =
     };
 
 
-//General close window action
+//General close window handler
 EventHandler<ActionEvent> closeWindow = 
         new EventHandler<ActionEvent>() {
         @Override 
         public void handle(ActionEvent event) {
-           StageManager.this.getStage().close();
+           StageManager.this.closeThisStage();
         }
     };
+
+private void closeThisStage() {
+    //StageManager.this.getParentStage().getStage().show();
+           //this.myTrk.setCurrentFocus(StageManager.this);
+    getStage().close();
+}
+
+//general function to save GUI text data into node (position data for concept boxes is already updated)
+//also performs a save on shared parent.
+private void saveNodeText() {
+    getDisplayNode().updateText(htmlEditor.getHtmlText(),docNameTextArea.getText(),headingTextArea.getText(),inputTextArea.getText(),outputTextArea.getText());
+    ClauseContainer fileNode=getDisplayNode().getUltimateParent();
+    if (fileNode==null) {
+     System.out.println ("No parent node to save.  saveNodeText method");
+     System.exit(0);
+     }
+    saveDocTree(fileNode); //save the whole tree (of updated text)
+    System.out.println("saved Parent: "+getDisplayNode().getUltimateParent().toString());
+    //parentBox - should we insist on one?
+    SpriteBox pntBox = getParentBox();
+    if (pntBox!=null) {
+        pntBox.setLabel(docNameTextArea.getText());
+    }
+    //error checking - log.  Leave this to show error for attempts with follower nodes.
+    if (getDisplayNode().getNotes().equals(inputTextArea.getText())) {
+        System.out.println("Node updated OK!");
+    }
+    else {
+         System.out.println("Problem with node update.");
+        }
+    }
+
+// INPUT / OUTPUT 
+
+//nb this method mirrors that which can be called from Main
+private void saveDocTree(ClauseContainer saveNode) {
+    LoadSave myLS = new LoadSave();
+    myLS.saveName(saveNode);
+    //myLS.Close();
+    String filename=saveNode.getDocName();
+    Recents myR = new Recents();
+    myR.updateRecents(filename);
+}
 
 //Create Eventhandler to use with stages that allow edit button
 
@@ -1133,36 +1182,7 @@ EventHandler<ActionEvent> UpdateNodeText =
         new EventHandler<ActionEvent>() {
         @Override 
         public void handle(ActionEvent event) {
-            //main node contents (text)
-            String editedName=docNameTextArea.getText();
-            String editedHeading=headingTextArea.getText();
-            String editedText=inputTextArea.getText();
-            String editedOutput=outputTextArea.getText();
-            String editedHTML = htmlEditor.getHtmlText();
-            //
-            if (getDisplayNode().isFollower()==true) {
-                System.out.println("Won't update a node in follower mode");
-            }
-            else { //update is text only
-                getDisplayNode().setDocName(editedName);
-                getDisplayNode().setHeading(editedHeading);
-                getDisplayNode().setNotes(editedText);
-                getDisplayNode().setOutputText(editedOutput);
-                getDisplayNode().setHTML(editedHTML);
-
-                //parentBox - should we insist on one?
-                SpriteBox pntBox = getParentBox();
-                if (pntBox!=null) {
-                    pntBox.setLabel(editedName);
-                }
-            }
-            //error checking - log.  Leave this to show error for attempts with follower nodes.
-            if (getDisplayNode().getNotes().equals(editedText)) {
-                System.out.println("Node updated OK!");
-            }
-            else {
-                 System.out.println("Problem with node update.");
-            }
+            StageManager.this.saveNodeText();
             }
         };
 
@@ -1366,6 +1386,19 @@ public void selectedAsChildNode() {
     newNodeAsChildNode(myNode); //data and view for node viewer
 }
 
+//set active sprite.  if problem with tracker, ignore.
+private void setActiveSprite(SpriteBox b) {
+    if (this.myTrk==null) {
+        //System.out.println("myTrk null in addnodetoview");
+        //System.exit(0);
+        return;
+    }
+    else {
+        this.myTrk.setActiveSprite(b);
+    }
+    
+}
+
 //method to box up node as shape and add to GUI in node viewer
 
 private void addNodeToView (ClauseContainer myNode) {
@@ -1376,13 +1409,10 @@ private void addNodeToView (ClauseContainer myNode) {
         System.out.println("SpriteBox null in addnodetoview");
         System.exit(0);
     }
-     if (this.myTrk==null) {
-        System.out.println("myTrk null in addnodetoview");
-        System.exit(0);
-    }
-    this.myTrk.setActiveSprite(b);
+    setActiveSprite(b);
     setFocusBox(b); 
 }
+
 
 //General method to add AND open a node if not on ws; otherwise place on workspace
 //The StageManager arg passed in as myWS should be 'Stage_WS' for all calls 
@@ -1390,7 +1420,7 @@ private void addNodeToView (ClauseContainer myNode) {
 public void OpenNewNodeNow(ClauseContainer newNode, StageManager myWS) {
     System.out.println("OpenNewNode now...");
      if (StageManager.this.equals(myWS)) { 
-     newNodeForWorkspace(newNode);
+     newNodeForWorkspace(newNode); //to do : make this open up as child node in whiteboard.  i.e. (1) change whiteboard focus to 'master', (2) add as child box.
      System.out.println("Adding new node to Workspace");
 }
         else {

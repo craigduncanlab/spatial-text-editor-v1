@@ -139,9 +139,23 @@ Called from StageManager objects
     setBoxCategory(myCat); //TO DO: Abandon.  Just get directly when needed.
 }
 
-//Box constructor that takes puts a (ClauseContainer)Node inside as the Box's node.
+//box constructor for image viewer or snapshot - no event handlers needed
 
-    public SpriteBox(ClauseContainer node) {
+ public SpriteBox(ClauseContainer node) {
+    
+    this.setup();
+    location = node.getNodeLocation(); //use parent Node instead??
+    String myCat = node.getNodeCategory(); 
+    setBoxNode(node); //sets and updates appearance//works with clausecontainer method
+    //SpriteBox.this.setStageLocation(mySM);
+    //setOnMousePressed(PressBox);  // JavaFX - inherited from Rectangle 
+    //setOnMouseDragged(DragBox);   //ditto
+    setBoxCategory(myCat); //TO DO: Abandon.  Just get directly when needed.
+}
+
+//Box constructor that takes puts a (ClauseContainer)Node inside as the Box's node.
+/*
+    private SpriteBox(ClauseContainer node) {
     
     this.setup();
     location = node.getNodeLocation(); //use parent Node instead??
@@ -151,8 +165,8 @@ Called from StageManager objects
     SpriteBox.this.setOnMousePressed(PressBoxEventHandler);  // JavaFX - inherited from Rectangle 
     SpriteBox.this.setOnMouseDragged(DragBoxEventHandler);   //ditto
     SpriteBox.this.setBoxCategory(myCat); //TO DO: Abandon.  Just get directly when needed.
-    
-}
+    }
+*/
 
     //default constructor with label
     public SpriteBox(String startLabel) {

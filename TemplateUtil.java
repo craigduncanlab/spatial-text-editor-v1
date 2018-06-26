@@ -128,7 +128,7 @@ public ClauseContainer[] readNodeDataSetup(String filename) {
 		String[] pdocfile = entireFileText.split("@@EndGraph@@"); //regex to keep delimeter in second part(look behind), not first. (@00P)|(?<=0@@P)
 		String pds = pdocfile[0]; // 004
 		String pdd = pdocfile[1];
-	//process
+	//process the nodes and their daa
 	myNodeBase=readNodeDataString(pdd);
 	System.out.println(".pdd done");
 	/*System.out.println(pdd);
@@ -165,16 +165,25 @@ private ClauseContainer[] readNodeDataString(String datastring) {
 			String hdword = scanner2.next();
 			System.out.println(hdword);
 			int noderef = Integer.valueOf(hdword);
-			String name = scanner2.next();
+			String docname = scanner2.next();
 			String heading = scanner2.next();
-			String notes = scanner2.next();
+			String inputtext = scanner2.next();
 			String htmltext = scanner2.next();
 			NodeCategory NC_templ = new NodeCategory ("template",77,"gold");
 			newNodeBase[noderef] = new ClauseContainer(NC_templ);
+			String outputtext="";
+			newNodeBase[noderef].updateText(htmltext,docname,heading,inputtext,outputtext);
+			newNodeBase[noderef].setUltimateParent(newNodeBase[0]);
+			/*
 			newNodeBase[noderef].setDocName(name);
 			newNodeBase[noderef].setHeading(heading);
 			newNodeBase[noderef].setNotes(notes);
 			newNodeBase[noderef].setHTML(htmltext);
+			*/
+			/*if (noderef>0) {
+				newNodeBase[noderef].setUltimateParent(newNodeBase[0]);//set all to root node
+			}
+			*/
 			scanner2.close();
 		}
 		scanner1.close();

@@ -72,6 +72,7 @@ Scene localScene;
 TextArea inputTextArea = new TextArea();
 //target Stage information
 StageManager targetSM = new StageManager();
+WhiteBoard defaultWhiteBoard = new WhiteBoard();
 //current dialogue
 Stage myStage;
 ClauseContainer targetNode = new ClauseContainer();
@@ -84,6 +85,11 @@ public LoadSave () {
 //constructor with Stage
 public LoadSave (StageManager mySM) {
   this.targetSM=mySM;
+}
+
+//constructor with WhiteBoard
+public LoadSave (WhiteBoard myWB) {
+  this.defaultWhiteBoard=myWB;
 }
 
 private HBox SaveButtonSetup() {
@@ -151,7 +157,7 @@ public void makeLoad(StageManager targetSM) {
 public void simpleOpen(ClauseContainer myNode) {
   System.out.println(myNode.toString());
   System.out.println(this.targetSM.toString());
-  this.targetSM.OpenNewNodeNow(myNode, this.targetSM);
+  this.targetSM.OpenNewNodeNow(myNode, this.targetSM); //TO DO: make this open up in whiteboard.  Should be triggered as if double click on a red box.  i.e. changes focus.
 }
 
 //create dialogue box and display
@@ -196,8 +202,9 @@ EventHandler<ActionEvent> clickOpen =
             //ClauseContainer newNode = myUtil.getTemplate(filename); 
             ClauseContainer newNode = myUtil.getStructuredData(filename); 
             if (newNode!=null) {
-                LoadSave.this.targetSM.OpenNewNodeNow(newNode,LoadSave.this.targetSM);
-                //update recents list
+                LoadSave.this.targetSM.OpenNewNodeNow(newNode,LoadSave.this.targetSM); //make this new whitebaord
+                 //TO DO: change whiteboard display node.  Add child node.
+                 //update recents list
                 Recents myR = new Recents();
                 myR.updateRecents(filename);
                 LoadSave.this.Close();

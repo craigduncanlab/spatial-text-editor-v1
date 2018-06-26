@@ -29,8 +29,10 @@ public SpriteBox getCurrentSprite() {
 	return this.activeSprite;
 }
 
+//change the focus of the stage and show it
 public void setCurrentFocus(StageManager withFocus) {
 	this.currentFocus = withFocus;
+	//this.currentFocus.getStage().show();  //do not show until last minute 
 }
 
 public StageManager getCurrentFocus() {
