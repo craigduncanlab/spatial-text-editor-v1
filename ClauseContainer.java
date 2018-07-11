@@ -459,11 +459,14 @@ public String getOutputText() {
 }
 
 public String getNotes () {
-	return publicText(getdataDisplayNode().getthisNotes());
+	//return publicText(getdataDisplayNode().getthisNotes());
+	return this.docnotes;
 }
 
 public ArrayList<ClauseContainer> getChildNodes() {
-	return getdataDisplayNode().getthisChildNodes();
+	//return getdataDisplayNode().getthisChildNodes();
+	return this.myChildNodes;
+
 }
 
 // --- PUBLIC METHODS ACCESSING PRIVATE DATA SPECIFICALLY FOR THIS NODE

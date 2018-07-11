@@ -585,6 +585,12 @@ TO DO 15.1.18 : utilise my classes from regex search API for data mining
   private ClauseContainer makeNewClauseNode(String label) {
     NodeCategory nodecat = new NodeCategory("clause",0,"blue"); //mirror Main.java
     ClauseContainer clauseNode = new ClauseContainer(nodecat);
+    clauseNode.setHeading(label);
+    int grab = label.length();
+    if (label.length()>20) {
+      grab = 20;
+    }
+    clauseNode.setDocName(label.substring(0,grab));
     return clauseNode;
   }
 
@@ -690,12 +696,13 @@ public Boolean checkHeadingExtraction(ClauseContainer myContainer) {
     }
 
     /* Method to populate clause text from Clause Headings 
+    6.7.18 reinstate
     */
     
     public ClauseContainer ClauseTextExtract(ClauseContainer myContainer, String mydata) {
     System.out.println("Clause text extract");
 
-    /*
+    
     ArrayList<ClauseContainer> myCList = myContainer.getChildNodes();
     Iterator<ClauseContainer> myiterator = myCList.iterator();
     System.out.println("Array Size: "+myCList.size()); //conveniently, ArrayList is in Collections with a size method
@@ -712,20 +719,20 @@ public Boolean checkHeadingExtraction(ClauseContainer myContainer) {
     String Uni_dashes = "\\u2010\\u2011\\u2012\\u2013\\u2014\\u2015"; //u2010 is hyphen
     String Uni_dbl_qt = "\\u201c\\u201d\\u201e\\u201f\\\""; //not using \\x22 for now
     //This LooseRegEx does not include the : ; or . as it assumes they are the end of definition delimiter
-    String LooseRegEx="[\\w\\d\\s\\(\\)\\:\\-\\;,\\/\\’'\\<\\>\\[\\]"+all_breaks+Uni_dbl_qt+Uni_single_qt+Uni_dashes+Uni_NonBreakspace+" ]*";
-    /*
+    //String LooseRegEx="[\\w\\d\\s\\(\\)\\:\\-\\;,\\/\\’'\\<\\>\\[\\]"+all_breaks+Uni_dbl_qt+Uni_single_qt+Uni_dashes+Uni_NonBreakspace+" ]*";
+    
     String LooseRegEx="([\\w\\d\\s\\(\\)\\:\\-\\;\\,\\.\\/\\’'\\<\\>\\[\\]\\u201c\\u201d\\u2013\\u2019\\x0d\\x0a\\\" ]*)";
-    */
-    /*
+    
+    
     String LowerWord="lorem ipsum";
     int indexWindow=0;
-    Clause FirstClause=null;
-    Clause UpperClause=null;
-    Clause LowerClause=null;
+    ClauseContainer FirstClause=null;
+    ClauseContainer UpperClause=null;
+    ClauseContainer LowerClause=null;
     if (myiterator.hasNext()) {
       System.out.println("First has next");
       ClauseContainer myNode = myiterator.next();
-      FirstClause = myNode.getNodeClause();
+      FirstClause = myNode;
       UpperClause = FirstClause;
       LowerClause = FirstClause;
     }
@@ -735,7 +742,7 @@ public Boolean checkHeadingExtraction(ClauseContainer myContainer) {
          UpperClause = LowerClause;
         }
         ClauseContainer myNode = myiterator.next();
-        LowerClause = myNode.getNotes();
+        LowerClause = myNode;
         String UpperWord = UpperClause.getHeading();
         LowerWord = LowerClause.getHeading();
         //u2010-u201F is a good range for UTF8
@@ -748,7 +755,8 @@ public Boolean checkHeadingExtraction(ClauseContainer myContainer) {
           while (clauseCaptcha.find())
           {
             System.out.println("Pattern: "+myRegEx+" # Group + " + clauseCaptcha.group(0));
-            UpperClause.setClauseText(clauseCaptcha.group(0));
+            UpperClause.setNotes(clauseCaptcha.group(0));
+            UpperClause.setHTML("<html><body>"+clauseCaptcha.group(0)+"</body></html>");
           }
           indexWindow++;  
         } 
@@ -761,11 +769,14 @@ public Boolean checkHeadingExtraction(ClauseContainer myContainer) {
           while (clauseCaptcha.find())
           {
             System.out.println("Pattern: "+myRegEx+" # Group + " + clauseCaptcha.group(0));
-            LowerClause.setClauseText(clauseCaptcha.group(0));
+            LowerClause.setNotes(clauseCaptcha.group(0));
+            String htmlconv = clauseCaptcha.group(0);
+            String newtext = htmlconv.replace("/n","<br");
+            LowerClause.setHTML("<html><body><p>"+newtext+"</p></body></html>");
           } 
         } 
-         */
-      return (new ClauseContainer());//myContainer;
+      //return (new ClauseContainer());//myContainer;
+        return myContainer;
      
     }
 
