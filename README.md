@@ -5,9 +5,13 @@
 The Powerdock app uses these folders (create if not included)
 
 src: contains Java source files
+
 classes : contains compiled JVM bytecode
+
 templates : contains previous work
+
 config : contains file with config data, like recents list for recents Menu
+
 html: contains any html output from the program.
 
 # Setup
