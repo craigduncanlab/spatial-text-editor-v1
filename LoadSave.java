@@ -144,6 +144,7 @@ public void saveName(ClauseContainer myNode) {
   String filename = myNode.getDocName();
   //***** myUtil.saveTemplate(myNode,filename);
   myUtil.saveTemplateSingle(myNode,filename);
+  myUtil.saveTidyTemplate(myNode,filename);
   System.out.println("Save template completed");
 }
 
@@ -222,6 +223,7 @@ EventHandler<ActionEvent> clickSave =
 	        String filename=inputTextArea.getText();
 	        TemplateUtil myUtil = new TemplateUtil();
 	        myUtil.saveTemplateSingle(thisNode,filename);
+          myUtil.saveTidyTemplate(thisNode,filename);
 	        System.out.println("Save template completed");
 	        LoadSave.this.Close();
           }

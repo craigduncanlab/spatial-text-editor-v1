@@ -62,6 +62,7 @@ private int updateBFS(ClauseContainer myRootNode) {
 }
 
 //put child nodes on queue and give them a node index
+//the noderef is a parameter in the ClauseContainer object
 private void addChildrenBFS(ClauseContainer thisNode) {
 	if (thisNode.NodeIsLeaf()==true) {
 		return;
@@ -71,6 +72,7 @@ private void addChildrenBFS(ClauseContainer thisNode) {
 	while (iterateChildren.hasNext()) {
 		ClauseContainer nextNode = iterateChildren.next();
 		this.myQueue.add(nextNode);
+		nextNode.setVParentIndex(thisNode.getNodeRef());
 		nextNode.setNodeRef(this.nodeSeq);
 		this.myGraphSeq[this.nodeSeq]=nextNode; //could use .add but this ensures index is aligned?
 		this.nodeSeq++;

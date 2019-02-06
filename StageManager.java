@@ -50,7 +50,8 @@ import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.Node; 
 import javafx.scene.Parent;
-//
+//lines and shapes for joining
+import javafx.scene.shape.*;
 import javafx.scene.shape.Rectangle;
 //Scene - Text as text
 import javafx.scene.text.Text;  //nb you can't stack textarea and shape controls but this works
@@ -1359,6 +1360,21 @@ i.e. this adds a specific object, rather than updating the view from whole under
 
 private void addSpriteToStage(SpriteBox mySprite) {
     getSpriteGroup().getChildren().add(mySprite); //GUI tree 
+     
+    // TO DO: general function to draw lines for all links in visible boxes
+    /*
+    //temporary line to test a line from box coord to diag coord
+    double x = mySprite.getX();
+    double y = mySprite.getY();
+    double sblength=150;
+    double sbheight=30;
+    double sp2x=x+200;
+    double sp2y=y+200;
+    System.out.println("Adding line at:"+x+","+y);
+    Line line = new Line(x+sblength,y+(sbheight/2),sp2x,sp2y+(sbheight/2));
+    line.setStroke(Color.RED);
+    getSpriteGroup().getChildren().add(line);
+    */
     System.out.println("Current sprite group is "+getSpriteGroup().toString()); 
     positionSpriteOnStage(mySprite);
     advanceSpritePosition();
@@ -1499,8 +1515,10 @@ public void positionSpriteOnStage(SpriteBox mySprite) {
     //if sprite does not have its own location, use GUI location
     //use Translate relative to origin of node (i.e. not scene as a whole)
     if (mySprite.getX()!=0 || mySprite.getY()!=0) {
-        mySprite.setTranslateX(mySprite.getX());
-        mySprite.setTranslateY(mySprite.getY());
+        double x = mySprite.getX();
+        double y = mySprite.getY();
+        mySprite.setTranslateX(x);
+        mySprite.setTranslateY(y);
     }
     else {
         mySprite.setTranslateX(spriteX);

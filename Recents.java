@@ -15,8 +15,10 @@ import javafx.scene.control.MenuItem;
 
 public class Recents {
 
-//File IO locations
-String searchfolder = "../config/";
+//File IO locations - relative to classes.  TO DO: put folder data in general config file.
+//String searchfolder = "../config/"; //relative
+Config myConfig = new Config();
+String recentfolder = myConfig.getRecentsFolder();
 ArrayList<String> recentfiles = new ArrayList<String>();  //10 recent items  
 String outputfile = "recents";     
 StageManager targetSM = new StageManager();
@@ -60,14 +62,14 @@ public Menu makeRecentMenu () {
     while (myIterator.hasNext()) {
     	String filename = myIterator.next();
     	MenuItem myMI = makeMenuItem(filename);
-    	System.out.println("menu item added:"+filename);
+    	//System.out.println("menu item added:"+filename);
 		myMenu.getItems().add(myMI);
     }
     return myMenu;
 }
 
 public Menu getRecentMenu() {
-	System.out.println("Trying to make menu");
+	//System.out.println("Trying to make menu");
 	return makeRecentMenu();
 }
 
@@ -80,13 +82,13 @@ private StageManager getFilename() {
 }
 
 private void openFile(String filename) {
-	System.out.println("Opening file:"+filename);
+	//System.out.println("Opening file:"+filename);
 	TemplateUtil myUtil = new TemplateUtil();
 	ClauseContainer newNode = myUtil.getStructuredData(filename); 
 	if (newNode!=null) {
 		updateRecents(filename);
-		System.out.println("Created:"+newNode.toString());
-		System.out.println(newNode.toString());
+		//System.out.println("Created:"+newNode.toString());
+		//System.out.println(newNode.toString());
 		//this.myLS.simpleOpen(newNode);
 		this.targetSM.OpenNewNodeNow(newNode, this.targetSM); //TO DO: WhiteBoard
 	}
@@ -103,9 +105,9 @@ public MenuItem makeMenuItem(String filename) {
     menuItemA.setOnAction(new EventHandler<ActionEvent>() {
 	@Override 
         public void handle(ActionEvent event) {
-        	System.out.println("Event handled for Recents");
+        	//System.out.println("Event handled for Recents");
         	MenuItem source = (MenuItem)event.getSource();
-        	System.out.println("filename:"+source.getText());
+        	//System.out.println("filename:"+source.getText());
         	Recents.this.openFile(filename);
         }
     });
@@ -149,7 +151,7 @@ The node returned is the root node which is to be placed onto the workspace.
 
 private ArrayList<String> readRecents(String filename) {
 	ArrayList<String> newList = new ArrayList<String>();
-	String fileref=this.searchfolder+filename+".pdu"; //power dock utility file
+	String fileref=this.recentfolder+filename+".pdu"; //power dock utility file
 	try {
 		Scanner scanner1 = new Scanner(new File(fileref));
 		if (scanner1==null) {
@@ -183,7 +185,7 @@ public void writeRecents(ArrayList<String> recents, String filename) {
 //method to write one recent entry out to config file
 
 private void writeOut(String listEntry, String filename) {
-	String recentfile =this.searchfolder+filename+".pdu";
+	String recentfile =this.recentfolder+filename+".pdu";
 	try {
 	PrintStream console = System.out;
 	PrintStream outstream = new PrintStream(new FileOutputStream(recentfile,true));
@@ -200,7 +202,7 @@ private void writeOut(String listEntry, String filename) {
 }
 
 private void clean(String filename) {
-	String reportfile=this.searchfolder+filename+".pdu";
+	String reportfile=this.recentfolder+filename+".pdu";
 	try {
 
 	PrintWriter pw = new PrintWriter(reportfile);

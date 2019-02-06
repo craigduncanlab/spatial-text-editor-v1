@@ -32,6 +32,8 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
+//lines for joining
+import javafx.scene.shape.*;
 //Scene - general appearance & layout of Background Fills, Stages, nodes
 import javafx.scene.layout.Region;
 import javafx.scene.layout.Background;
@@ -77,9 +79,14 @@ From powerdock folder:
 javac -d classes ./src/*.java
 java -cp :classes Main
 
-From classes folder:
+or java -cp classes Main
+
+From classes folder (this is now the default for config folder etc):
 javac -d ../classes ../src/*.java
 java Main
+
+or java -cp ./ Main
+nb: https://askubuntu.com/questions/64222/how-can-i-create-launchers-on-my-desktop
 
 
 */
@@ -649,7 +656,7 @@ private void saveDocTree(ClauseContainer saveNode) {
     (2) Click to target stage (not on a box).
     (3) Select move to target {TO DO: Shortcut key}
 
-    This works because the sprite with the red alert (current sprite) doesn't lost focus
+    This works because the sprite with the red alert (current sprite) doesn't lose focus
     even when a click to a new stage (but not a box) changes the focus. 
     */
 

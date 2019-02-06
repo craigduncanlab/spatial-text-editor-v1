@@ -124,6 +124,9 @@ int graphdepth=0;
 int graphcount=0;
 String outlinenum="";
 Boolean visited=false;
+int VparentIndex=0; //to hold the parentindex value after BFS
+int HparentIndex=0;
+//TO DO: rename.  These mean the embedded node positions (within a layer of child nodes)
 double childNodeX = 0.0;
 double childNodeY = 0.0;
 
@@ -483,6 +486,22 @@ public int getCount() {
 //GRAPH TRAVERSALS
 public void setNodeRef(int myindex) {
 	this.noderef = myindex;
+}
+
+public int getVParentIndex() {
+	return this.VparentIndex;
+}
+
+public void setVParentIndex(int u) {
+	this.VparentIndex = u;
+}
+
+public int getHParentIndex() {
+	return this.HparentIndex;
+}
+
+public void setHParentIndex(int u) {
+	this.HparentIndex = u;
 }
 
 public int getNodeRef() {
