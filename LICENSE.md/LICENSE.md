@@ -5,7 +5,7 @@ The copyright holder is Craig Duncan, of Perth, Western Australia.
 Copyright © 2018-2020, Craig Duncan www.craigduncan.com.au; http://github.com/craigduncanlab All rights reserved.
 
 Repository License
-Repository URL: https://github.com/craig6502/spatial-text-editor-v1 or https://github.com/craigduncanlab/spatial-text-editor-v1or ("Repository")
+Repository URL: https://github.com/craigduncanlab/spatial-text-editor-v1 ("Repository")
 
 The copyright holder's programs located in the Repository (software) at any time are disclosed on the following terms and conditions.
 
