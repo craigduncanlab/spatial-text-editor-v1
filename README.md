@@ -39,7 +39,7 @@ see https://openjfx.io and https://gluonhq.com/products/javafx/
 
 The openJDK download is specific for each OS.  The SDK library file when unzipped will be closer to 95MB.
 
-When you have downloaded the JavaFX SDK package, locate the folder javafx-sdk-11.0.2 (or similar) and inside this, find the lib file with the javafx .jar files in it.  
+When you have downloaded the JavaFX SDK package, locate the folder javafx-sdk-11.0.2 (or similar) and inside this, find the lib file with the javafx .jar files in it.  You will also need the dylib files, but they are too large to store here.
 
 Rename it to fxlib and put it into the root folder of the Powerdock project.
 
