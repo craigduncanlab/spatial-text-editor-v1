@@ -6,7 +6,7 @@ The Powerdock app uses these folders (create if not included)
 
 src: contains Java source files
 
-fxlb : contains the JavaFX library
+fxlib : contains the JavaFX library
 
 classes : contains compiled JVM bytecode
 
@@ -19,6 +19,12 @@ html: contains any html output from the program.
 # Setup
 
 Modify the Config.java file before compiling to ensure project directory is specified.
+
+Default:
+
+'''String projectfolder = "";  //This is the current top level folder with the src and fxlib folders in it
+String templatesfolder = projectfolder+"/templates/";
+String recentsfolder = projectfolder+"/config/";'''
 
 e.g. with src folder for source files etc
 
