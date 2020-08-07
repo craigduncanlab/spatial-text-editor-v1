@@ -22,7 +22,8 @@ Modify the Config.java file before compiling to ensure project directory is spec
 
 Default:
 
-```String projectfolder = "";  //This is the current top level folder with the src and fxlib folders in it
+```
+ String projectfolder = "";  //This is the current top level folder with the src and fxlib folders in it
  String templatesfolder = projectfolder+"/templates/";
  String recentsfolder = projectfolder+"/config/";
 ```
