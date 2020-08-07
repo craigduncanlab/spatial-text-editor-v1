@@ -22,10 +22,10 @@ Modify the Config.java file before compiling to ensure project directory is spec
 
 Default:
 
-'''String projectfolder = "";  //This is the current top level folder with the src and fxlib folders in it
-String templatesfolder = projectfolder+"/templates/";
-String recentsfolder = projectfolder+"/config/";'''
-
+```String projectfolder = "";  //This is the current top level folder with the src and fxlib folders in it
+ String templatesfolder = projectfolder+"/templates/";
+ String recentsfolder = projectfolder+"/config/";
+```
 e.g. with src folder for source files etc
 
 # Make sure you have JavaFX library available
@@ -48,15 +48,22 @@ The next step is to set up the environment variables and make it easier to invok
 
 In the parent folder (the root folder for the github):
 
+```
 export PATH_TO_FX='fxlib'
 alias compilej='javac -cp classes -d classes src/*.java --module-path $PATH_TO_FX --add-modules javafx.controls,javafx.swing,javafx.web'
 alias runprog='java --module-path $PATH_TO_FX --add-modules javafx.controls,javafx.swing,javafx.web -cp classes Main'
+```
 
-Then just type this to compile
+Then just type this to compile:
+
+```
 compilej 
-
+```
 and this to run:
+
+```
 runprog
+```
 
 # Simple instructions
 
