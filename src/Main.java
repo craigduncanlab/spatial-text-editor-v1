@@ -304,7 +304,7 @@ private MenuBar makeMenuBar() {
         // --- FILE MENU ---
         Menu menuFile = new Menu("File");
         //setFileMenu(menuFile);
-        MenuItem OpenTempl = new MenuItem("Open Template");
+        MenuItem OpenTempl = new MenuItem("Open MD document");
         MenuItem SaveName = new MenuItem("Save (selected)");
         MenuItem SaveTempl = new MenuItem("Save As (selected)");
         MenuItem SaveAllTempl = new MenuItem("Save All");

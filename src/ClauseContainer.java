@@ -119,6 +119,7 @@ int count=0; //general purpose counter for node
 int branchcount=0; //general purpose counter for this branch of node
 //html text
 String htmlString="";
+String mdString="";
 //depth, level count for DFS
 int graphdepth=0;
 int graphcount=0;
@@ -173,6 +174,29 @@ public ClauseContainer() {
 public ClauseContainer(String category) {
 	setNodeCategory(category);
 
+}
+
+//constructor with label, main text and notes
+public ClauseContainer(String label, String text, String note) {
+	setShortname(label); 
+	setMD(text);
+	setHTML(text); //TO DO: make this auto-update into HTML note MD using Stage editor
+	setNotes(note);
+	//other
+	setAuthorName("Craig");
+	setDocName(label); //to be phased out.  It's just a MD section.
+    setHeading(label);
+    setOutputText("");
+}
+
+//general update text function
+public void updateMDText(String label, String text, String note) {
+	//setDocName(name);
+	setMD(text);
+    setHeading(label);
+    setNotes(note);
+    //setOutputText(outputtext);
+    //setHTML(htmltext);
 }
 
 /*constructor with category and node text
@@ -573,6 +597,14 @@ public void setHTML (String myString) {
 	this.htmlString = myString;
 }
 
+public void setMD (String myString) {
+	this.mdString = myString;
+}
+
+public String getMD () {
+	return this.mdString;
+}
+
 public String getHTML() {
 	return this.htmlString;
 }
@@ -746,6 +778,7 @@ public ClauseContainer cloneContainer() {
 	ClauseContainer clone = new ClauseContainer();
 	clone.setAllChildNodes(this.myChildNodes);  
 	clone.setHTML(this.htmlString); 
+	clone.setMD(this.mdString);
 	clone.setNumClauses(this.numClauses); //this will hold number of clauses
 	clone.setDocName(this.docname); //to hold the container name or filename
 	clone.setAuthorName(this.docauthor); //to hold author name

@@ -1,11 +1,14 @@
 import java.net.*;
 import java.io.*;
+import java.io.File;
+import java.io.IOException;
 
 //import utilities needed for Arrays lists etc
 import java.util.*; //scanner etc
 //JavaFX
 import javafx.stage.Stage;
 import javafx.stage.Screen;
+import javafx.stage.FileChooser; //for choosing files
 //Screen positioning
 import javafx.geometry.Rectangle2D;
 import javafx.geometry.Insets;
@@ -57,6 +60,11 @@ import javafx.scene.paint.Color;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
+//Desktop etc and file chooser
+import java.awt.Desktop;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 //Class to create a load/save dialogue box (Stage) for use in application
 
@@ -76,20 +84,27 @@ WhiteBoard defaultWhiteBoard = new WhiteBoard();
 //current dialogue
 Stage myStage;
 ClauseContainer targetNode = new ClauseContainer();
+Desktop desktop; 
+/*
+The FileChooser class is located in the javafx.stage package 
+along with the other basic root graphical elements, such as Stage, Window, and Popup. 
+*/
 
 //contructor
 public LoadSave () {
-
+  this.desktop = Desktop.getDesktop();
 }
 
 //constructor with Stage
 public LoadSave (StageManager mySM) {
   this.targetSM=mySM;
+  this.desktop = Desktop.getDesktop();
 }
 
 //constructor with WhiteBoard
 public LoadSave (WhiteBoard myWB) {
   this.defaultWhiteBoard=myWB;
+  this.desktop = Desktop.getDesktop();
 }
 
 private HBox SaveButtonSetup() {
@@ -128,6 +143,7 @@ private HBox LoadButtonSetup() {
 
 private VBox vertSetup(HBox myhbox) {
 	inputTextArea.setPrefRowCount(1);
+  inputTextArea.setText("Hello There"); //default text in loadbox
 	VBox myvbox = new VBox(0,inputTextArea,myhbox);
 	return myvbox;
 }
@@ -152,7 +168,10 @@ public void makeLoad(StageManager targetSM) {
 	this.targetSM = targetSM; //store for later
 	//this.targetNode = null; //store for later
 	//make this dialogue
-	makeDialogue("Load Template",1);
+	//makeDialogue("Load Template",1);
+  //FileChooser newFC = new FileChooser();
+  Stage myChooser = makeStage();
+  myChooser.show();
 }
 
 public void simpleOpen(ClauseContainer myNode) {
@@ -160,6 +179,25 @@ public void simpleOpen(ClauseContainer myNode) {
   System.out.println(this.targetSM.toString());
   this.targetSM.OpenNewNodeNow(myNode, this.targetSM); //TO DO: make this open up in whiteboard.  Should be triggered as if double click on a red box.  i.e. changes focus.
 }
+
+// args is redundant input argument to List: String args[]
+// TO  throws IOException 
+public void ListOfFiles(){
+      //Creating a File object for directory
+      //File directoryPath = new File("D:\\ExampleDirectory");
+      //List of all files and directories
+      try {
+        File directoryPath = new File("");
+        String contents[] = directoryPath.list();
+        System.out.println("List of files and directories in the specified directory:");
+        for(int i=0; i<contents.length; i++) {
+         System.out.println(contents[i]);
+        }
+        }
+      catch (Exception e) {
+        System.out.println ("Problem with listing files and directories");
+        }
+      }
 
 //create dialogue box and display
 
@@ -176,7 +214,13 @@ private void makeDialogue(String title, int option) {
 	if (option==1) {
 		myHBox=LoadButtonSetup();
 	}
-	VBox vertFrame=vertSetup(myHBox);
+	VBox vertFrame=vertSetup(myHBox);  //The text field to display...
+  //Test the ability to list files (TO DO: insert into selectable list)
+  String testoutput=inputTextArea.getText();
+  System.out.println(testoutput);
+  this.inputTextArea.setText("Blah");
+  this.ListOfFiles();
+  //
 	Pane largePane = new Pane();
     largePane.setPrefSize(winWidth, winHeight);
     largePane.getChildren().add(vertFrame); 
@@ -194,11 +238,110 @@ public void Close() {
 	this.myStage.close();
 }
 
+//read in an .md file and then process it
+private void parseMDfile(File myFile) {
+    System.out.println("Begin parsing MD file");
+    TemplateUtil myUtil = new TemplateUtil();
+    String contents = myUtil.getFileText(myFile);
+    //System.out.println(contents);
+    //TO DO: parse file and create a new 'container' for each MD section.
+    //For now: put all the text into 1 new node.
+    ClauseContainer newNode = new ClauseContainer("Test",contents,"notes");
+    if (newNode!=null) {
+      LoadSave.this.targetSM.OpenNewNodeNow(newNode,LoadSave.this.targetSM); 
+      Recents myR = new Recents();
+      myR.updateRecents(myFile.getName());
+    }
+    System.out.println("Finished parsing MD file");
+    //LoadSave.this.Close();
+    return;
+}
+
+
+//This is a separate Loader stage.  Can run it off menu selector or keystrokes.
+private Stage makeStage() {
+        this.myStage= new Stage();
+        this.myStage.setTitle("Open File");
+ 
+        final FileChooser fileChooser = new FileChooser();
+ 
+        final Button openButton = new Button("Open a Markdown File");
+        final Button openMultipleButton = new Button("Open Multiple MD");
+ 
+        openButton.setOnAction(
+            new EventHandler<ActionEvent>() {
+                @Override
+                public void handle(final ActionEvent e) {
+                    File file = fileChooser.showOpenDialog(LoadSave.this.myStage);
+                    if (file != null) {
+                      //String filename=System.out.print(file.toString()); // this is full path
+                      String last=file.getName();
+                      last=last.substring(last.length() - 3);
+                      if (last.equals(".md")==true) {
+                        parseMDfile(file);
+                        System.out.println("Finished parse in 'open button' makeStage");
+                        LoadSave.this.ListOfFiles();// print out current directory
+                      }
+                      //System.exit(0);
+                      //don't do anything for now.
+                      //openFile(file);
+                    }
+                }
+            });
+ 
+        openMultipleButton.setOnAction(
+            new EventHandler<ActionEvent>() {
+                @Override
+                public void handle(final ActionEvent e) {
+                    List<File> list =
+                        fileChooser.showOpenMultipleDialog(LoadSave.this.myStage);
+                    /*if (list != null) {
+                        for (File file : list) {
+                            openFile(file);
+                        }
+                    }
+                    */
+                }
+            });
+ 
+ 
+        final GridPane inputGridPane = new GridPane();
+ 
+        GridPane.setConstraints(openButton, 0, 0);
+        GridPane.setConstraints(openMultipleButton, 1, 0);
+        inputGridPane.setHgap(6);
+        inputGridPane.setVgap(6);
+        inputGridPane.getChildren().addAll(openButton, openMultipleButton);
+ 
+        final Pane rootGroup = new VBox(12);
+        rootGroup.getChildren().addAll(inputGridPane);
+        rootGroup.setPadding(new Insets(12, 12, 12, 12));
+ 
+        this.myStage.setScene(new Scene(rootGroup));
+        return this.myStage;
+    }
+
+//This opens a file, but it defaults to the local system application?
+private void openFile(File file) {
+        try {
+            desktop.open(file);
+        } catch (IOException ex) {
+            Logger.getLogger(
+                FileChooserSample.class.getName()).log(
+                    Level.SEVERE, null, ex
+                );
+        }
+    }
+
 EventHandler<ActionEvent> clickOpen = 
         new EventHandler<ActionEvent>() {
         @Override 
         public void handle(ActionEvent event) {
-            TemplateUtil myUtil = new TemplateUtil();
+            String testoutput=inputTextArea.getText();
+            System.out.println(testoutput);
+            LoadSave.this.inputTextArea.setText("Blah");
+            LoadSave.this.ListOfFiles();
+            /*TemplateUtil myUtil = new TemplateUtil();
             String filename=inputTextArea.getText();
             //ClauseContainer newNode = myUtil.getTemplate(filename); 
             ClauseContainer newNode = myUtil.getStructuredData(filename); 
@@ -210,7 +353,8 @@ EventHandler<ActionEvent> clickOpen =
                 myR.updateRecents(filename);
                 LoadSave.this.Close();
             }
-          }
+          */
+        }
       };
 
 EventHandler<ActionEvent> clickSave = 
@@ -228,6 +372,7 @@ EventHandler<ActionEvent> clickSave =
 	        LoadSave.this.Close();
           }
       };
+
 EventHandler<ActionEvent> clickCancel = 
         new EventHandler<ActionEvent>() {
         @Override 
@@ -235,5 +380,4 @@ EventHandler<ActionEvent> clickCancel =
             LoadSave.this.myStage.close(); //closes this object 
           }
       };
-
 }

@@ -146,6 +146,7 @@ int doccount=0; //document counter for this stage
 
 //This TextArea is the GUI display object for the nodes' docnotes String.  Edit button will update the node's (ClauseContainer) actual data
 TextArea docNameTextArea = new TextArea();
+TextArea mdTextArea = new TextArea();
 TextArea headingTextArea = new TextArea();
 TextArea inputTextArea = new TextArea();
 TextArea outputTextArea = new TextArea();
@@ -561,18 +562,19 @@ private void updateOpenNodeView() {
     String pathText = "Open concept:"+getDisplayNode().getDocName();
     parentBoxText.setText(pathText);
     headingBoxText.setText("Heading:");
-    inputBoxText.setText("Input Text Area:");
+    inputBoxText.setText("Notes Area:");
     outputBoxText.setText("Output Text Area:");
-    conceptsBoxText.setText("Concepts Area:");
+    conceptsBoxText.setText("Markdown:");
     //REFRESHES ALL GUI DATA - EVEN IF NOT CURRENTLY VISIBLE
+        //LHS
         docNameTextArea.setText(getDisplayNode().getDocName());
         headingTextArea.setText(getDisplayNode().getHeading());
-        htmlEditor.setHtmlText(getDisplayNode().getHTML());
+        mdTextArea.setText(getDisplayNode().getMD()); //update the markdown text
         inputTextArea.setText(getDisplayNode().getNotes());
+        outputTextArea.setText(getDisplayNode().getOutputText()); //output node contents
+        //RHS
+        htmlEditor.setHtmlText(getDisplayNode().getHTML());
         
-        //output node contents
-        outputTextArea.setText(getDisplayNode().getOutputText());
-    
         displayConceptSection();
 
     }
@@ -978,24 +980,31 @@ especially if it is a non-edit node?
 
 private void makeSceneForNodeEdit() {
         
-        ScrollPane boxPane = makeScrollGroup();
+        /*ScrollPane boxPane = makeScrollGroup();
         boxPane.setPannable(true);
         boxPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.valueOf("ALWAYS"));
         boxPane.setVmax(500);
+        */
+        
         //NODE VIEWER DIMENSIONS
         int winWidth=650;
         int dblwidth=2*winWidth;
         int winHeight=700;
         int scenewidth=winWidth;
-        boxPane.setPrefSize(winWidth, winHeight-300);
         //HTML editor
         htmlEditor.setPrefSize(winWidth,winHeight);
         //TEXT AREAS
-        inputTextArea.setPrefRowCount(7);
-        inputTextArea.setWrapText(true);
         headingTextArea.setPrefRowCount(1);
+        mdTextArea.setPrefRowCount(20); //for markdown.  Add to boxPane
+        inputTextArea.setPrefRowCount(7); //for notes
+        inputTextArea.setWrapText(true);
         docNameTextArea.setPrefRowCount(1);
-        outputTextArea.setPrefRowCount(10);
+        outputTextArea.setPrefRowCount(1);
+        //
+        //add mdTextArea to BoxPane
+        //ScrollPane boxPane = new ScrollPane();
+        //boxPane.setPrefSize(winWidth, winHeight-300);
+        //boxPane.setContent(mdTextArea);
         //Button for saving clauses
         Button btnUpdate = new Button();
         btnUpdate.setText("Save");
@@ -1025,7 +1034,7 @@ private void makeSceneForNodeEdit() {
             vertFrame = new VBox(0,headingBoxText,headingTextArea,hboxButtons);
              vertFrame.setPrefSize(winWidth,winHeight);
             setTitle(getTitleText(" - HTML Text View"));
-            widebox = new HBox(0,htmlEditor,vertFrame);
+            widebox = new HBox(0,vertFrame,htmlEditor);
             widebox.setPrefSize(dblwidth,winHeight);
         }
         else if (getDisplayNode().getUserView().equals("inputoutput")) {
@@ -1036,17 +1045,17 @@ private void makeSceneForNodeEdit() {
             widebox.setPrefSize(dblwidth,winHeight);
         }
         else if(getDisplayNode().getUserView().equals("nodeboxesonly")) {
-            vertFrame = new VBox(0,docNameTextArea,conceptsBoxText,boxPane,hboxButtons);
+            vertFrame = new VBox(0,docNameTextArea,conceptsBoxText,mdTextArea,hboxButtons);
             vertFrame.setPrefSize(winWidth,winHeight);
             setTitle(getTitleText(" - Concepts View"));
             widebox = new HBox(0,vertFrame);
             widebox.setPrefSize(dblwidth,winHeight);
         }
             else {
-            vertFrame = new VBox(0,parentBoxText,docNameTextArea,headingBoxText,headingTextArea,conceptsBoxText,boxPane,inputBoxText,inputTextArea,outputBoxText,outputTextArea,hboxButtons);
+            vertFrame = new VBox(0,parentBoxText,docNameTextArea,headingBoxText,headingTextArea,conceptsBoxText,mdTextArea,inputBoxText,inputTextArea,outputBoxText,outputTextArea,hboxButtons);
             setTitle(getTitleText(" - Full View"));
             vertFrame.setPrefSize(winWidth,winHeight);
-            widebox = new HBox(0,htmlEditor,vertFrame);
+            widebox = new HBox(0,vertFrame,htmlEditor);
             widebox.setPrefSize(dblwidth,winHeight);
             scenewidth=dblwidth;
             //widebox.getChildren().add()
@@ -1080,7 +1089,7 @@ private void makeSceneForNodeEdit() {
                      System.out.println("makescene Viewer :"+StageManager.this);
                      System.out.println("scene display node :"+getDisplayNode().toString());
                      System.out.println("notes String :"+getDisplayNode().getNotes());
-                     System.out.println("Input text area: "+inputTextArea.getText());
+                     System.out.println("Notes: "+inputTextArea.getText());
                  }
                  else {
                     System.out.println("Problem with change Viewer Focus");
@@ -1105,7 +1114,7 @@ EventHandler<MouseEvent> mouseEnterEventHandler =
         public void handle(MouseEvent t) {
             //SpriteBox currentSprite = ((SpriteBox)(t.getSource()));
             //TO DO: check if mouse is dragging/pressed
-            System.out.println("Detected mouse released - Stage Manager Group"+StageManager.this.getSpriteGroup().toString());
+            //System.out.println("Detected mouse released - Stage Manager Group"+StageManager.this.getSpriteGroup().toString());
             //t.consume();//check
         }
     };
@@ -1142,8 +1151,11 @@ private void closeThisStage() {
 
 //general function to save GUI text data into node (position data for concept boxes is already updated)
 //also performs a save on shared parent.
+//TO DO: remove and just save each text box content to an SQL database.
 private void saveNodeText() {
-    getDisplayNode().updateText(htmlEditor.getHtmlText(),docNameTextArea.getText(),headingTextArea.getText(),inputTextArea.getText(),outputTextArea.getText());
+    //getDisplayNode().updateText(htmlEditor.getHtmlText(),docNameTextArea.getText(),headingTextArea.getText(),inputTextArea.getText(),outputTextArea.getText());
+    
+    getDisplayNode().updateMDText(headingTextArea.getText(),mdTextArea.getText(),inputTextArea.getText());
     ClauseContainer fileNode=getDisplayNode().getUltimateParent();
     if (fileNode==null) {
      System.out.println ("No parent node to save.  saveNodeText method");

@@ -14,6 +14,37 @@ public TemplateUtil() {
 	
 }
 
+//Simple utility to return contents of file as String
+public String getFileText(File myFile) {
+	StringBuffer myText = new StringBuffer(); //mutable String
+	String endOfLine="\n";
+	try {
+		Scanner scanner1 = new Scanner(myFile);
+		if (scanner1==null) {
+			System.out.println("No text/html content");
+			return null;
+		}
+		int nl=0;
+		while (scanner1.hasNextLine()) {
+			nl++;
+			String thisRow=scanner1.nextLine();
+			System.out.println(thisRow);
+			myText.append(thisRow);
+			myText.append(endOfLine);
+		}
+		scanner1.close();
+	}
+	catch (Throwable t)
+	{
+		t.printStackTrace();
+		//System.exit(0);
+		return null;
+	}
+	//System.out.println(myText);
+	//System.exit(0);
+	return myText.toString();
+}
+
 //return a graph node holding the current dictionary as a graph of subnodes
 public ClauseContainer getTemplate(String filename) {
 	return readSimpleTemplate(filename);
