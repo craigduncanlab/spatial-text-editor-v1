@@ -1,4 +1,4 @@
-# Powerdock (2020 Setup update)
+# Powerdock (2020 beta)
 
 # Project folder structure
 
@@ -10,11 +10,7 @@ fxlib : contains the JavaFX library
 
 classes : contains compiled JVM bytecode
 
-templates : contains previous work
-
-config : contains file with config data, like recents list for recents Menu
-
-html: contains any html output from the program.
+content : contains markdown files for input/output
 
 # Setup
 
@@ -80,13 +76,6 @@ To Add a New Concept inside an existing concept:
  
  (2) Choose new concept while the Concepts Area is selected.
  
-To move an existing Concept inside another Concept:
-(1) Open a Concept Box by double clicking 
-
-(2) Highlight another Concept Box (anywhere) so that it is red.
-
-(3) Click inside the open Concept Box's 'Concept Area', then choose "Concept" --> "Move to Target" from main menu.
-
 ## Save and Re-Open
 
-Save and Re-Open existing Concept Structures (Templates) from the File Menu.
+Save and Re-Open existing markdown documents from the File Menu.
