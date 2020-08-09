@@ -39,7 +39,7 @@ When you have downloaded the JavaFX SDK package, locate the folder javafx-sdk-11
 
 Rename it to fxlib and put it into the root folder of the Powerdock project.
 
-# Summary of what to do to get app with JavaFX running from source (as at 7 August 2020)
+# Compiling and running from source
 
 The next step is to set up the environment variables and make it easier to invoke the program.  This requires some terminal (bash) commands to be executed, in order.
 
