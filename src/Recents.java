@@ -164,6 +164,14 @@ private ArrayList<String> readRecents(String filename) {
 		}
 		scanner1.close();
 	}
+
+	catch (FileNotFoundException e) {
+		System.out.println("Cannot find the Recents.pdu file");
+		String stringDefault = " ";
+       //initialize an immutable list from array using asList method
+        newList.add(stringDefault);
+		return newList;
+	}
 	catch (Throwable t)
 	{
 		t.printStackTrace();
@@ -197,11 +205,16 @@ private void writeOut(String listEntry, String filename) {
 	outstream.close();
 	System.setOut(console);
 	}
-		catch (Throwable t)
-		{
-			t.printStackTrace();
-			return;
-		}
+
+	catch (FileNotFoundException e) {
+		System.out.println("Cannot find the Recents.pdu file");
+		return;
+	}
+	catch (Throwable t)
+	{
+		t.printStackTrace();
+		return;
+	}
 }
 
 private void clean(String filename) {
@@ -211,11 +224,15 @@ private void clean(String filename) {
 	PrintWriter pw = new PrintWriter(reportfile);
 	pw.close();
 	}
-		catch (Throwable t)
-		{
-			t.printStackTrace();
-			return;
-		}
+	catch (FileNotFoundException e) {
+		System.out.println("Clean.  Cannot find the Recents.pdu file");
+		return;
+	}
+	catch (Throwable t)
+	{
+		t.printStackTrace();
+		return;
+	}
 
 }
 }

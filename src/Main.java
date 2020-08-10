@@ -1,10 +1,4 @@
-/** 
-
-This application creates a GUI as a legal doc staging, editing & visualisation environment
-JavaFX implementation of GUI started 17.11.2017 by Craig Duncan
-
-*/
- 
+//(c) Craig Duncan 2017-2020 
 
 import javafx.application.Application;
 import javafx.stage.Stage;
@@ -68,28 +62,6 @@ import javafx.stage.FileChooser;
 //key events
 import javafx.scene.input.KeyEvent;
 
-/*
-This 'extends Application' will be the standard extension to collect classes for JavaFX applications.
-JavaFX applications have no general constructor and must override the 'start' method.
-Note that JavaFX applications have a completely new command line interface:
-https://docs.oracle.com/javase/8/javafx/api/javafx/application/Application.Parameters.html
-
-usage:
-From powerdock folder:
-javac -d classes ./src/*.java
-java -cp :classes Main
-
-or java -cp classes Main
-
-From classes folder (this is now the default for config folder etc):
-javac -d ../classes ../src/*.java
-java Main
-
-or java -cp ./ Main
-nb: https://askubuntu.com/questions/64222/how-can-i-create-launchers-on-my-desktop
-
-
-*/
 public class Main extends Application {
     //setup instance variables here.  Static if shared across class (i.e. static=same memory location used)
     //instance variables for Screens to hold them if changed.
@@ -170,11 +142,8 @@ public class Main extends Application {
     //
     WhiteBoard mainWhiteBoard = new WhiteBoard();
 
-/*The main method uses the launch method of the Application class.
-https://docs.oracle.com/javase/8/javafx/api/javafx/application/Application.html
-*/
 
-
+//main launches from Application class
 public static void main(String[] args) {
         launch(args);
   }
@@ -335,8 +304,8 @@ private MenuBar makeMenuBar() {
         */
 
         //--- MENU CONCEPTS
-        Menu menuConcept = new Menu("Concepts");
-        MenuItem newNode = new MenuItem("New Concept");
+        Menu menuConcept = new Menu("Block");
+        MenuItem newNode = new MenuItem("New Block");
         newNode.setOnAction(newNodeMaker);
         MenuItem conceptMove = new MenuItem("Move To Target");
         conceptMove.setOnAction(MoveBoxtoTarget);

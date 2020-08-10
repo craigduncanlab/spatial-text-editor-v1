@@ -1,14 +1,27 @@
-# Demo 
+#- Demo 
 
 This is a demonstration markdown file that can be loaded into the editor.
 
-// Notes for the demonstration markdown
+The minus sign next to the heading hash #- means 'not visible'.
+
+This is 'stateful markdown'.
+
+// In-line notes for notes that appear near the markdown text but by default do not appear in Export md.
 
 The visual editor means that someone does not need to 'know' markdown to get the idea, and they can still convert their work to markdown if needed.
 
+This is a re-purposing of standard markdown to make it easier to work on components of traditional word processing documents, on the assumption that we want to include some meta-data and state changes with our markdown.
+
 ## Lower level heading
 
-# Next markdown
+/* Multi-line notes that appear with each block, in the 'Notes' section of the editor. */
+
+Alternatively, you can format the multi-line notes as code e.g. 
+```
+Multi-line notes
+```
+
+# Box 2
 
 ## Subheading
 
@@ -18,7 +31,6 @@ Each box is reduced to a single hashed heading when opened in the editor, plus i
 
 Filtering out the notes lines should be easy.
 
-Alternatively, you can format the notes as code e.g. ```
 
 # Final markdown
 

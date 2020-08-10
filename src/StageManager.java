@@ -1,40 +1,4 @@
-/* 
-Class to manage each Stage
-30.3.2018
-Until now, Stage Manager class was used as a singleton.
-However, by creating a 'StageManager' object for each stage, it can keep Stage-specific information
-and enormously reduce the complexity of stage position, current sprite location etc.
-
-This is required because the Stage object in JavaFX defined for the GUI.
-This class is a conceptual object that will hold not only the javaFX Stage object, but associated data
-
-Requires stageID to be set at start of app.
-The Group that is part of the JavaFX node tree to which SpriteBoxes are to be added can be stored here.
-(i.e. this saves having to navigate through the GUI node instances to find it each time)
-
-26.4.18
-Most of the functions are intended to be used with a stage that displays a 'node'.
-In effect, this class helps make a GUI: to create a Stage that will display a node, its text and its child nodes, and allow editing
-It also performs tracking of the stage (open node window) with current focus.
-The Workspace is an instance of this class but uses far fewer helper functions.
-
-The stages are iterative: in creating new child node boxes, each box can open a new node editing window
-Therefore, the StageManager is like a visual tree navigator for the node data.
-A node or Stage does not require opening up a separate 'edit' window because each node viewer's design is informative and functional.
-(To do: Consider if "NodeViewer" is a better class name.  Nodes represent abstract 'frames'
-A display option is to have background colour of node editor change for different types/levels)
-
-The stage manager will provide its own GUI functions for updating the node's text.
-28.4.18
-This is also possible with images and video:
-Each node can hold 1 image see https://www.tutorialspoint.com/javafx/javafx_images.htm
-https://docs.oracle.com/javase/8/javafx/media-tutorial/overview.htm
-
-30.4.18
-Provided user choice of views e.g. (a) node text/input, child nodes, output area (b) node text only (c) child nodes only 
-Keys to cycle through that for any chosen node.  [Every node is an app, the app is flexible]
-Easy to achieve through a MVC model.
-*/
+//(c) Craig Duncan 2017-2020
 
 //import utilities needed for Arrays lists etc
 import java.util.*;
@@ -66,6 +30,7 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.Labeled;
+import javafx.scene.control.CheckBox;
 //Scene - general appearance & layout of Background Fills, Stages, nodes
 import javafx.scene.layout.Region;
 import javafx.scene.layout.Background;
@@ -153,8 +118,8 @@ TextArea outputTextArea = new TextArea();
 Text parentBoxText;
 Text headingBoxText;
 Text inputBoxText;
-Text outputBoxText;
-Text conceptsBoxText;
+Text visibleBlockText;
+Text mdHeadingText;
 //Store the common event handlers here for use
 EventHandler<MouseEvent> PressBox;
 EventHandler<MouseEvent> DragBox;
@@ -162,6 +127,8 @@ EventHandler<MouseEvent> DragBox;
 MenuBar localmenubar;
 //html editor
  final HTMLEditor htmlEditor = new HTMLEditor();
+//visibility checkbox
+CheckBox visibleCheck = new CheckBox("Visible");
 
 /*
 Data collection will parallel GUI display of boxes. Provided stage manager can be serialised?
@@ -562,9 +529,10 @@ private void updateOpenNodeView() {
     String pathText = "Open concept:"+getDisplayNode().getDocName();
     parentBoxText.setText(pathText);
     headingBoxText.setText("Heading:");
-    inputBoxText.setText("Notes Area:");
-    outputBoxText.setText("Output Text Area:");
-    conceptsBoxText.setText("Markdown:");
+    inputBoxText.setText("Multi-line notes:");
+    visibleBlockText.setText("Visibility:");
+    visibleCheck.setSelected(true);
+    mdHeadingText.setText("Markdown:");
     //REFRESHES ALL GUI DATA - EVEN IF NOT CURRENTLY VISIBLE
         //LHS
         docNameTextArea.setText(getDisplayNode().getDocName());
@@ -1021,11 +989,12 @@ private void makeSceneForNodeEdit() {
         parentBoxText = new Text();
         headingBoxText = new Text();
         inputBoxText = new Text();
-        outputBoxText = new Text();
-        conceptsBoxText = new Text();
+        visibleBlockText = new Text();
+        mdHeadingText = new Text();
         //set view option
          HBox widebox;
          VBox vertFrame;
+         HBox visiblebox = new HBox(0,visibleBlockText,visibleCheck);
         //handle null case
         if (getDisplayNode().getUserView()==null) {
             getDisplayNode().setUserView("all");
@@ -1038,21 +1007,21 @@ private void makeSceneForNodeEdit() {
             widebox.setPrefSize(dblwidth,winHeight);
         }
         else if (getDisplayNode().getUserView().equals("inputoutput")) {
-            vertFrame = new VBox(0,headingBoxText,headingTextArea,inputBoxText,inputTextArea,outputBoxText,outputTextArea,hboxButtons);
+            vertFrame = new VBox(0,visiblebox,headingBoxText,headingTextArea,mdHeadingText,mdTextArea,inputBoxText,inputTextArea,hboxButtons);
              vertFrame.setPrefSize(winWidth,winHeight);
-            setTitle(getTitleText(" - Input Output View"));
+            setTitle(getTitleText(" Markdown View"));
             widebox = new HBox(0,vertFrame);
             widebox.setPrefSize(dblwidth,winHeight);
         }
         else if(getDisplayNode().getUserView().equals("nodeboxesonly")) {
-            vertFrame = new VBox(0,docNameTextArea,conceptsBoxText,mdTextArea,hboxButtons);
+            vertFrame = new VBox(0,docNameTextArea,mdHeadingText,mdTextArea,hboxButtons);
             vertFrame.setPrefSize(winWidth,winHeight);
             setTitle(getTitleText(" - Concepts View"));
             widebox = new HBox(0,vertFrame);
             widebox.setPrefSize(dblwidth,winHeight);
         }
             else {
-            vertFrame = new VBox(0,parentBoxText,docNameTextArea,headingBoxText,headingTextArea,conceptsBoxText,mdTextArea,inputBoxText,inputTextArea,outputBoxText,outputTextArea,hboxButtons);
+            vertFrame = new VBox(0,visiblebox,parentBoxText,docNameTextArea,headingBoxText,headingTextArea,mdHeadingText,mdTextArea,inputBoxText,inputTextArea,hboxButtons);
             setTitle(getTitleText(" - Full View"));
             vertFrame.setPrefSize(winWidth,winHeight);
             widebox = new HBox(0,vertFrame,htmlEditor);
