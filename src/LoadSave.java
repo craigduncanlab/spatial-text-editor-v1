@@ -238,26 +238,6 @@ public void Close() {
 	this.myStage.close();
 }
 
-//read in an .md file and then process it
-private void parseMDfile(File myFile) {
-    System.out.println("Begin parsing MD file");
-    TemplateUtil myUtil = new TemplateUtil();
-    String contents = myUtil.getFileText(myFile);
-    //System.out.println(contents);
-    //TO DO: parse file and create a new 'container' for each MD section.
-    //For now: put all the text into 1 new node.
-    ClauseContainer newNode = new ClauseContainer("Test",contents,"notes");
-    if (newNode!=null) {
-      LoadSave.this.targetSM.OpenNewNodeNow(newNode,LoadSave.this.targetSM); 
-      Recents myR = new Recents();
-      myR.updateRecents(myFile.getName());
-    }
-    System.out.println("Finished parsing MD file");
-    //LoadSave.this.Close();
-    return;
-}
-
-
 //This is a separate Loader stage.  Can run it off menu selector or keystrokes.
 private Stage makeStage() {
         this.myStage= new Stage();
@@ -278,13 +258,18 @@ private Stage makeStage() {
                       String last=file.getName();
                       last=last.substring(last.length() - 3);
                       if (last.equals(".md")==true) {
-                        parseMDfile(file);
+                        TemplateUtil myUtil = new TemplateUtil();
+                        String contents = myUtil.getFileText(file);
+                        Parser myParser=new Parser();
+                        ClauseContainer newNode=myParser.parseMDfile(contents);
+                        if (newNode!=null) {
+                          LoadSave.this.targetSM.OpenNewNodeNow(newNode,LoadSave.this.targetSM); 
+                          //Recents myR = new Recents();
+                          //myR.updateRecents(file.getName());
+                        }
                         System.out.println("Finished parse in 'open button' makeStage");
                         LoadSave.this.ListOfFiles();// print out current directory
                       }
-                      //System.exit(0);
-                      //don't do anything for now.
-                      //openFile(file);
                     }
                 }
             });
