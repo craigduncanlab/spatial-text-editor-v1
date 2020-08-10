@@ -12,6 +12,8 @@ classes : contains compiled JVM bytecode
 
 content : contains markdown files for input/output
 
+buildnotes: contains notes on Design, Classes.
+
 # Setup
 
 Modify the Config.java file before compiling to ensure project directory is specified.
@@ -64,18 +66,15 @@ runprog
 
 # Simple instructions
 
-## New Concepts
+## Open Markdown document
 
-Choose New and Concept to create a new file structure.
+Choose File --> Open MD Document.
 
-## Adding or Moving Concept Boxes
+This will open up a markdown document inside a block container(s).
 
-Open up a Concept Box by double-clicking.  
-To Add a New Concept inside an existing concept:
- (1) Click inside the 'Concepts Area' inside a Concept Box, then:
- 
- (2) Choose new concept while the Concepts Area is selected.
- 
-## Save and Re-Open
+As markdown parsing functions are added, this will parse the markdown file and divide into appropriate boxes.
 
-Save and Re-Open existing markdown documents from the File Menu.
+## New Blocks
+
+Choose New and Block to create a new container for a markdown heading 1 block.
+
